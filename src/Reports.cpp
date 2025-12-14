@@ -1,4 +1,4 @@
-#include "../include/Reports.h"
+#include "Reports.h"
 
 Reports::Reports(Database* database) : db(database) {}
 
