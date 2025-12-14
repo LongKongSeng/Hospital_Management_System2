@@ -1,4 +1,4 @@
-#include "AdminModule.h"
+#include "../include/AdminModule.h"
 
 AdminModule::AdminModule(Database* database) : db(database) {}
 

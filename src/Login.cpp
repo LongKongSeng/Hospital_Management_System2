@@ -1,4 +1,4 @@
-#include "Login.h"
+#include "../include/Login.h"
 
 Login::Login(Database* database) : db(database), currentUserId(-1), currentUserType(""), currentUsername("") {}
 

@@ -1,4 +1,4 @@
-#include "Registration.h"
+#include "../include/Registration.h"
 
 Registration::Registration(Database* database) : db(database) {}
 

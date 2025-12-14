@@ -1,4 +1,4 @@
-#include "StaffModule.h"
+#include "../include/StaffModule.h"
 
 StaffModule::StaffModule(Database* database, int staffId) : db(database), currentStaffId(staffId) {}
 

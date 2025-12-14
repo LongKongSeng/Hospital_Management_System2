@@ -1,10 +1,11 @@
 ﻿#include <iostream>
 #include <windows.h>
-#include "Database.h"
-#include "Registration.h"
-#include "Login.h"
-#include "AdminModule.h"
-#include "StaffModule.h"
+#include "include/Database.h"
+#include "include/Registration.h"
+#include "include/Login.h"
+#include "include/AdminModule.h"
+#include "include/StaffModule.h"
+#include "include/Reports.h"
 
 using namespace std;
 
@@ -42,6 +43,7 @@ int main() {
     Registration registration(&db);
     Login login(&db);
     AdminModule adminModule(&db);
+    Reports reports(&db);
     StaffModule* staffModule = nullptr;
 
     int mainChoice;
@@ -77,12 +79,39 @@ int main() {
             string userType = login.getCurrentUserType();
             
             if (userType == "admin") {
-                system("cls");
-                cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-                cout << "║                    ADMIN DASHBOARD                            ║" << endl;
-                cout << "║                    Welcome, " << setw(30) << left << login.getCurrentUsername() << "║" << endl;
-                cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
-                adminModule.showMenu();
+                int adminChoice;
+                do {
+                    system("cls");
+                    cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
+                    cout << "║                    ADMIN DASHBOARD                            ║" << endl;
+                    cout << "║                    Welcome, " << setw(30) << left << login.getCurrentUsername() << "║" << endl;
+                    cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+                    cout << "\n╔════════════════════════════════════════╗" << endl;
+                    cout << "║  1. Admin Module                       ║" << endl;
+                    cout << "║  2. Reports & Analytics               ║" << endl;
+                    cout << "║  0. Logout                             ║" << endl;
+                    cout << "╚════════════════════════════════════════╝" << endl;
+                    cout << "\nEnter your choice: ";
+                    cin >> adminChoice;
+                    cin.ignore();
+                    
+                    switch (adminChoice) {
+                    case 1:
+                        adminModule.showMenu();
+                        break;
+                    case 2:
+                        reports.showMenu();
+                        break;
+                    case 0:
+                        login.logout();
+                        loggedIn = false;
+                        break;
+                    default:
+                        cout << "\n❌ Invalid choice!" << endl;
+                        cout << "Press Enter to continue...";
+                        cin.get();
+                    }
+                } while (adminChoice != 0 && loggedIn);
                 
                 // After admin module returns, ask if they want to logout
                 cout << "\nDo you want to logout? (yes/no): ";
