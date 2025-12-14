@@ -1,11 +1,11 @@
 ﻿#include <iostream>
 #include <windows.h>
-#include "include/Database.h"
-#include "include/Registration.h"
-#include "include/Login.h"
-#include "include/AdminModule.h"
-#include "include/StaffModule.h"
-#include "include/Reports.h"
+#include "../include/Database.h"
+#include "../include/Registration.h"
+#include "../include/Login.h"
+#include "../include/AdminModule.h"
+#include "../include/StaffModule.h"
+#include "../include/Reports.h"
 
 using namespace std;
 
