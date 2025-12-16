@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <limits>
 #include <ctime>
+#include <cctype>
 
 using namespace std;
 
@@ -21,6 +22,7 @@ public:
     void registerNurse();
     void registerAdmin();
     bool validatePassword(const string& password1, const string& password2);
+    bool validateContactNumber(const string& contactNumber);
     void displayTableHeader(const string& title);
     void pressEnterToContinue();
     string getStringInput(const string& prompt);

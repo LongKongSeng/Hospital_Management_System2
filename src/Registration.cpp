@@ -135,8 +135,12 @@ void Registration::registerDoctor() {
                 if (firstAttempt && contactNumber == "0") {
                     return;
                 }
-                if (contactNumber.empty()) {
-                    cout << "\n❌ Contact number cannot be empty! Please try again." << endl;
+                if (!validateContactNumber(contactNumber)) {
+                    if (contactNumber.empty()) {
+                        cout << "\n❌ Contact number cannot be empty! Please try again." << endl;
+                    } else {
+                        cout << "\n❌ Contact number must contain only digits (0-9)! Please try again." << endl;
+                    }
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("DOCTOR REGISTRATION");
@@ -363,8 +367,12 @@ void Registration::registerNurse() {
                 if (firstAttempt && contactNumber == "0") {
                     return;
                 }
-                if (contactNumber.empty()) {
-                    cout << "\n❌ Contact number cannot be empty! Please try again." << endl;
+                if (!validateContactNumber(contactNumber)) {
+                    if (contactNumber.empty()) {
+                        cout << "\n❌ Contact number cannot be empty! Please try again." << endl;
+                    } else {
+                        cout << "\n❌ Contact number must contain only digits (0-9)! Please try again." << endl;
+                    }
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("NURSE REGISTRATION");
@@ -584,8 +592,12 @@ void Registration::registerAdmin() {
                 if (firstAttempt && contactNumber == "0") {
                     return;
                 }
-                if (contactNumber.empty()) {
-                    cout << "\n❌ Contact number cannot be empty! Please try again." << endl;
+                if (!validateContactNumber(contactNumber)) {
+                    if (contactNumber.empty()) {
+                        cout << "\n❌ Contact number cannot be empty! Please try again." << endl;
+                    } else {
+                        cout << "\n❌ Contact number must contain only digits (0-9)! Please try again." << endl;
+                    }
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("ADMIN REGISTRATION");
@@ -735,6 +747,19 @@ void Registration::registerAdmin() {
 
 bool Registration::validatePassword(const string& password1, const string& password2) {
     return password1 == password2;
+}
+
+bool Registration::validateContactNumber(const string& contactNumber) {
+    if (contactNumber.empty()) {
+        return false;
+    }
+    // Check if all characters are digits
+    for (char c : contactNumber) {
+        if (!isdigit(c)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void Registration::displayTableHeader(const string& title) {
