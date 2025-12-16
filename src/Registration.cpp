@@ -44,20 +44,16 @@ void Registration::registerDoctor() {
     while (!registrationComplete) {
         system("cls");
         displayTableHeader("DOCTOR REGISTRATION");
+        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
 
         try {
             bool validInput = false;
-            bool firstAttempt = true;
             
             // Full Name
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "\nEnter Full Name (or '0' to cancel): ";
-                } else {
-                    cout << "\nEnter Full Name: ";
-                }
+                cout << "\nEnter Full Name: ";
                 getline(cin, fullName);
-                if (firstAttempt && fullName == "0") {
+                if (fullName == "0") {
                     return; // User wants to cancel
                 }
                 if (fullName.empty()) {
@@ -65,23 +61,18 @@ void Registration::registerDoctor() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("DOCTOR REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                 } else {
-                    firstAttempt = false;
                     validInput = true;
                 }
             }
 
             validInput = false;
-            firstAttempt = true;
             // Gender
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "Enter Gender (Male/Female/Other) (or '0' to cancel): ";
-                } else {
-                    cout << "Enter Gender (Male/Female/Other): ";
-                }
+                cout << "Enter Gender (Male/Female/Other): ";
                 getline(cin, gender);
-                if (firstAttempt && gender == "0") {
+                if (gender == "0") {
                     return;
                 }
                 if (gender.empty()) {
@@ -89,24 +80,19 @@ void Registration::registerDoctor() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("DOCTOR REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                 } else {
-                    firstAttempt = false;
                     validInput = true;
                 }
             }
 
             validInput = false;
-            firstAttempt = true;
             // Specialization
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "Enter Specialization (or '0' to cancel): ";
-                } else {
-                    cout << "Enter Specialization: ";
-                }
+                cout << "Enter Specialization: ";
                 getline(cin, specialization);
-                if (firstAttempt && specialization == "0") {
+                if (specialization == "0") {
                     return;
                 }
                 if (specialization.empty()) {
@@ -114,25 +100,20 @@ void Registration::registerDoctor() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("DOCTOR REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
                 } else {
-                    firstAttempt = false;
                     validInput = true;
                 }
             }
 
             validInput = false;
-            firstAttempt = true;
             // Contact Number
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "Enter Contact Number (or '0' to cancel): ";
-                } else {
-                    cout << "Enter Contact Number: ";
-                }
+                cout << "Enter Contact Number: ";
                 getline(cin, contactNumber);
-                if (firstAttempt && contactNumber == "0") {
+                if (contactNumber == "0") {
                     return;
                 }
                 if (!validateContactNumber(contactNumber)) {
@@ -144,26 +125,21 @@ void Registration::registerDoctor() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("DOCTOR REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
                     cout << "Enter Specialization: " << specialization << endl;
                 } else {
-                    firstAttempt = false;
                     validInput = true;
                 }
             }
 
             validInput = false;
-            firstAttempt = true;
             // Username
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "Create Username (or '0' to cancel): ";
-                } else {
-                    cout << "Create Username: ";
-                }
+                cout << "Create Username: ";
                 getline(cin, username);
-                if (firstAttempt && username == "0") {
+                if (username == "0") {
                     return;
                 }
                 if (username.empty()) {
@@ -171,6 +147,7 @@ void Registration::registerDoctor() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("DOCTOR REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
                     cout << "Enter Specialization: " << specialization << endl;
@@ -185,29 +162,24 @@ void Registration::registerDoctor() {
                         pressEnterToContinue();
                         system("cls");
                         displayTableHeader("DOCTOR REGISTRATION");
+                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                         cout << "\nEnter Full Name: " << fullName << endl;
                         cout << "Enter Gender: " << gender << endl;
                         cout << "Enter Specialization: " << specialization << endl;
                         cout << "Enter Contact Number: " << contactNumber << endl;
                     } else {
                         if (checkRes) delete checkRes;
-                        firstAttempt = false;
                         validInput = true;
                     }
                 }
             }
 
             validInput = false;
-            firstAttempt = true;
             // Password
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "Create Password (or '0' to cancel): ";
-                } else {
-                    cout << "Create Password: ";
-                }
+                cout << "Create Password: ";
                 getline(cin, password1);
-                if (firstAttempt && password1 == "0") {
+                if (password1 == "0") {
                     return;
                 }
                 if (password1.empty()) {
@@ -215,6 +187,7 @@ void Registration::registerDoctor() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("DOCTOR REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
                     cout << "Enter Specialization: " << specialization << endl;
@@ -223,19 +196,22 @@ void Registration::registerDoctor() {
                 } else {
                     cout << "Re-enter Password: ";
                     getline(cin, password2);
+                    if (password2 == "0") {
+                        return;
+                    }
 
                     if (!validatePassword(password1, password2)) {
                         cout << "\n❌ Passwords do not match! Please try again." << endl;
                         pressEnterToContinue();
                         system("cls");
                         displayTableHeader("DOCTOR REGISTRATION");
+                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                         cout << "\nEnter Full Name: " << fullName << endl;
                         cout << "Enter Gender: " << gender << endl;
                         cout << "Enter Specialization: " << specialization << endl;
                         cout << "Enter Contact Number: " << contactNumber << endl;
                         cout << "Create Username: " << username << endl;
                     } else {
-                        firstAttempt = false;
                         validInput = true;
                     }
                 }
@@ -302,20 +278,16 @@ void Registration::registerNurse() {
     while (!registrationComplete) {
         system("cls");
         displayTableHeader("NURSE REGISTRATION");
+        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
 
         try {
             bool validInput = false;
-            bool firstAttempt = true;
             
             // Full Name
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "\nEnter Full Name (or '0' to cancel): ";
-                } else {
-                    cout << "\nEnter Full Name: ";
-                }
+                cout << "\nEnter Full Name: ";
                 getline(cin, fullName);
-                if (firstAttempt && fullName == "0") {
+                if (fullName == "0") {
                     return; // User wants to cancel
                 }
                 if (fullName.empty()) {
@@ -323,23 +295,18 @@ void Registration::registerNurse() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("NURSE REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                 } else {
-                    firstAttempt = false;
                     validInput = true;
                 }
             }
 
             validInput = false;
-            firstAttempt = true;
             // Gender
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "Enter Gender (Male/Female/Other) (or '0' to cancel): ";
-                } else {
-                    cout << "Enter Gender (Male/Female/Other): ";
-                }
+                cout << "Enter Gender (Male/Female/Other): ";
                 getline(cin, gender);
-                if (firstAttempt && gender == "0") {
+                if (gender == "0") {
                     return;
                 }
                 if (gender.empty()) {
@@ -347,24 +314,19 @@ void Registration::registerNurse() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("NURSE REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                 } else {
-                    firstAttempt = false;
                     validInput = true;
                 }
             }
 
             validInput = false;
-            firstAttempt = true;
             // Contact Number
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "Enter Contact Number (or '0' to cancel): ";
-                } else {
-                    cout << "Enter Contact Number: ";
-                }
+                cout << "Enter Contact Number: ";
                 getline(cin, contactNumber);
-                if (firstAttempt && contactNumber == "0") {
+                if (contactNumber == "0") {
                     return;
                 }
                 if (!validateContactNumber(contactNumber)) {
@@ -376,25 +338,20 @@ void Registration::registerNurse() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("NURSE REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
                 } else {
-                    firstAttempt = false;
                     validInput = true;
                 }
             }
 
             validInput = false;
-            firstAttempt = true;
             // Username
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "Create Username (or '0' to cancel): ";
-                } else {
-                    cout << "Create Username: ";
-                }
+                cout << "Create Username: ";
                 getline(cin, username);
-                if (firstAttempt && username == "0") {
+                if (username == "0") {
                     return;
                 }
                 if (username.empty()) {
@@ -402,6 +359,7 @@ void Registration::registerNurse() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("NURSE REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
                     cout << "Enter Contact Number: " << contactNumber << endl;
@@ -415,28 +373,23 @@ void Registration::registerNurse() {
                         pressEnterToContinue();
                         system("cls");
                         displayTableHeader("NURSE REGISTRATION");
+                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                         cout << "\nEnter Full Name: " << fullName << endl;
                         cout << "Enter Gender: " << gender << endl;
                         cout << "Enter Contact Number: " << contactNumber << endl;
                     } else {
                         if (checkRes) delete checkRes;
-                        firstAttempt = false;
                         validInput = true;
                     }
                 }
             }
 
             validInput = false;
-            firstAttempt = true;
             // Password
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "Create Password (or '0' to cancel): ";
-                } else {
-                    cout << "Create Password: ";
-                }
+                cout << "Create Password: ";
                 getline(cin, password1);
-                if (firstAttempt && password1 == "0") {
+                if (password1 == "0") {
                     return;
                 }
                 if (password1.empty()) {
@@ -444,6 +397,7 @@ void Registration::registerNurse() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("NURSE REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
                     cout << "Enter Contact Number: " << contactNumber << endl;
@@ -451,18 +405,21 @@ void Registration::registerNurse() {
                 } else {
                     cout << "Re-enter Password: ";
                     getline(cin, password2);
+                    if (password2 == "0") {
+                        return;
+                    }
 
                     if (!validatePassword(password1, password2)) {
                         cout << "\n❌ Passwords do not match! Please try again." << endl;
                         pressEnterToContinue();
                         system("cls");
                         displayTableHeader("NURSE REGISTRATION");
+                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                         cout << "\nEnter Full Name: " << fullName << endl;
                         cout << "Enter Gender: " << gender << endl;
                         cout << "Enter Contact Number: " << contactNumber << endl;
                         cout << "Create Username: " << username << endl;
                     } else {
-                        firstAttempt = false;
                         validInput = true;
                     }
                 }
@@ -527,20 +484,16 @@ void Registration::registerAdmin() {
     while (!registrationComplete) {
         system("cls");
         displayTableHeader("ADMIN REGISTRATION");
+        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
 
         try {
             bool validInput = false;
-            bool firstAttempt = true;
             
             // Full Name
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "\nEnter Full Name (or '0' to cancel): ";
-                } else {
-                    cout << "\nEnter Full Name: ";
-                }
+                cout << "\nEnter Full Name: ";
                 getline(cin, fullName);
-                if (firstAttempt && fullName == "0") {
+                if (fullName == "0") {
                     return; // User wants to cancel
                 }
                 if (fullName.empty()) {
@@ -548,23 +501,18 @@ void Registration::registerAdmin() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("ADMIN REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                 } else {
-                    firstAttempt = false;
                     validInput = true;
                 }
             }
 
             validInput = false;
-            firstAttempt = true;
             // Email
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "Enter Email (or '0' to cancel): ";
-                } else {
-                    cout << "Enter Email: ";
-                }
+                cout << "Enter Email: ";
                 getline(cin, email);
-                if (firstAttempt && email == "0") {
+                if (email == "0") {
                     return;
                 }
                 if (email.empty() || email.find('@') == string::npos) {
@@ -572,24 +520,19 @@ void Registration::registerAdmin() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("ADMIN REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                 } else {
-                    firstAttempt = false;
                     validInput = true;
                 }
             }
 
             validInput = false;
-            firstAttempt = true;
             // Contact Number
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "Enter Contact Number (or '0' to cancel): ";
-                } else {
-                    cout << "Enter Contact Number: ";
-                }
+                cout << "Enter Contact Number: ";
                 getline(cin, contactNumber);
-                if (firstAttempt && contactNumber == "0") {
+                if (contactNumber == "0") {
                     return;
                 }
                 if (!validateContactNumber(contactNumber)) {
@@ -601,25 +544,20 @@ void Registration::registerAdmin() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("ADMIN REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Email: " << email << endl;
                 } else {
-                    firstAttempt = false;
                     validInput = true;
                 }
             }
 
             validInput = false;
-            firstAttempt = true;
             // Username
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "Create Username (or '0' to cancel): ";
-                } else {
-                    cout << "Create Username: ";
-                }
+                cout << "Create Username: ";
                 getline(cin, username);
-                if (firstAttempt && username == "0") {
+                if (username == "0") {
                     return;
                 }
                 if (username.empty()) {
@@ -627,6 +565,7 @@ void Registration::registerAdmin() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("ADMIN REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Email: " << email << endl;
                     cout << "Enter Contact Number: " << contactNumber << endl;
@@ -640,28 +579,23 @@ void Registration::registerAdmin() {
                         pressEnterToContinue();
                         system("cls");
                         displayTableHeader("ADMIN REGISTRATION");
+                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                         cout << "\nEnter Full Name: " << fullName << endl;
                         cout << "Enter Email: " << email << endl;
                         cout << "Enter Contact Number: " << contactNumber << endl;
                     } else {
                         if (checkRes) delete checkRes;
-                        firstAttempt = false;
                         validInput = true;
                     }
                 }
             }
 
             validInput = false;
-            firstAttempt = true;
             // Password
             while (!validInput) {
-                if (firstAttempt) {
-                    cout << "Create Password (or '0' to cancel): ";
-                } else {
-                    cout << "Create Password: ";
-                }
+                cout << "Create Password: ";
                 getline(cin, password1);
-                if (firstAttempt && password1 == "0") {
+                if (password1 == "0") {
                     return;
                 }
                 if (password1.empty()) {
@@ -669,6 +603,7 @@ void Registration::registerAdmin() {
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("ADMIN REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Email: " << email << endl;
                     cout << "Enter Contact Number: " << contactNumber << endl;
@@ -676,18 +611,21 @@ void Registration::registerAdmin() {
                 } else {
                     cout << "Re-enter Password: ";
                     getline(cin, password2);
+                    if (password2 == "0") {
+                        return;
+                    }
 
                     if (!validatePassword(password1, password2)) {
                         cout << "\n❌ Passwords do not match! Please try again." << endl;
                         pressEnterToContinue();
                         system("cls");
                         displayTableHeader("ADMIN REGISTRATION");
+                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                         cout << "\nEnter Full Name: " << fullName << endl;
                         cout << "Enter Email: " << email << endl;
                         cout << "Enter Contact Number: " << contactNumber << endl;
                         cout << "Create Username: " << username << endl;
                     } else {
-                        firstAttempt = false;
                         validInput = true;
                     }
                 }
