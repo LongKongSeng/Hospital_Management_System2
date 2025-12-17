@@ -69,16 +69,18 @@ void StaffModule::viewPatientStatus() {
     string query;
     switch (choice) {
     case 1:
-        query = "SELECT patient_id, username, full_name, email, phone, date_of_birth, gender, status, registration_date FROM patient ORDER BY patient_id";
+        query = "SELECT patient_id, full_name, gender, date_of_birth, contact_number, blood_type, emergency_contact, status, created_at FROM patient ORDER BY patient_id";
         break;
     case 2:
-        query = "SELECT patient_id, username, full_name, email, phone, date_of_birth, gender, status, registration_date FROM patient WHERE status = 'Active' ORDER BY patient_id";
+        query = "SELECT patient_id, full_name, gender, date_of_birth, contact_number, blood_type, emergency_contact, status, created_at FROM patient WHERE status = 'Active' ORDER BY patient_id";
         break;
     case 3:
-        query = "SELECT patient_id, username, full_name, email, phone, date_of_birth, gender, status, registration_date FROM patient WHERE status = 'In Treatment' ORDER BY patient_id";
+        // Note: Schema only has 'Active' and 'Inactive' status, so we'll show Inactive as "In Treatment"
+        query = "SELECT patient_id, full_name, gender, date_of_birth, contact_number, blood_type, emergency_contact, status, created_at FROM patient WHERE status = 'Inactive' ORDER BY patient_id";
         break;
     case 4:
-        query = "SELECT patient_id, username, full_name, email, phone, date_of_birth, gender, status, registration_date FROM patient WHERE status = 'Discharged' ORDER BY patient_id";
+        // Note: Schema doesn't have 'Discharged' status, showing all patients
+        query = "SELECT patient_id, full_name, gender, date_of_birth, contact_number, blood_type, emergency_contact, status, created_at FROM patient ORDER BY patient_id";
         break;
     case 5:
         {
@@ -88,7 +90,7 @@ void StaffModule::viewPatientStatus() {
                 pressEnterToContinue();
                 return;
             }
-            query = "SELECT patient_id, username, full_name, email, phone, date_of_birth, gender, status, registration_date FROM patient WHERE patient_id = " + to_string(patientId);
+            query = "SELECT patient_id, full_name, gender, date_of_birth, contact_number, blood_type, emergency_contact, status, created_at FROM patient WHERE patient_id = " + to_string(patientId);
         }
         break;
     case 0:
@@ -149,8 +151,7 @@ void StaffModule::updatePatientStatus() {
     cout << "Current Status: " << currentStatus << endl;
     cout << "\nSelect new status:" << endl;
     cout << "1. Active" << endl;
-    cout << "2. In Treatment" << endl;
-    cout << "3. Discharged" << endl;
+    cout << "2. Inactive" << endl;
     cout << "Enter choice: ";
     
     int statusChoice;
@@ -163,10 +164,7 @@ void StaffModule::updatePatientStatus() {
         newStatus = "Active";
         break;
     case 2:
-        newStatus = "In Treatment";
-        break;
-    case 3:
-        newStatus = "Discharged";
+        newStatus = "Inactive";
         break;
     default:
         cout << "\n❌ Invalid choice!" << endl;
@@ -228,21 +226,40 @@ void StaffModule::updatePrescription() {
 
             cout << "Patient: " << patientName << endl;
             
-            string medication = getStringInput("Medication Name: ");
-            string dosage = getStringInput("Dosage: ");
-            string frequency = getStringInput("Frequency: ");
-            int duration = getIntInput("Duration (days): ");
-            string instructions = getStringInput("Instructions: ");
-
-            if (medication.empty()) {
-                cout << "\n❌ Medication name cannot be empty!" << endl;
+            // First, show available medications from pharmacy
+            string pharmacyQuery = "SELECT pharmacy_id, medicine_name, category_of_meds FROM pharmacy ORDER BY medicine_name";
+            sql::ResultSet* pharmacyRes = db->executeSelect(pharmacyQuery);
+            if (pharmacyRes && pharmacyRes->rowsCount() > 0) {
+                cout << "\nAvailable Medications:\n" << endl;
+                cout << "+-------------+----------------------+----------------------+" << endl;
+                cout << "| Pharmacy ID | Medicine Name        | Category             |" << endl;
+                cout << "+-------------+----------------------+----------------------+" << endl;
+                while (pharmacyRes->next()) {
+                    cout << "| " << setw(11) << pharmacyRes->getInt("pharmacy_id")
+                         << "| " << setw(20) << pharmacyRes->getString("medicine_name")
+                         << "| " << setw(20) << pharmacyRes->getString("category_of_meds") << "|" << endl;
+                }
+                cout << "+-------------+----------------------+----------------------+" << endl;
+            }
+            if (pharmacyRes) delete pharmacyRes;
+            
+            int pharmacyId = getIntInput("\nEnter Pharmacy ID (Medication ID): ");
+            if (pharmacyId <= 0) {
+                cout << "\n❌ Invalid Pharmacy ID!" << endl;
                 pressEnterToContinue();
                 return;
             }
+            
+            string dosage = getStringInput("Enter Dosage: ");
+            string durationOfMeds = getStringInput("Enter Duration of Medications: ");
+            string instructions = getStringInput("Enter Instructions: ");
+            string date = getStringInput("Enter Date (YYYY-MM-DD, or press Enter for today): ");
+            if (date.empty()) {
+                date = "CURDATE()";
+            }
 
-            string query = "INSERT INTO prescription (patient_id, staff_id, medication_name, dosage, frequency, duration, instructions, status) "
-                "VALUES (" + to_string(patientId) + ", " + to_string(currentStaffId) + ", '" + medication + "', '" + dosage + "', '" + 
-                frequency + "', " + to_string(duration) + ", '" + instructions + "', 'Active')";
+            string query = "INSERT INTO prescription (pharmacy_id, dosage, duration_of_meds, instructions, date) "
+                "VALUES (" + to_string(pharmacyId) + ", '" + dosage + "', '" + durationOfMeds + "', '" + instructions + "', " + (date == "CURDATE()" ? date : "'" + date + "'") + ")";
 
             if (db->executeUpdate(query)) {
                 cout << "\n✅ Prescription added successfully!" << endl;
@@ -257,8 +274,14 @@ void StaffModule::updatePrescription() {
             system("cls");
             displayTableHeader("ALL PRESCRIPTIONS");
             
-            string query = "SELECT p.prescription_id, pt.full_name as patient_name, p.medication_name, p.dosage, p.frequency, p.duration, p.status, p.prescribed_date "
-                "FROM prescription p JOIN patient pt ON p.patient_id = pt.patient_id ORDER BY p.prescription_id DESC";
+            // Join through medical_record -> diagnosis -> prescription to get patient info
+            string query = "SELECT p.prescription_id, pt.full_name as patient_name, ph.medicine_name, p.dosage, p.duration_of_meds, p.instructions, p.date "
+                "FROM prescription p "
+                "JOIN pharmacy ph ON p.pharmacy_id = ph.pharmacy_id "
+                "LEFT JOIN diagnosis d ON p.prescription_id = d.prescription_id "
+                "LEFT JOIN medical_record mr ON d.diagnosis_id = mr.diagnosis_id "
+                "LEFT JOIN patient pt ON mr.patient_id = pt.patient_id "
+                "ORDER BY p.prescription_id DESC";
             
             sql::ResultSet* res = db->executeSelect(query);
             if (res) {
@@ -285,29 +308,20 @@ void StaffModule::updatePrescription() {
             }
 
             cout << "\nEnter new details (press Enter to keep current value):" << endl;
-            string medication = getStringInput("Medication Name: ");
+            int pharmacyId = getIntInput("Pharmacy ID (Medication ID): ");
             string dosage = getStringInput("Dosage: ");
-            string frequency = getStringInput("Frequency: ");
-            string durationStr = getStringInput("Duration (days): ");
-            string status = getStringInput("Status (Active/Completed/Cancelled): ");
+            string durationOfMeds = getStringInput("Duration of Medications: ");
+            string instructions = getStringInput("Instructions: ");
+            string date = getStringInput("Date (YYYY-MM-DD): ");
 
             string query = "UPDATE prescription SET ";
             vector<string> updates;
             
-            if (!medication.empty()) updates.push_back("medication_name = '" + medication + "'");
+            if (pharmacyId > 0) updates.push_back("pharmacy_id = " + to_string(pharmacyId));
             if (!dosage.empty()) updates.push_back("dosage = '" + dosage + "'");
-            if (!frequency.empty()) updates.push_back("frequency = '" + frequency + "'");
-            if (!durationStr.empty()) {
-                try {
-                    int duration = stoi(durationStr);
-                    updates.push_back("duration = " + to_string(duration));
-                } catch (...) {
-                    cout << "\n❌ Invalid duration!" << endl;
-                    pressEnterToContinue();
-                    return;
-                }
-            }
-            if (!status.empty()) updates.push_back("status = '" + status + "'");
+            if (!durationOfMeds.empty()) updates.push_back("duration_of_meds = '" + durationOfMeds + "'");
+            if (!instructions.empty()) updates.push_back("instructions = '" + instructions + "'");
+            if (!date.empty()) updates.push_back("date = '" + date + "'");
 
             if (updates.empty()) {
                 cout << "\n❌ No fields to update!" << endl;
@@ -341,9 +355,15 @@ void StaffModule::deleteFinishedPrescriptions() {
     system("cls");
     displayTableHeader("DELETE FINISHED PRESCRIPTIONS");
 
-    // First show finished prescriptions
-    string query = "SELECT p.prescription_id, pt.full_name as patient_name, p.medication_name, p.status, p.prescribed_date "
-        "FROM prescription p JOIN patient pt ON p.patient_id = pt.patient_id WHERE p.status = 'Completed' ORDER BY p.prescription_id";
+    // Note: Schema doesn't have status field in prescription, so we'll show all prescriptions
+    // Join through medical_record -> diagnosis -> prescription to get patient info
+    string query = "SELECT p.prescription_id, pt.full_name as patient_name, ph.medicine_name, p.dosage, p.date "
+        "FROM prescription p "
+        "JOIN pharmacy ph ON p.pharmacy_id = ph.pharmacy_id "
+        "LEFT JOIN diagnosis d ON p.prescription_id = d.prescription_id "
+        "LEFT JOIN medical_record mr ON d.diagnosis_id = mr.diagnosis_id "
+        "LEFT JOIN patient pt ON mr.patient_id = pt.patient_id "
+        "ORDER BY p.prescription_id";
     
     sql::ResultSet* res = db->executeSelect(query);
     
@@ -371,14 +391,15 @@ void StaffModule::deleteFinishedPrescriptions() {
     switch (choice) {
     case 1:
         {
-            cout << "\n⚠️  Are you sure you want to delete ALL finished prescriptions? (yes/no): ";
+            cout << "\n⚠️  Are you sure you want to delete ALL prescriptions older than 1 year? (yes/no): ";
             string confirm;
             getline(cin, confirm);
             
             if (confirm == "yes" || confirm == "YES") {
-                string deleteQuery = "DELETE FROM prescription WHERE status = 'Completed'";
+                // Delete prescriptions older than 1 year (schema doesn't have status field)
+                string deleteQuery = "DELETE FROM prescription WHERE date < DATE_SUB(CURDATE(), INTERVAL 1 YEAR)";
                 if (db->executeUpdate(deleteQuery)) {
-                    cout << "\n✅ All finished prescriptions deleted successfully!" << endl;
+                    cout << "\n✅ Old prescriptions deleted successfully!" << endl;
                 } else {
                     cout << "\n❌ Failed to delete prescriptions!" << endl;
                 }
@@ -396,8 +417,8 @@ void StaffModule::deleteFinishedPrescriptions() {
                 return;
             }
 
-            // Verify it's a completed prescription
-            string checkQuery = "SELECT status FROM prescription WHERE prescription_id = " + to_string(prescriptionId);
+            // Verify prescription exists
+            string checkQuery = "SELECT prescription_id FROM prescription WHERE prescription_id = " + to_string(prescriptionId);
             sql::ResultSet* checkRes = db->executeSelect(checkQuery);
             
             if (!checkRes || !checkRes->next()) {
@@ -406,15 +427,7 @@ void StaffModule::deleteFinishedPrescriptions() {
                 pressEnterToContinue();
                 return;
             }
-
-            string status = checkRes->getString("status");
             delete checkRes;
-
-            if (status != "Completed") {
-                cout << "\n❌ Only completed prescriptions can be deleted!" << endl;
-                pressEnterToContinue();
-                return;
-            }
 
             cout << "\n⚠️  Are you sure? (yes/no): ";
             string confirm;
@@ -495,9 +508,26 @@ void StaffModule::updatePatientReport() {
                 return;
             }
 
-            string query = "INSERT INTO patient_report (patient_id, staff_id, report_type, report_date, diagnosis, treatment, notes) "
-                "VALUES (" + to_string(patientId) + ", " + to_string(currentStaffId) + ", '" + reportType + "', '" + reportDate + "', '" + 
-                diagnosis + "', '" + treatment + "', '" + notes + "')";
+            // Use medical_record table instead (patient_report doesn't exist in schema)
+            // Note: medical_record requires doctor_id, so we'll set it to NULL or use a default
+            // For staff reports, we'll store the information in notes field
+            string reportNotes = "Report Type: " + reportType + " | Diagnosis: " + diagnosis + " | Treatment: " + treatment;
+            if (!notes.empty()) {
+                reportNotes += " | Notes: " + notes;
+            }
+            
+            // Get first available doctor_id or use NULL (schema allows NULL but NOT NULL constraint exists)
+            // Since doctor_id is NOT NULL, we need to get a doctor_id
+            string doctorQuery = "SELECT doctor_id FROM doctor WHERE status = 'Active' LIMIT 1";
+            sql::ResultSet* doctorRes = db->executeSelect(doctorQuery);
+            int doctorId = 1; // Default fallback
+            if (doctorRes && doctorRes->next()) {
+                doctorId = doctorRes->getInt("doctor_id");
+            }
+            if (doctorRes) delete doctorRes;
+            
+            string query = "INSERT INTO medical_record (patient_id, doctor_id, diagnosis_id, date_of_record, notes) "
+                "VALUES (" + to_string(patientId) + ", " + to_string(doctorId) + ", NULL, '" + reportDate + "', '" + reportNotes + "')";
 
             if (db->executeUpdate(query)) {
                 cout << "\n✅ Report added successfully!" << endl;
@@ -512,8 +542,9 @@ void StaffModule::updatePatientReport() {
             system("cls");
             displayTableHeader("ALL PATIENT REPORTS");
             
-            string query = "SELECT r.report_id, pt.full_name as patient_name, r.report_type, r.report_date, r.diagnosis, r.treatment, r.created_at "
-                "FROM patient_report r JOIN patient pt ON r.patient_id = pt.patient_id ORDER BY r.report_id DESC";
+            // Use medical_record table instead of patient_report
+            string query = "SELECT mr.record_id, pt.full_name as patient_name, mr.date_of_record, mr.notes "
+                "FROM medical_record mr JOIN patient pt ON mr.patient_id = pt.patient_id ORDER BY mr.record_id DESC";
             
             sql::ResultSet* res = db->executeSelect(query);
             if (res) {
@@ -532,9 +563,9 @@ void StaffModule::updatePatientReport() {
             system("cls");
             displayTableHeader("UPDATE REPORT");
             
-            int reportId = getIntInput("Enter Report ID: ");
-            if (reportId <= 0) {
-                cout << "\n❌ Invalid Report ID!" << endl;
+            int recordId = getIntInput("Enter Record ID: ");
+            if (recordId <= 0) {
+                cout << "\n❌ Invalid Record ID!" << endl;
                 pressEnterToContinue();
                 return;
             }
@@ -546,14 +577,19 @@ void StaffModule::updatePatientReport() {
             string treatment = getStringInput("Treatment: ");
             string notes = getStringInput("Notes: ");
 
-            string query = "UPDATE patient_report SET ";
+            // Use medical_record table instead of patient_report
+            string query = "UPDATE medical_record SET ";
             vector<string> updates;
             
-            if (!reportType.empty()) updates.push_back("report_type = '" + reportType + "'");
-            if (!reportDate.empty()) updates.push_back("report_date = '" + reportDate + "'");
-            if (!diagnosis.empty()) updates.push_back("diagnosis = '" + diagnosis + "'");
-            if (!treatment.empty()) updates.push_back("treatment = '" + treatment + "'");
-            if (!notes.empty()) updates.push_back("notes = '" + notes + "'");
+            if (!reportDate.empty()) updates.push_back("date_of_record = '" + reportDate + "'");
+            // Combine all report info into notes field
+            if (!reportType.empty() || !diagnosis.empty() || !treatment.empty() || !notes.empty()) {
+                string reportNotes = "Report Type: " + reportType + " | Diagnosis: " + diagnosis + " | Treatment: " + treatment;
+                if (!notes.empty()) {
+                    reportNotes += " | Notes: " + notes;
+                }
+                updates.push_back("notes = '" + reportNotes + "'");
+            }
 
             if (updates.empty()) {
                 cout << "\n❌ No fields to update!" << endl;
@@ -565,7 +601,7 @@ void StaffModule::updatePatientReport() {
                 query += updates[i];
                 if (i < updates.size() - 1) query += ", ";
             }
-            query += " WHERE report_id = " + to_string(reportId);
+            query += " WHERE record_id = " + to_string(recordId);
 
             if (db->executeUpdate(query)) {
                 cout << "\n✅ Report updated successfully!" << endl;
@@ -584,61 +620,59 @@ void StaffModule::updatePatientReport() {
 }
 
 void StaffModule::displayPatientTable(sql::ResultSet* res) {
-    cout << "\n+-------------+--------------+----------------------+----------------------+--------------+--------------+--------------+" << endl;
-    cout << "| Patient ID  | Username     | Full Name            | Email                | Phone        | Status       | Registration |" << endl;
-    cout << "+-------------┼--------------┼----------------------┼----------------------┼--------------┼--------------┼--------------+" << endl;
+    cout << "\n+-------------+----------------------+--------+--------------+----------------+----------------+--------------+--------------+" << endl;
+    cout << "| Patient ID  | Full Name            | Gender | Date of Birth| Contact Number | Blood Type     | Status       | Created At   |" << endl;
+    cout << "+-------------+----------------------+--------+--------------+----------------+----------------+--------------+--------------+" << endl;
     
     while (res->next()) {
         cout << "| " << setw(11) << res->getInt("patient_id")
-             << "| " << setw(12) << res->getString("username")
              << "| " << setw(20) << res->getString("full_name")
-             << "| " << setw(20) << res->getString("email")
-             << "| " << setw(12) << res->getString("phone")
-             << "| " << setw(12) << (res->isNull("status") ? "N/A" : res->getString("status"))
-             << "| " << setw(12) << (res->isNull("registration_date") ? "N/A" : res->getString("registration_date").substr(0, 10)) << "|" << endl;
+             << "| " << setw(6) << res->getString("gender")
+             << "| " << setw(12) << res->getString("date_of_birth")
+             << "| " << setw(14) << res->getString("contact_number")
+             << "| " << setw(14) << (res->isNull("blood_type") ? "N/A" : res->getString("blood_type"))
+             << "| " << setw(12) << res->getString("status")
+             << "| " << setw(12) << res->getString("created_at").substr(0, 10) << "|" << endl;
     }
     
-    cout << "+-------------+--------------+----------------------+----------------------+--------------+--------------+--------------+" << endl;
+    cout << "+-------------+----------------------+--------+--------------+----------------+----------------+--------------+--------------+" << endl;
 }
 
 void StaffModule::displayPrescriptionTable(sql::ResultSet* res) {
-    cout << "\n+-----------------+----------------------+----------------------+-----------+-----------+--------------+--------------+" << endl;
-    cout << "| Prescription ID | Patient Name          | Medication           | Dosage    | Frequency | Status       | Prescribed   |" << endl;
-    cout << "+-----------------┼----------------------┼----------------------┼-----------┼-----------┼--------------┼--------------+" << endl;
+    cout << "\n+-----------------+----------------------+----------------------+-----------+----------------------+----------------------+--------------+" << endl;
+    cout << "| Prescription ID | Patient Name          | Medication           | Dosage    | Duration of Meds     | Instructions          | Date         |" << endl;
+    cout << "+-----------------+----------------------+----------------------+-----------+----------------------+----------------------+--------------+" << endl;
     
     while (res->next()) {
+        string patientName = res->isNull("patient_name") ? "N/A" : res->getString("patient_name");
         cout << "| " << setw(15) << res->getInt("prescription_id")
-             << "| " << setw(20) << res->getString("patient_name")
-             << "| " << setw(20) << res->getString("medication_name")
-             << "| " << setw(9) << res->getString("dosage")
-             << "| " << setw(9) << res->getString("frequency")
-             << "| " << setw(12) << res->getString("status")
-             << "| " << setw(12) << res->getString("prescribed_date").substr(0, 10) << "|" << endl;
+             << "| " << setw(20) << patientName
+             << "| " << setw(20) << res->getString("medicine_name")
+             << "| " << setw(9) << (res->isNull("dosage") ? "N/A" : res->getString("dosage"))
+             << "| " << setw(20) << (res->isNull("duration_of_meds") ? "N/A" : res->getString("duration_of_meds"))
+             << "| " << setw(20) << (res->isNull("instructions") ? "N/A" : res->getString("instructions").substr(0, 18))
+             << "| " << setw(12) << res->getString("date").substr(0, 10) << "|" << endl;
     }
     
-    cout << "+-----------------+----------------------+----------------------+-----------+-----------+--------------+--------------+" << endl;
+    cout << "+-----------------+----------------------+----------------------+-----------+----------------------+----------------------+--------------+" << endl;
 }
 
 void StaffModule::displayReportTable(sql::ResultSet* res) {
-    cout << "\n+-----------+----------------------+--------------+--------------+----------------------+----------------------+" << endl;
-    cout << "| Report ID | Patient Name          | Report Type  | Report Date  | Diagnosis             | Treatment            |" << endl;
-    cout << "+-----------┼----------------------┼--------------┼--------------┼----------------------┼----------------------+" << endl;
+    cout << "\n+-----------+----------------------+--------------+----------------------------------------------------------------------+" << endl;
+    cout << "| Record ID | Patient Name          | Date         | Notes                                                                 |" << endl;
+    cout << "+-----------+----------------------+--------------+----------------------------------------------------------------------+" << endl;
     
     while (res->next()) {
-        string diagnosis = res->getString("diagnosis");
-        string treatment = res->getString("treatment");
-        if (diagnosis.length() > 20) diagnosis = diagnosis.substr(0, 17) + "...";
-        if (treatment.length() > 20) treatment = treatment.substr(0, 17) + "...";
-        
-        cout << "| " << setw(9) << res->getInt("report_id")
+        string notes = res->getString("notes");
+        if (notes.length() > 70) notes = notes.substr(0, 67) + "...";
+
+        cout << "| " << setw(9) << res->getInt("record_id")
              << "| " << setw(20) << res->getString("patient_name")
-             << "| " << setw(12) << res->getString("report_type")
-             << "| " << setw(12) << res->getString("report_date")
-             << "| " << setw(20) << diagnosis
-             << "| " << setw(20) << treatment << "|" << endl;
+             << "| " << setw(12) << res->getString("date_of_record").substr(0, 10)
+             << "| " << setw(70) << notes << "|" << endl;
     }
     
-    cout << "+-----------+----------------------+--------------+--------------+----------------------+----------------------+" << endl;
+    cout << "+-----------+----------------------+--------------+----------------------------------------------------------------------+" << endl;
 }
 
 void StaffModule::displayTableHeader(const string& title) {
