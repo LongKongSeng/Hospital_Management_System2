@@ -380,36 +380,36 @@ void Reports::generatePatientReport() {
     displayTableHeader("COMPREHENSIVE PATIENT REPORT");
     
     try {
-        string query = "SELECT p.patient_id, p.full_name, p.email, p.phone, p.status, "
-                      "p.registration_date, "
+        string query = "SELECT p.patient_id, p.full_name, p.contact_number, p.status, "
+                      "p.created_at, "
                       "COUNT(DISTINCT pr.prescription_id) as prescription_count, "
-                      "COUNT(DISTINCT r.report_id) as report_count "
+                      "COUNT(DISTINCT mr.record_id) as report_count "
                       "FROM patient p "
-                      "LEFT JOIN prescription pr ON p.patient_id = pr.patient_id "
-                      "LEFT JOIN patient_report r ON p.patient_id = r.patient_id "
-                      "GROUP BY p.patient_id, p.full_name, p.email, p.phone, p.status, p.registration_date "
+                      "LEFT JOIN medical_record mr ON mr.patient_id = p.patient_id "
+                      "LEFT JOIN diagnosis d ON d.diagnosis_id = mr.diagnosis_id "
+                      "LEFT JOIN prescription pr ON pr.prescription_id = d.prescription_id "
+                      "GROUP BY p.patient_id, p.full_name, p.contact_number, p.status, p.created_at "
                       "ORDER BY p.patient_id";
         
         sql::ResultSet* res = db->executeSelect(query);
         
         if (res) {
-            cout << "\n+-------------+----------------------+----------------------+--------------+--------------+----------------------+----------------------+--------------+" << endl;
-            cout << "| Patient ID  | Full Name            | Email                | Phone        | Status       | Registration Date    | Prescription Count   | Report Count |" << endl;
-            cout << "+-------------┼----------------------┼----------------------┼--------------┼--------------┼----------------------┼----------------------┼--------------+" << endl;
+            cout << "\n+-------------+----------------------+----------------------+--------------+----------------------+----------------------+--------------+" << endl;
+            cout << "| Patient ID  | Full Name            | Contact Number       | Status       | Registration Date    | Prescription Count   | Report Count |" << endl;
+            cout << "+-------------+----------------------+----------------------+--------------+----------------------+----------------------+--------------+" << endl;
             
             while (res->next()) {
-                string regDate = res->isNull("registration_date") ? "N/A" : res->getString("registration_date").substr(0, 10);
+                string regDate = res->isNull("created_at") ? "N/A" : res->getString("created_at").substr(0, 10);
                 cout << "| " << setw(11) << res->getInt("patient_id")
                      << "| " << setw(20) << left << res->getString("full_name")
-                     << "| " << setw(20) << res->getString("email")
-                     << "| " << setw(12) << res->getString("phone")
+                     << "| " << setw(20) << res->getString("contact_number")
                      << "| " << setw(12) << res->getString("status")
                      << "| " << setw(20) << regDate
                      << "| " << setw(20) << right << res->getInt("prescription_count")
                      << "| " << setw(12) << right << res->getInt("report_count") << "|" << endl;
             }
             
-            cout << "+-------------+----------------------+----------------------+--------------+--------------+----------------------+----------------------+--------------+" << endl;
+            cout << "+-------------+----------------------+----------------------+--------------+----------------------+----------------------+--------------+" << endl;
             delete res;
         }
     }
