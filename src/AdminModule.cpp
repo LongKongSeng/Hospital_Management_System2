@@ -11,38 +11,38 @@ void AdminModule::showMenu() {
         
         // Green color theme for admin menu
         ColorUtils::setColor(GREEN);
-        cout << "\n╔════════════════════════════════════════╗" << endl;
+        cout << "\n+----------------------------------------+" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::setColor(WHITE);
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("1. View Pharmacy", GREEN);
         ColorUtils::setColor(WHITE);
-        cout << "                     ║" << endl;
+        cout << "                     |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("2. Generate Hospital Report", GREEN);
         ColorUtils::setColor(WHITE);
-        cout << "          ║" << endl;
+        cout << "          |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("3. Add Patient", GREEN);
         ColorUtils::setColor(WHITE);
-        cout << "                       ║" << endl;
+        cout << "                       |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("4. Patient Receipt", GREEN);
         ColorUtils::setColor(WHITE);
-        cout << "                   ║" << endl;
+        cout << "                   |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("5. Return to Main Menu", YELLOW);
         ColorUtils::setColor(WHITE);
-        cout << "               ║" << endl;
+        cout << "               |" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::setColor(GREEN);
-        cout << "╚════════════════════════════════════════╝" << endl;
+        cout << "+----------------------------------------+" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::printColored("\nEnter your choice: ", CYAN);
@@ -76,12 +76,12 @@ void AdminModule::viewPharmacy() {
     do {
         system("cls");
         displayTableHeader("VIEW PHARMACY");
-        cout << "\n╔════════════════════════════════════════╗" << endl;
-        cout << "║  1. Display All Medications            ║" << endl;
-        cout << "║  2. Filter by Category                ║" << endl;
-        cout << "║  3. Display Graphical Report           ║" << endl;
-        cout << "║  0. Back                              ║" << endl;
-        cout << "╚════════════════════════════════════════╝" << endl;
+        cout << "\n+----------------------------------------+" << endl;
+        cout << "|  1. Display All Medications            |" << endl;
+        cout << "|  2. Filter by Category                |" << endl;
+        cout << "|  3. Display Graphical Report           |" << endl;
+        cout << "|  0. Back                              |" << endl;
+        cout << "+----------------------------------------+" << endl;
         cout << "\nEnter your choice: ";
         cin >> choice;
         cin.ignore();
@@ -133,12 +133,12 @@ void AdminModule::filterPharmacyByCategory() {
     displayTableHeader("FILTER PHARMACY BY CATEGORY");
 
     int choice;
-    cout << "\n╔════════════════════════════════════════╗" << endl;
-    cout << "║  1. Maximum (DESC by quantity)         ║" << endl;
-    cout << "║  2. Minimum (ASC by quantity)          ║" << endl;
-    cout << "║  3. Select Specific Category           ║" << endl;
-    cout << "║  0. Back                              ║" << endl;
-    cout << "╚════════════════════════════════════════╝" << endl;
+    cout << "\n+----------------------------------------+" << endl;
+    cout << "|  1. Maximum (DESC by quantity)         |" << endl;
+    cout << "|  2. Minimum (ASC by quantity)          |" << endl;
+    cout << "|  3. Select Specific Category           |" << endl;
+    cout << "|  0. Back                              |" << endl;
+    cout << "+----------------------------------------+" << endl;
     cout << "\nEnter your choice: ";
     cin >> choice;
     cin.ignore();
@@ -150,9 +150,9 @@ void AdminModule::filterPharmacyByCategory() {
                 "FROM pharmacy ORDER BY quantity DESC, category_of_meds";
         sql::ResultSet* res = db->executeSelect(query);
         if (res) {
-            cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-            cout << "║          PHARMACY - SORTED BY MAXIMUM QUANTITY (DESC)            ║" << endl;
-            cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+            cout << "\n+----------------------------------------------------------------+" << endl;
+            cout << "|          PHARMACY - SORTED BY MAXIMUM QUANTITY (DESC)            |" << endl;
+            cout << "+----------------------------------------------------------------+" << endl;
             displayPharmacyTable(res);
             delete res;
         }
@@ -163,9 +163,9 @@ void AdminModule::filterPharmacyByCategory() {
                 "FROM pharmacy ORDER BY quantity ASC, category_of_meds";
         sql::ResultSet* res = db->executeSelect(query);
         if (res) {
-            cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-            cout << "║          PHARMACY - SORTED BY MINIMUM QUANTITY (ASC)            ║" << endl;
-            cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+            cout << "\n+----------------------------------------------------------------+" << endl;
+            cout << "|          PHARMACY - SORTED BY MINIMUM QUANTITY (ASC)            |" << endl;
+            cout << "+----------------------------------------------------------------+" << endl;
             displayPharmacyTable(res);
             delete res;
         }
@@ -183,9 +183,9 @@ void AdminModule::filterPharmacyByCategory() {
                 "ORDER BY medicine_name";
         sql::ResultSet* res = db->executeSelect(query);
         if (res) {
-            cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-            cout << "║          PHARMACY - CATEGORY: " << left << setw(30) << category << "║" << endl;
-            cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+            cout << "\n+----------------------------------------------------------------+" << endl;
+            cout << "|          PHARMACY - CATEGORY: " << left << setw(30) << category << "|" << endl;
+            cout << "+----------------------------------------------------------------+" << endl;
             if (res->rowsCount() == 0) {
                 cout << "\n⚠️  No medications found in this category!" << endl;
             } else {
@@ -209,11 +209,11 @@ void AdminModule::displayPharmacyGraphical() {
     displayTableHeader("PHARMACY GRAPHICAL REPORT");
 
     int choice;
-    cout << "\n╔════════════════════════════════════════╗" << endl;
-    cout << "║  1. Monthly Report                     ║" << endl;
-    cout << "║  2. Yearly Report                     ║" << endl;
-    cout << "║  0. Back                              ║" << endl;
-    cout << "╚════════════════════════════════════════╝" << endl;
+    cout << "\n+----------------------------------------+" << endl;
+    cout << "|  1. Monthly Report                     |" << endl;
+    cout << "|  2. Yearly Report                     |" << endl;
+    cout << "|  0. Back                              |" << endl;
+    cout << "+----------------------------------------+" << endl;
     cout << "\nEnter your choice: ";
     cin >> choice;
     cin.ignore();
@@ -253,17 +253,17 @@ void AdminModule::generateMonthlyReport() {
         sql::ResultSet* res = db->executeSelect(query);
         
         if (res) {
-            cout << "\n┌───────────┬──────────────────────┬──────────────────────┬──────────────────────────┐" << endl;
-            cout << "│ Month     │ Category              │ Prescription Count   │ Total Quantity Prescribed│" << endl;
-            cout << "├───────────┼──────────────────────┼──────────────────────┼──────────────────────────┤" << endl;
+            cout << "\n+-----------+----------------------+----------------------+--------------------------+" << endl;
+            cout << "| Month     | Category              | Prescription Count   | Total Quantity Prescribed|" << endl;
+            cout << "+-----------┼----------------------┼----------------------┼--------------------------+" << endl;
             
             while (res->next()) {
-                cout << "│ " << setw(9) << res->getString("month")
-                     << "│ " << setw(20) << res->getString("category_of_meds")
-                     << "│ " << setw(20) << res->getInt("prescription_count")
-                     << "│ " << setw(24) << res->getInt("total_quantity_prescribed") << "│" << endl;
+                cout << "| " << setw(9) << res->getString("month")
+                     << "| " << setw(20) << res->getString("category_of_meds")
+                     << "| " << setw(20) << res->getInt("prescription_count")
+                     << "| " << setw(24) << res->getInt("total_quantity_prescribed") << "|" << endl;
             }
-            cout << "└───────────┴──────────────────────┴──────────────────────┴──────────────────────────┘" << endl;
+            cout << "+-----------+----------------------+----------------------+--------------------------+" << endl;
             
             // Display graphical representation
             cout << "\n\nGRAPHICAL REPRESENTATION (Monthly Medication Prescribed):\n" << endl;
@@ -318,17 +318,17 @@ void AdminModule::generateYearlyReport() {
         sql::ResultSet* res = db->executeSelect(query);
         
         if (res) {
-            cout << "\n┌───────┬──────────────────────┬──────────────────────┬──────────────────────────┐" << endl;
-            cout << "│ Year  │ Category              │ Prescription Count   │ Total Quantity Prescribed│" << endl;
-            cout << "├───────┼──────────────────────┼──────────────────────┼──────────────────────────┤" << endl;
+            cout << "\n+-------+----------------------+----------------------+--------------------------+" << endl;
+            cout << "| Year  | Category              | Prescription Count   | Total Quantity Prescribed|" << endl;
+            cout << "+-------┼----------------------┼----------------------┼--------------------------+" << endl;
             
             while (res->next()) {
-                cout << "│ " << setw(5) << res->getInt("year")
-                     << "│ " << setw(20) << res->getString("category_of_meds")
-                     << "│ " << setw(20) << res->getInt("prescription_count")
-                     << "│ " << setw(24) << res->getInt("total_quantity_prescribed") << "│" << endl;
+                cout << "| " << setw(5) << res->getInt("year")
+                     << "| " << setw(20) << res->getString("category_of_meds")
+                     << "| " << setw(20) << res->getInt("prescription_count")
+                     << "| " << setw(24) << res->getInt("total_quantity_prescribed") << "|" << endl;
             }
-            cout << "└───────┴──────────────────────┴──────────────────────┴──────────────────────────┘" << endl;
+            cout << "+-------+----------------------+----------------------+--------------------------+" << endl;
             
             // Display graphical representation
             cout << "\n\nGRAPHICAL REPRESENTATION (Annual Medication Prescribed):\n" << endl;
@@ -369,11 +369,11 @@ void AdminModule::generateHospitalReport() {
     displayTableHeader("GENERATE HOSPITAL REPORT");
 
     int choice;
-    cout << "\n╔════════════════════════════════════════╗" << endl;
-    cout << "║  1. Filter Category                    ║" << endl;
-    cout << "║  2. Display Graph                      ║" << endl;
-    cout << "║  3. Exit Report Generation             ║" << endl;
-    cout << "╚════════════════════════════════════════╝" << endl;
+    cout << "\n+----------------------------------------+" << endl;
+    cout << "|  1. Filter Category                    |" << endl;
+    cout << "|  2. Display Graph                      |" << endl;
+    cout << "|  3. Exit Report Generation             |" << endl;
+    cout << "+----------------------------------------+" << endl;
     cout << "\nEnter your choice: ";
     cin >> choice;
     cin.ignore();
@@ -414,9 +414,9 @@ void AdminModule::displayGraphicalReport() {
         sql::ResultSet* res = db->executeSelect(query);
         
         if (res) {
-            cout << "\n┌──────────────────────┬──────────────────────┬──────────────────────┬──────────────────┐" << endl;
-            cout << "│ Category             │ Total Prescriptions  │ Total Quantity       │ Average Price    │" << endl;
-            cout << "├──────────────────────┼──────────────────────┼──────────────────────┼──────────────────┤" << endl;
+            cout << "\n+----------------------+----------------------+----------------------+------------------+" << endl;
+            cout << "| Category             | Total Prescriptions  | Total Quantity       | Average Price    |" << endl;
+            cout << "+----------------------┼----------------------┼----------------------┼------------------+" << endl;
             
             double maxPrescriptions = 0;
             vector<pair<string, int>> chartData;
@@ -427,12 +427,12 @@ void AdminModule::displayGraphicalReport() {
                 chartData.push_back({category, prescriptions});
                 if (prescriptions > maxPrescriptions) maxPrescriptions = prescriptions;
                 
-                cout << "│ " << setw(20) << category
-                     << "│ " << setw(20) << prescriptions
-                     << "│ " << setw(20) << res->getInt("total_quantity")
-                     << "│ RM " << setw(13) << fixed << setprecision(2) << res->getDouble("avg_price") << "│" << endl;
+                cout << "| " << setw(20) << category
+                     << "| " << setw(20) << prescriptions
+                     << "| " << setw(20) << res->getInt("total_quantity")
+                     << "| RM " << setw(13) << fixed << setprecision(2) << res->getDouble("avg_price") << "|" << endl;
             }
-            cout << "└──────────────────────┴──────────────────────┴──────────────────────┴──────────────────┘" << endl;
+            cout << "+----------------------+----------------------+----------------------+------------------+" << endl;
             
             // Display bar chart
             cout << "\n\nGRAPHICAL CHART (Amount of Medication Prescribed):\n" << endl;
@@ -519,16 +519,16 @@ void AdminModule::addPatient() {
             string getQuery = "SELECT patient_id, full_name, gender, date_of_birth, contact_number, status FROM patient WHERE full_name = '" + fullName + "' ORDER BY patient_id DESC LIMIT 1";
             sql::ResultSet* res = db->executeSelect(getQuery);
             if (res && res->next()) {
-                cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-                cout << "║                    PATIENT DETAILS                             ║" << endl;
-                cout << "╠════════════════════════════════════════════════════════════════╣" << endl;
-                cout << "║ Patient ID: " << left << setw(44) << res->getInt("patient_id") << "║" << endl;
-                cout << "║ Full Name: " << left << setw(46) << res->getString("full_name") << "║" << endl;
-                cout << "║ Gender: " << left << setw(49) << res->getString("gender") << "║" << endl;
-                cout << "║ Date of Birth: " << left << setw(42) << res->getString("date_of_birth") << "║" << endl;
-                cout << "║ Contact Number: " << left << setw(41) << res->getString("contact_number") << "║" << endl;
-                cout << "║ Status: " << left << setw(49) << res->getString("status") << "║" << endl;
-                cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+                cout << "\n+----------------------------------------------------------------+" << endl;
+                cout << "|                    PATIENT DETAILS                             |" << endl;
+                cout << "+----------------------------------------------------------------+" << endl;
+                cout << "| Patient ID: " << left << setw(44) << res->getInt("patient_id") << "|" << endl;
+                cout << "| Full Name: " << left << setw(46) << res->getString("full_name") << "|" << endl;
+                cout << "| Gender: " << left << setw(49) << res->getString("gender") << "|" << endl;
+                cout << "| Date of Birth: " << left << setw(42) << res->getString("date_of_birth") << "|" << endl;
+                cout << "| Contact Number: " << left << setw(41) << res->getString("contact_number") << "|" << endl;
+                cout << "| Status: " << left << setw(49) << res->getString("status") << "|" << endl;
+                cout << "+----------------------------------------------------------------+" << endl;
             }
             if (res) delete res;
         } else {
@@ -652,37 +652,37 @@ void AdminModule::displayReceipt(int patientId, double totalAmount) {
         sql::ResultSet* treatmentRes = db->executeSelect(treatmentQuery);
 
         // Display receipt
-        cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-        cout << "║                    HOSPITAL RECEIPT                            ║" << endl;
-        cout << "╠════════════════════════════════════════════════════════════════╣" << endl;
-        cout << "║ Patient ID: " << left << setw(45) << to_string(patientId) << "║" << endl;
-        cout << "║ Patient Name: " << left << setw(43) << patientName << "║" << endl;
-        cout << "║ Contact Number: " << left << setw(42) << contactNumber << "║" << endl;
-        cout << "║ Date of Birth: " << left << setw(42) << dob << "║" << endl;
-        cout << "╠════════════════════════════════════════════════════════════════╣" << endl;
-        cout << "║                    TREATMENT DETAILS                           ║" << endl;
-        cout << "╠════════════════════════════════════════════════════════════════╣" << endl;
+        cout << "\n+----------------------------------------------------------------+" << endl;
+        cout << "|                    HOSPITAL RECEIPT                            |" << endl;
+        cout << "+----------------------------------------------------------------+" << endl;
+        cout << "| Patient ID: " << left << setw(45) << to_string(patientId) << "|" << endl;
+        cout << "| Patient Name: " << left << setw(43) << patientName << "|" << endl;
+        cout << "| Contact Number: " << left << setw(42) << contactNumber << "|" << endl;
+        cout << "| Date of Birth: " << left << setw(42) << dob << "|" << endl;
+        cout << "+----------------------------------------------------------------+" << endl;
+        cout << "|                    TREATMENT DETAILS                           |" << endl;
+        cout << "+----------------------------------------------------------------+" << endl;
 
         if (treatmentRes && treatmentRes->rowsCount() > 0) {
-            cout << "║ " << left << setw(58) << "Treatment ID | Doctor | Consultation Fee | Treatment Fee | Date" << "║" << endl;
-            cout << "╠════════════════════════════════════════════════════════════════╣" << endl;
+            cout << "| " << left << setw(58) << "Treatment ID | Doctor | Consultation Fee | Treatment Fee | Date" << "|" << endl;
+            cout << "+----------------------------------------------------------------+" << endl;
             
             while (treatmentRes->next()) {
-                cout << "║ " << left << setw(5) << treatmentRes->getInt("treatment_id")
+                cout << "| " << left << setw(5) << treatmentRes->getInt("treatment_id")
                      << " | " << setw(15) << treatmentRes->getString("doctor_name").substr(0, 15)
                      << " | RM " << setw(12) << fixed << setprecision(2) << treatmentRes->getDouble("consultation_fee")
                      << " | RM " << setw(12) << fixed << setprecision(2) << treatmentRes->getDouble("treatment_fee")
-                     << " | " << setw(10) << treatmentRes->getString("treatment_date") << "║" << endl;
+                     << " | " << setw(10) << treatmentRes->getString("treatment_date") << "|" << endl;
             }
         } else {
-            cout << "║ " << left << setw(58) << "No treatments found. Default consultation fee applied." << "║" << endl;
+            cout << "| " << left << setw(58) << "No treatments found. Default consultation fee applied." << "|" << endl;
         }
         if (treatmentRes) delete treatmentRes;
 
-        cout << "╠════════════════════════════════════════════════════════════════╣" << endl;
-        cout << "║ Total Amount: " << left << setw(43) << ("RM " + to_string(totalAmount)) << "║" << endl;
-        cout << "║ Date: " << left << setw(50) << (string(__DATE__) + " " + string(__TIME__)) << "║" << endl;
-        cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+        cout << "+----------------------------------------------------------------+" << endl;
+        cout << "| Total Amount: " << left << setw(43) << ("RM " + to_string(totalAmount)) << "|" << endl;
+        cout << "| Date: " << left << setw(50) << (string(__DATE__) + " " + string(__TIME__)) << "|" << endl;
+        cout << "+----------------------------------------------------------------+" << endl;
 
     }
     catch (exception& e) {
@@ -691,41 +691,41 @@ void AdminModule::displayReceipt(int patientId, double totalAmount) {
 }
 
 void AdminModule::displayPharmacyTable(sql::ResultSet* res) {
-    cout << "\n┌─────────────┬──────────────────────┬──────────────────────┬──────────┬─────────────┐" << endl;
-    cout << "│ Pharmacy ID │ Medicine Name        │ Category              │ Quantity │ Unit Price  │" << endl;
-    cout << "├─────────────┼──────────────────────┼──────────────────────┼──────────┼─────────────┤" << endl;
+    cout << "\n+-------------+----------------------+----------------------+----------+-------------+" << endl;
+    cout << "| Pharmacy ID | Medicine Name        | Category              | Quantity | Unit Price  |" << endl;
+    cout << "+-------------┼----------------------┼----------------------┼----------┼-------------+" << endl;
     
     while (res->next()) {
-        cout << "│ " << setw(11) << res->getInt("pharmacy_id")
-             << "│ " << setw(20) << res->getString("medicine_name")
-             << "│ " << setw(20) << res->getString("category_of_meds")
-             << "│ " << setw(8) << res->getInt("quantity")
-             << "│ RM " << setw(9) << fixed << setprecision(2) << res->getDouble("unit_price") << "│" << endl;
+        cout << "| " << setw(11) << res->getInt("pharmacy_id")
+             << "| " << setw(20) << res->getString("medicine_name")
+             << "| " << setw(20) << res->getString("category_of_meds")
+             << "| " << setw(8) << res->getInt("quantity")
+             << "| RM " << setw(9) << fixed << setprecision(2) << res->getDouble("unit_price") << "|" << endl;
     }
     
-    cout << "└─────────────┴──────────────────────┴──────────────────────┴──────────┴─────────────┘" << endl;
+    cout << "+-------------+----------------------+----------------------+----------+-------------+" << endl;
 }
 
 void AdminModule::displayTableHeader(const string& title) {
     // Green theme header
     ColorUtils::setColor(GREEN);
-    cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-    cout << "║" << setw(60) << "" << "║" << endl;
+    cout << "\n+----------------------------------------------------------------+" << endl;
+    cout << "|" << setw(60) << "" << "|" << endl;
     ColorUtils::resetColor();
     
     // Highlighted title
     ColorUtils::setColor(WHITE);
-    cout << "║";
+    cout << "|";
     int padding = (60 - title.length()) / 2;
     for (int i = 0; i < padding; i++) cout << " ";
     ColorUtils::printColoredBG(title, YELLOW, GREEN);
     for (int i = 0; i < (60 - title.length() - padding); i++) cout << " ";
     ColorUtils::setColor(WHITE);
-    cout << "║" << endl;
+    cout << "|" << endl;
     
     ColorUtils::setColor(GREEN);
-    cout << "║" << setw(60) << "" << "║" << endl;
-    cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+    cout << "|" << setw(60) << "" << "|" << endl;
+    cout << "+----------------------------------------------------------------+" << endl;
     ColorUtils::resetColor();
 }
 

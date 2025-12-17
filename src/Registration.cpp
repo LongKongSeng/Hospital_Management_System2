@@ -11,38 +11,38 @@ void Registration::showPreRegistrationMenu() {
         
         // Magenta color theme for registration menu
         ColorUtils::setColor(MAGENTA);
-        cout << "\n╔════════════════════════════════════════╗" << endl;
+        cout << "\n+----------------------------------------+" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::setColor(WHITE);
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("Select Role:", MAGENTA);
         ColorUtils::setColor(WHITE);
-        cout << "                         ║" << endl;
+        cout << "                         |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("1. Doctor", MAGENTA);
         ColorUtils::setColor(WHITE);
-        cout << "                            ║" << endl;
+        cout << "                            |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("2. Nurse", MAGENTA);
         ColorUtils::setColor(WHITE);
-        cout << "                             ║" << endl;
+        cout << "                             |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("3. Admin", MAGENTA);
         ColorUtils::setColor(WHITE);
-        cout << "                             ║" << endl;
+        cout << "                             |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("0. Back to Main Menu", YELLOW);
         ColorUtils::setColor(WHITE);
-        cout << "                 ║" << endl;
+        cout << "                 |" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::setColor(MAGENTA);
-        cout << "╚════════════════════════════════════════╝" << endl;
+        cout << "+----------------------------------------+" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::printColored("\nEnter your choice: ", CYAN);
@@ -271,14 +271,14 @@ void Registration::registerDoctor() {
                         cout << "\n✅ Doctor registered successfully!" << endl;
                         
                         // Display registered doctor in table format
-                        cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-                        cout << "║                    REGISTERED DOCTOR DETAILS                  ║" << endl;
-                        cout << "╠════════════════════════════════════════════════════════════════╣" << endl;
-                        cout << "║ Username: " << left << setw(47) << username << "║" << endl;
-                        cout << "║ Full Name: " << left << setw(46) << fullName << "║" << endl;
-                        cout << "║ Specialization: " << left << setw(41) << specialization << "║" << endl;
-                        cout << "║ Contact Number: " << left << setw(41) << contactNumber << "║" << endl;
-                        cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+                        cout << "\n+----------------------------------------------------------------+" << endl;
+                        cout << "|                    REGISTERED DOCTOR DETAILS                  |" << endl;
+                        cout << "+----------------------------------------------------------------+" << endl;
+                        cout << "| Username: " << left << setw(47) << username << "|" << endl;
+                        cout << "| Full Name: " << left << setw(46) << fullName << "|" << endl;
+                        cout << "| Specialization: " << left << setw(41) << specialization << "|" << endl;
+                        cout << "| Contact Number: " << left << setw(41) << contactNumber << "|" << endl;
+                        cout << "+----------------------------------------------------------------+" << endl;
                         registrationComplete = true;
                     } else {
                         cout << "\n⚠️  Doctor created but login failed! Please contact admin." << endl;
@@ -478,13 +478,13 @@ void Registration::registerNurse() {
                     if (db->executeUpdate(loginQuery)) {
                         cout << "\n✅ Nurse registered successfully!" << endl;
                         
-                        cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-                        cout << "║                    REGISTERED NURSE DETAILS                   ║" << endl;
-                        cout << "╠════════════════════════════════════════════════════════════════╣" << endl;
-                        cout << "║ Username: " << left << setw(47) << username << "║" << endl;
-                        cout << "║ Full Name: " << left << setw(46) << fullName << "║" << endl;
-                        cout << "║ Contact Number: " << left << setw(41) << contactNumber << "║" << endl;
-                        cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+                        cout << "\n+----------------------------------------------------------------+" << endl;
+                        cout << "|                    REGISTERED NURSE DETAILS                   |" << endl;
+                        cout << "+----------------------------------------------------------------+" << endl;
+                        cout << "| Username: " << left << setw(47) << username << "|" << endl;
+                        cout << "| Full Name: " << left << setw(46) << fullName << "|" << endl;
+                        cout << "| Contact Number: " << left << setw(41) << contactNumber << "|" << endl;
+                        cout << "+----------------------------------------------------------------+" << endl;
                         registrationComplete = true;
                     } else {
                         cout << "\n⚠️  Nurse created but login failed! Please contact admin." << endl;
@@ -684,13 +684,13 @@ void Registration::registerAdmin() {
                     if (db->executeUpdate(loginQuery)) {
                         cout << "\n✅ Admin registered successfully!" << endl;
                         
-                        cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-                        cout << "║                    REGISTERED ADMIN DETAILS                     ║" << endl;
-                        cout << "╠════════════════════════════════════════════════════════════════╣" << endl;
-                        cout << "║ Username: " << left << setw(47) << username << "║" << endl;
-                        cout << "║ Full Name: " << left << setw(46) << fullName << "║" << endl;
-                        cout << "║ Email: " << left << setw(50) << email << "║" << endl;
-                        cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+                        cout << "\n+----------------------------------------------------------------+" << endl;
+                        cout << "|                    REGISTERED ADMIN DETAILS                     |" << endl;
+                        cout << "+----------------------------------------------------------------+" << endl;
+                        cout << "| Username: " << left << setw(47) << username << "|" << endl;
+                        cout << "| Full Name: " << left << setw(46) << fullName << "|" << endl;
+                        cout << "| Email: " << left << setw(50) << email << "|" << endl;
+                        cout << "+----------------------------------------------------------------+" << endl;
                         registrationComplete = true;
                     } else {
                         cout << "\n⚠️  Admin created but login failed! Please contact system administrator." << endl;
@@ -734,23 +734,23 @@ bool Registration::validateContactNumber(const string& contactNumber) {
 void Registration::displayTableHeader(const string& title) {
     // Magenta theme header
     ColorUtils::setColor(MAGENTA);
-    cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-    cout << "║" << setw(60) << "" << "║" << endl;
+    cout << "\n+----------------------------------------------------------------+" << endl;
+    cout << "|" << setw(60) << "" << "|" << endl;
     ColorUtils::resetColor();
     
     // Highlighted title
     ColorUtils::setColor(WHITE);
-    cout << "║";
+    cout << "|";
     int padding = (60 - title.length()) / 2;
     for (int i = 0; i < padding; i++) cout << " ";
     ColorUtils::printColoredBG(title, YELLOW, MAGENTA);
     for (int i = 0; i < (60 - title.length() - padding); i++) cout << " ";
     ColorUtils::setColor(WHITE);
-    cout << "║" << endl;
+    cout << "|" << endl;
     
     ColorUtils::setColor(MAGENTA);
-    cout << "║" << setw(60) << "" << "║" << endl;
-    cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+    cout << "|" << setw(60) << "" << "|" << endl;
+    cout << "+----------------------------------------------------------------+" << endl;
     ColorUtils::resetColor();
 }
 

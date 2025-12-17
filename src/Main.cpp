@@ -17,44 +17,44 @@ void displayMainMenu() {
     
     // Beautiful colorful header with highlighted title
     ColorUtils::setColor(CYAN);
-    cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-    cout << "║                                                                ║" << endl;
+    cout << "\n+----------------------------------------------------------------------+" << endl;
+    cout << "|                                                                |" << endl;
     ColorUtils::resetColor();
     
     // Highlighted title with bright cyan background
-    ColorUtils::printColoredBG("║              ", CYAN, BLACK);
+    ColorUtils::printColoredBG("|              ", CYAN, BLACK);
     ColorUtils::printColoredBG("HOSPITAL MANAGEMENT SYSTEM", YELLOW, CYAN);
-    ColorUtils::printColoredBG("                        ║\n", CYAN, BLACK);
+    ColorUtils::printColoredBG("                        |\n", CYAN, BLACK);
     
     ColorUtils::setColor(CYAN);
-    cout << "║                                                                ║" << endl;
-    cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+    cout << "|                                                                |" << endl;
+    cout << "+----------------------------------------------------------------------+" << endl;
     ColorUtils::resetColor();
     
     // Colorful menu options
     ColorUtils::setColor(BLUE);
-    cout << "\n╔════════════════════════════════════════╗" << endl;
+    cout << "\n+----------------------------------------+" << endl;
     ColorUtils::resetColor();
     
     ColorUtils::setColor(WHITE);
-    cout << "║  ";
+    cout << "|  ";
     ColorUtils::printColored("1. Registration", CYAN);
     ColorUtils::setColor(WHITE);
-    cout << "                        ║" << endl;
+    cout << "                        |" << endl;
     
-    cout << "║  ";
+    cout << "|  ";
     ColorUtils::printColored("2. Login", CYAN);
     ColorUtils::setColor(WHITE);
-    cout << "                              ║" << endl;
+    cout << "                              |" << endl;
     
-    cout << "║  ";
+    cout << "|  ";
     ColorUtils::printColored("0. Exit", RED);
     ColorUtils::setColor(WHITE);
-    cout << "                               ║" << endl;
+    cout << "                               |" << endl;
     ColorUtils::resetColor();
     
     ColorUtils::setColor(BLUE);
-    cout << "╚════════════════════════════════════════╝" << endl;
+    cout << "+----------------------------------------+" << endl;
     ColorUtils::resetColor();
 }
 

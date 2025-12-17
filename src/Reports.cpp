@@ -11,119 +11,119 @@ void Reports::showMenu() {
         
         // Bright White/Yellow color theme for reports menu
         ColorUtils::setColor(WHITE);
-        cout << "\n╔════════════════════════════════════════╗" << endl;
+        cout << "\n+----------------------------------------+" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::setColor(WHITE);
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("COMPLEX CALCULATIONS:", YELLOW);
         ColorUtils::setColor(WHITE);
-        cout << "                  ║" << endl;
+        cout << "                  |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("1. Total Inventory Value", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "              ║" << endl;
+        cout << "              |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("2. Category Statistics", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "               ║" << endl;
+        cout << "               |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("3. Monthly Sales Analysis", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "            ║" << endl;
+        cout << "            |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("4. Profit Margin Analysis", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "             ║" << endl;
+        cout << "             |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("5. Patient Statistics", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "                 ║" << endl;
+        cout << "                 |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("6. Prescription Statistics", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "            ║" << endl;
+        cout << "            |" << endl;
         
-        cout << "║                                        ║" << endl;
+        cout << "|                                        |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("REPORT GENERATION:", YELLOW);
         ColorUtils::setColor(WHITE);
-        cout << "                   ║" << endl;
+        cout << "                   |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("7. Inventory Report", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "                  ║" << endl;
+        cout << "                  |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("8. Patient Report", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "                    ║" << endl;
+        cout << "                    |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("9. Prescription Report", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "                ║" << endl;
+        cout << "                |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("10. Financial Report", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "                  ║" << endl;
+        cout << "                  |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("11. Low Stock Report", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "                 ║" << endl;
+        cout << "                 |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("12. Expiring Items Report", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "            ║" << endl;
+        cout << "            |" << endl;
         
-        cout << "║                                        ║" << endl;
+        cout << "|                                        |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("CHARTS & GRAPHS:", YELLOW);
         ColorUtils::setColor(WHITE);
-        cout << "                     ║" << endl;
+        cout << "                     |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("13. Inventory Value Chart", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "            ║" << endl;
+        cout << "            |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("14. Category Distribution Chart", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "      ║" << endl;
+        cout << "      |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("15. Monthly Transaction Chart", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "        ║" << endl;
+        cout << "        |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("16. Patient Status Chart", WHITE);
         ColorUtils::setColor(WHITE);
-        cout << "             ║" << endl;
+        cout << "             |" << endl;
         
-        cout << "║                                        ║" << endl;
+        cout << "|                                        |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("0. Back to Main Menu", RED);
         ColorUtils::setColor(WHITE);
-        cout << "                 ║" << endl;
+        cout << "                 |" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::setColor(WHITE);
-        cout << "╚════════════════════════════════════════╝" << endl;
+        cout << "+----------------------------------------+" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::printColored("\nEnter your choice: ", CYAN);
@@ -176,14 +176,14 @@ void Reports::calculateTotalInventoryValue() {
             int itemCount = res->getInt("item_count");
             double avgPrice = res->getDouble("avg_price");
             
-            cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-            cout << "║              INVENTORY VALUE CALCULATION RESULTS                 ║" << endl;
-            cout << "╠════════════════════════════════════════════════════════════════╣" << endl;
-            cout << "║ Total Inventory Value:    RM " << setw(40) << right << fixed << setprecision(2) << totalValue << "  ║" << endl;
-            cout << "║ Total Quantity:           " << setw(45) << right << totalQuantity << "  ║" << endl;
-            cout << "║ Number of Items:          " << setw(45) << right << itemCount << "  ║" << endl;
-            cout << "║ Average Unit Price:       RM " << setw(40) << right << fixed << setprecision(2) << avgPrice << "  ║" << endl;
-            cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+            cout << "\n+----------------------------------------------------------------+" << endl;
+            cout << "|              INVENTORY VALUE CALCULATION RESULTS                 |" << endl;
+            cout << "+----------------------------------------------------------------+" << endl;
+            cout << "| Total Inventory Value:    RM " << setw(40) << right << fixed << setprecision(2) << totalValue << "  |" << endl;
+            cout << "| Total Quantity:           " << setw(45) << right << totalQuantity << "  |" << endl;
+            cout << "| Number of Items:          " << setw(45) << right << itemCount << "  |" << endl;
+            cout << "| Average Unit Price:       RM " << setw(40) << right << fixed << setprecision(2) << avgPrice << "  |" << endl;
+            cout << "+----------------------------------------------------------------+" << endl;
             
             delete res;
         } else {
@@ -218,21 +218,21 @@ void Reports::calculateCategoryStatistics() {
         sql::ResultSet* res = db->executeSelect(query);
         
         if (res) {
-            cout << "\n┌──────────────┬─────────────┬─────────────────┬──────────────────┬─────────────┬─────────────┬─────────────┐" << endl;
-            cout << "│ Category     │ Item Count  │ Total Quantity  │ Category Value   │ Avg Price   │ Min Qty     │ Max Qty     │" << endl;
-            cout << "├──────────────┼─────────────┼─────────────────┼──────────────────┼─────────────┼─────────────┼─────────────┤" << endl;
+            cout << "\n+--------------+-------------+-----------------+------------------+-------------+-------------+-------------+" << endl;
+            cout << "| Category     | Item Count  | Total Quantity  | Category Value   | Avg Price   | Min Qty     | Max Qty     |" << endl;
+            cout << "+--------------┼-------------┼-----------------┼------------------┼-------------┼-------------┼-------------+" << endl;
             
             while (res->next()) {
-                cout << "│ " << setw(12) << left << res->getString("category")
-                     << "│ " << setw(11) << right << res->getInt("item_count")
-                     << "│ " << setw(15) << right << res->getInt("total_quantity")
-                     << "│ RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("category_value")
-                     << "│ RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("avg_price")
-                     << "│ " << setw(11) << right << res->getInt("min_quantity")
-                     << "│ " << setw(11) << right << res->getInt("max_quantity") << "│" << endl;
+                cout << "| " << setw(12) << left << res->getString("category")
+                     << "| " << setw(11) << right << res->getInt("item_count")
+                     << "| " << setw(15) << right << res->getInt("total_quantity")
+                     << "| RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("category_value")
+                     << "| RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("avg_price")
+                     << "| " << setw(11) << right << res->getInt("min_quantity")
+                     << "| " << setw(11) << right << res->getInt("max_quantity") << "|" << endl;
             }
             
-            cout << "└──────────────┴─────────────┴─────────────────┴──────────────────┴─────────────┴─────────────┴─────────────┘" << endl;
+            cout << "+--------------+-------------+-----------------+------------------+-------------+-------------+-------------+" << endl;
             delete res;
         }
     }
@@ -264,21 +264,21 @@ void Reports::calculateMonthlySales() {
         sql::ResultSet* res = db->executeSelect(query);
         
         if (res) {
-            cout << "\n┌───────────┬──────────────────┬──────────────────┬───────────────┬──────────────────┬──────────────┬──────────────┐" << endl;
-            cout << "│ Month     │ Month Name       │ Transaction Type │ Total Change  │ Transaction Count│ Purchases    │ Usage         │" << endl;
-            cout << "├───────────┼──────────────────┼──────────────────┼───────────────┼──────────────────┼──────────────┼──────────────┤" << endl;
+            cout << "\n+-----------+------------------+------------------+---------------+------------------+--------------+--------------+" << endl;
+            cout << "| Month     | Month Name       | Transaction Type | Total Change  | Transaction Count| Purchases    | Usage         |" << endl;
+            cout << "+-----------┼------------------┼------------------┼---------------┼------------------┼--------------┼--------------+" << endl;
             
             while (res->next()) {
-                cout << "│ " << setw(9) << res->getString("month")
-                     << "│ " << setw(16) << res->getString("month_name")
-                     << "│ " << setw(16) << res->getString("transaction_type")
-                     << "│ " << setw(13) << res->getInt("total_change")
-                     << "│ " << setw(16) << res->getInt("transaction_count")
-                     << "│ " << setw(12) << res->getInt("purchases")
-                     << "│ " << setw(12) << res->getInt("usage") << "│" << endl;
+                cout << "| " << setw(9) << res->getString("month")
+                     << "| " << setw(16) << res->getString("month_name")
+                     << "| " << setw(16) << res->getString("transaction_type")
+                     << "| " << setw(13) << res->getInt("total_change")
+                     << "| " << setw(16) << res->getInt("transaction_count")
+                     << "| " << setw(12) << res->getInt("purchases")
+                     << "| " << setw(12) << res->getInt("usage") << "|" << endl;
             }
             
-            cout << "└───────────┴──────────────────┴──────────────────┴───────────────┴──────────────────┴──────────────┴──────────────┘" << endl;
+            cout << "+-----------+------------------+------------------+---------------+------------------+--------------+--------------+" << endl;
             delete res;
         }
     }
@@ -311,22 +311,22 @@ void Reports::calculateProfitMargins() {
         sql::ResultSet* res = db->executeSelect(query);
         
         if (res) {
-            cout << "\n┌──────────────────────┬──────────────┬─────────────┬──────────┬──────────────┬──────────────┬──────────────┬──────────────┐" << endl;
-            cout << "│ Item Name            │ Category     │ Unit Price  │ Quantity │ Total Value  │ Purchase Cost│ Usage Value  │ Profit Margin│" << endl;
-            cout << "├──────────────────────┼──────────────┼─────────────┼──────────┼──────────────┼──────────────┼──────────────┼──────────────┤" << endl;
+            cout << "\n+----------------------+--------------+-------------+----------+--------------+--------------+--------------+--------------+" << endl;
+            cout << "| Item Name            | Category     | Unit Price  | Quantity | Total Value  | Purchase Cost| Usage Value  | Profit Margin|" << endl;
+            cout << "+----------------------┼--------------┼-------------┼----------┼--------------┼--------------┼--------------┼--------------+" << endl;
             
             while (res->next()) {
-                cout << "│ " << setw(20) << left << res->getString("item_name")
-                     << "│ " << setw(12) << res->getString("category")
-                     << "│ RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("unit_price")
-                     << "│ " << setw(8) << right << res->getInt("quantity")
-                     << "│ RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("total_value")
-                     << "│ RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("purchase_cost")
-                     << "│ RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("usage_value")
-                     << "│ RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("profit_margin") << "│" << endl;
+                cout << "| " << setw(20) << left << res->getString("item_name")
+                     << "| " << setw(12) << res->getString("category")
+                     << "| RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("unit_price")
+                     << "| " << setw(8) << right << res->getInt("quantity")
+                     << "| RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("total_value")
+                     << "| RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("purchase_cost")
+                     << "| RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("usage_value")
+                     << "| RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("profit_margin") << "|" << endl;
             }
             
-            cout << "└──────────────────────┴──────────────┴─────────────┴──────────┴──────────────┴──────────────┴──────────────┴──────────────┘" << endl;
+            cout << "+----------------------+--------------+-------------+----------+--------------+--------------+--------------+--------------+" << endl;
             delete res;
         }
     }
@@ -358,20 +358,20 @@ void Reports::calculatePatientStatistics() {
         sql::ResultSet* res = db->executeSelect(query);
         
         if (res) {
-            cout << "\n┌──────────────────────┬───────────────┬──────────────────────┬──────────────┬──────────────────────┐" << endl;
-            cout << "│ Status               │ Patient Count │ Total Prescriptions │ Total Reports│ Avg Days Registered │" << endl;
-            cout << "├──────────────────────┼───────────────┼──────────────────────┼──────────────┼──────────────────────┤" << endl;
+            cout << "\n+----------------------+---------------+----------------------+--------------+----------------------+" << endl;
+            cout << "| Status               | Patient Count | Total Prescriptions | Total Reports| Avg Days Registered |" << endl;
+            cout << "+----------------------┼---------------┼----------------------┼--------------┼----------------------+" << endl;
             
             while (res->next()) {
                 double avgDays = res->isNull("avg_days_registered") ? 0 : res->getDouble("avg_days_registered");
-                cout << "│ " << setw(20) << left << res->getString("status")
-                     << "│ " << setw(13) << right << res->getInt("patient_count")
-                     << "│ " << setw(20) << right << res->getInt("total_prescriptions")
-                     << "│ " << setw(12) << right << res->getInt("total_reports")
-                     << "│ " << setw(20) << right << fixed << setprecision(1) << avgDays << "│" << endl;
+                cout << "| " << setw(20) << left << res->getString("status")
+                     << "| " << setw(13) << right << res->getInt("patient_count")
+                     << "| " << setw(20) << right << res->getInt("total_prescriptions")
+                     << "| " << setw(12) << right << res->getInt("total_reports")
+                     << "| " << setw(20) << right << fixed << setprecision(1) << avgDays << "|" << endl;
             }
             
-            cout << "└──────────────────────┴───────────────┴──────────────────────┴──────────────┴──────────────────────┘" << endl;
+            cout << "+----------------------+---------------+----------------------+--------------+----------------------+" << endl;
             delete res;
         }
     }
@@ -403,21 +403,21 @@ void Reports::calculatePrescriptionStatistics() {
         sql::ResultSet* res = db->executeSelect(query);
         
         if (res) {
-            cout << "\n┌──────────────────────┬──────────────────────┬───────────────┬─────────────────┬──────────────┬──────────────┬──────────────┐" << endl;
-            cout << "│ Status               │ Prescription Count   │ Avg Duration  │ Total Duration  │ Min Days Old │ Max Days Old │ Avg Days Old │" << endl;
-            cout << "├──────────────────────┼──────────────────────┼───────────────┼─────────────────┼──────────────┼──────────────┼──────────────┤" << endl;
+            cout << "\n+----------------------+----------------------+---------------+-----------------+--------------+--------------+--------------+" << endl;
+            cout << "| Status               | Prescription Count   | Avg Duration  | Total Duration  | Min Days Old | Max Days Old | Avg Days Old |" << endl;
+            cout << "+----------------------┼----------------------┼---------------┼-----------------┼--------------┼--------------┼--------------+" << endl;
             
             while (res->next()) {
-                cout << "│ " << setw(20) << left << res->getString("status")
-                     << "│ " << setw(20) << right << res->getInt("prescription_count")
-                     << "│ " << setw(13) << right << fixed << setprecision(1) << res->getDouble("avg_duration")
-                     << "│ " << setw(15) << right << res->getInt("total_duration")
-                     << "│ " << setw(12) << right << res->getInt("min_days_old")
-                     << "│ " << setw(12) << right << res->getInt("max_days_old")
-                     << "│ " << setw(12) << right << fixed << setprecision(1) << res->getDouble("avg_days_old") << "│" << endl;
+                cout << "| " << setw(20) << left << res->getString("status")
+                     << "| " << setw(20) << right << res->getInt("prescription_count")
+                     << "| " << setw(13) << right << fixed << setprecision(1) << res->getDouble("avg_duration")
+                     << "| " << setw(15) << right << res->getInt("total_duration")
+                     << "| " << setw(12) << right << res->getInt("min_days_old")
+                     << "| " << setw(12) << right << res->getInt("max_days_old")
+                     << "| " << setw(12) << right << fixed << setprecision(1) << res->getDouble("avg_days_old") << "|" << endl;
             }
             
-            cout << "└──────────────────────┴──────────────────────┴───────────────┴─────────────────┴──────────────┴──────────────┴──────────────┘" << endl;
+            cout << "+----------------------+----------------------+---------------+-----------------+--------------+--------------+--------------+" << endl;
             delete res;
         }
     }
@@ -444,23 +444,23 @@ void Reports::generateInventoryReport() {
         sql::ResultSet* res = db->executeSelect(query);
         
         if (res) {
-            cout << "\n┌─────────────┬──────────────────────┬──────────────┬──────────┬─────────────┬──────────────────┬──────────────┬──────────────┐" << endl;
-            cout << "│ Inventory ID│ Item Name            │ Category     │ Quantity │ Unit Price  │ Total Value      │ Stock Status │ Supplier     │" << endl;
-            cout << "├─────────────┼──────────────────────┼──────────────┼──────────┼─────────────┼──────────────────┼──────────────┼──────────────┤" << endl;
+            cout << "\n+-------------+----------------------+--------------+----------+-------------+------------------+--------------+--------------+" << endl;
+            cout << "| Inventory ID| Item Name            | Category     | Quantity | Unit Price  | Total Value      | Stock Status | Supplier     |" << endl;
+            cout << "+-------------┼----------------------┼--------------┼----------┼-------------┼------------------┼--------------┼--------------+" << endl;
             
             while (res->next()) {
                 string expiry = res->isNull("expiry_date") ? "N/A" : res->getString("expiry_date");
-                cout << "│ " << setw(11) << res->getInt("inventory_id")
-                     << "│ " << setw(20) << left << res->getString("item_name")
-                     << "│ " << setw(12) << res->getString("category")
-                     << "│ " << setw(8) << right << res->getInt("quantity")
-                     << "│ RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("unit_price")
-                     << "│ RM " << setw(14) << right << fixed << setprecision(2) << res->getDouble("total_value")
-                     << "│ " << setw(12) << res->getString("stock_status")
-                     << "│ " << setw(16) << res->getString("supplier") << "│" << endl;
+                cout << "| " << setw(11) << res->getInt("inventory_id")
+                     << "| " << setw(20) << left << res->getString("item_name")
+                     << "| " << setw(12) << res->getString("category")
+                     << "| " << setw(8) << right << res->getInt("quantity")
+                     << "| RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("unit_price")
+                     << "| RM " << setw(14) << right << fixed << setprecision(2) << res->getDouble("total_value")
+                     << "| " << setw(12) << res->getString("stock_status")
+                     << "| " << setw(16) << res->getString("supplier") << "|" << endl;
             }
             
-            cout << "└─────────────┴──────────────────────┴──────────────┴──────────┴─────────────┴──────────────────┴──────────────┴──────────────┘" << endl;
+            cout << "+-------------+----------------------+--------------+----------+-------------+------------------+--------------+--------------+" << endl;
             delete res;
         }
     }
@@ -490,23 +490,23 @@ void Reports::generatePatientReport() {
         sql::ResultSet* res = db->executeSelect(query);
         
         if (res) {
-            cout << "\n┌─────────────┬──────────────────────┬──────────────────────┬──────────────┬──────────────┬──────────────────────┬──────────────────────┬──────────────┐" << endl;
-            cout << "│ Patient ID  │ Full Name            │ Email                │ Phone        │ Status       │ Registration Date    │ Prescription Count   │ Report Count │" << endl;
-            cout << "├─────────────┼──────────────────────┼──────────────────────┼──────────────┼──────────────┼──────────────────────┼──────────────────────┼──────────────┤" << endl;
+            cout << "\n+-------------+----------------------+----------------------+--------------+--------------+----------------------+----------------------+--------------+" << endl;
+            cout << "| Patient ID  | Full Name            | Email                | Phone        | Status       | Registration Date    | Prescription Count   | Report Count |" << endl;
+            cout << "+-------------┼----------------------┼----------------------┼--------------┼--------------┼----------------------┼----------------------┼--------------+" << endl;
             
             while (res->next()) {
                 string regDate = res->isNull("registration_date") ? "N/A" : res->getString("registration_date").substr(0, 10);
-                cout << "│ " << setw(11) << res->getInt("patient_id")
-                     << "│ " << setw(20) << left << res->getString("full_name")
-                     << "│ " << setw(20) << res->getString("email")
-                     << "│ " << setw(12) << res->getString("phone")
-                     << "│ " << setw(12) << res->getString("status")
-                     << "│ " << setw(20) << regDate
-                     << "│ " << setw(20) << right << res->getInt("prescription_count")
-                     << "│ " << setw(12) << right << res->getInt("report_count") << "│" << endl;
+                cout << "| " << setw(11) << res->getInt("patient_id")
+                     << "| " << setw(20) << left << res->getString("full_name")
+                     << "| " << setw(20) << res->getString("email")
+                     << "| " << setw(12) << res->getString("phone")
+                     << "| " << setw(12) << res->getString("status")
+                     << "| " << setw(20) << regDate
+                     << "| " << setw(20) << right << res->getInt("prescription_count")
+                     << "| " << setw(12) << right << res->getInt("report_count") << "|" << endl;
             }
             
-            cout << "└─────────────┴──────────────────────┴──────────────────────┴──────────────┴──────────────┴──────────────────────┴──────────────────────┴──────────────┘" << endl;
+            cout << "+-------------+----------------------+----------------------+--------------+--------------+----------------------+----------------------+--------------+" << endl;
             delete res;
         }
     }
@@ -534,24 +534,24 @@ void Reports::generatePrescriptionReport() {
         sql::ResultSet* res = db->executeSelect(query);
         
         if (res) {
-            cout << "\n┌─────────────────┬──────────────────────┬──────────────────────┬───────────┬───────────┬──────────┬──────────────┬──────────────────────┬──────────────────────┐" << endl;
-            cout << "│ Prescription ID │ Patient Name          │ Medication           │ Dosage    │ Frequency │ Duration │ Status       │ Prescribed Date       │ Days Since Prescribed│" << endl;
-            cout << "├─────────────────┼──────────────────────┼──────────────────────┼───────────┼───────────┼──────────┼──────────────┼──────────────────────┼──────────────────────┤" << endl;
+            cout << "\n+-----------------+----------------------+----------------------+-----------+-----------+----------+--------------+----------------------+----------------------+" << endl;
+            cout << "| Prescription ID | Patient Name          | Medication           | Dosage    | Frequency | Duration | Status       | Prescribed Date       | Days Since Prescribed|" << endl;
+            cout << "+-----------------┼----------------------┼----------------------┼-----------┼-----------┼----------┼--------------┼----------------------┼----------------------+" << endl;
             
             while (res->next()) {
                 string presDate = res->getString("prescribed_date").substr(0, 10);
-                cout << "│ " << setw(15) << res->getInt("prescription_id")
-                     << "│ " << setw(20) << left << res->getString("patient_name")
-                     << "│ " << setw(20) << res->getString("medication_name")
-                     << "│ " << setw(9) << res->getString("dosage")
-                     << "│ " << setw(9) << res->getString("frequency")
-                     << "│ " << setw(8) << res->getInt("duration")
-                     << "│ " << setw(12) << res->getString("status")
-                     << "│ " << setw(20) << presDate
-                     << "│ " << setw(20) << right << res->getInt("days_since_prescribed") << "│" << endl;
+                cout << "| " << setw(15) << res->getInt("prescription_id")
+                     << "| " << setw(20) << left << res->getString("patient_name")
+                     << "| " << setw(20) << res->getString("medication_name")
+                     << "| " << setw(9) << res->getString("dosage")
+                     << "| " << setw(9) << res->getString("frequency")
+                     << "| " << setw(8) << res->getInt("duration")
+                     << "| " << setw(12) << res->getString("status")
+                     << "| " << setw(20) << presDate
+                     << "| " << setw(20) << right << res->getInt("days_since_prescribed") << "|" << endl;
             }
             
-            cout << "└─────────────────┴──────────────────────┴──────────────────────┴───────────┴───────────┴──────────┴──────────────┴──────────────────────┴──────────────────────┘" << endl;
+            cout << "+-----------------+----------------------+----------------------+-----------+-----------+----------+--------------+----------------------+----------------------+" << endl;
             delete res;
         }
     }
@@ -589,13 +589,13 @@ void Reports::generateFinancialReport() {
         }
         if (res2) delete res2;
         
-        cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-        cout << "║                    FINANCIAL SUMMARY                           ║" << endl;
-        cout << "╠════════════════════════════════════════════════════════════════╣" << endl;
-        cout << "║ Total Inventory Value:    RM " << setw(40) << right << fixed << setprecision(2) << totalInventoryValue << "  ║" << endl;
-        cout << "║ Total Purchase Cost:      RM " << setw(40) << right << fixed << setprecision(2) << totalPurchases << "  ║" << endl;
-        cout << "║ Estimated Profit Margin:  RM " << setw(40) << right << fixed << setprecision(2) << (totalInventoryValue - totalPurchases) << "  ║" << endl;
-        cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+        cout << "\n+----------------------------------------------------------------+" << endl;
+        cout << "|                    FINANCIAL SUMMARY                           |" << endl;
+        cout << "+----------------------------------------------------------------+" << endl;
+        cout << "| Total Inventory Value:    RM " << setw(40) << right << fixed << setprecision(2) << totalInventoryValue << "  |" << endl;
+        cout << "| Total Purchase Cost:      RM " << setw(40) << right << fixed << setprecision(2) << totalPurchases << "  |" << endl;
+        cout << "| Estimated Profit Margin:  RM " << setw(40) << right << fixed << setprecision(2) << (totalInventoryValue - totalPurchases) << "  |" << endl;
+        cout << "+----------------------------------------------------------------+" << endl;
     }
     catch (exception& e) {
         cout << "\n❌ Error: " << e.what() << endl;
@@ -623,22 +623,22 @@ void Reports::generateLowStockReport() {
             if (res->rowsCount() == 0) {
                 cout << "\n✅ All items are above reorder level!" << endl;
             } else {
-                cout << "\n┌─────────────┬──────────────────────┬──────────────┬──────────┬──────────────┬─────────────┬──────────────────┬─────────────────┐" << endl;
-                cout << "│ Inventory ID│ Item Name            │ Category     │ Quantity │ Reorder Level │ Unit Price  │ Current Value    │ Units Needed    │" << endl;
-                cout << "├─────────────┼──────────────────────┼──────────────┼──────────┼──────────────┼─────────────┼──────────────────┼─────────────────┤" << endl;
+                cout << "\n+-------------+----------------------+--------------+----------+--------------+-------------+------------------+-----------------+" << endl;
+                cout << "| Inventory ID| Item Name            | Category     | Quantity | Reorder Level | Unit Price  | Current Value    | Units Needed    |" << endl;
+                cout << "+-------------┼----------------------┼--------------┼----------┼--------------┼-------------┼------------------┼-----------------+" << endl;
                 
                 while (res->next()) {
-                    cout << "│ " << setw(11) << res->getInt("inventory_id")
-                         << "│ " << setw(20) << left << res->getString("item_name")
-                         << "│ " << setw(12) << res->getString("category")
-                         << "│ " << setw(8) << right << res->getInt("quantity")
-                         << "│ " << setw(12) << right << res->getInt("reorder_level")
-                         << "│ RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("unit_price")
-                         << "│ RM " << setw(14) << right << fixed << setprecision(2) << res->getDouble("current_value")
-                         << "│ " << setw(15) << right << res->getInt("units_needed") << "│" << endl;
+                    cout << "| " << setw(11) << res->getInt("inventory_id")
+                         << "| " << setw(20) << left << res->getString("item_name")
+                         << "| " << setw(12) << res->getString("category")
+                         << "| " << setw(8) << right << res->getInt("quantity")
+                         << "| " << setw(12) << right << res->getInt("reorder_level")
+                         << "| RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("unit_price")
+                         << "| RM " << setw(14) << right << fixed << setprecision(2) << res->getDouble("current_value")
+                         << "| " << setw(15) << right << res->getInt("units_needed") << "|" << endl;
                 }
                 
-                cout << "└─────────────┴──────────────────────┴──────────────┴──────────┴──────────────┴─────────────┴──────────────────┴─────────────────┘" << endl;
+                cout << "+-------------+----------------------+--------------+----------+--------------+-------------+------------------+-----------------+" << endl;
             }
             delete res;
         }
@@ -671,25 +671,25 @@ void Reports::generateExpiringItemsReport() {
             if (res->rowsCount() == 0) {
                 cout << "\n✅ No items expiring in the next 30 days!" << endl;
             } else {
-                cout << "\n┌─────────────┬──────────────────────┬──────────────┬──────────┬──────────────┬──────────────────────┬─────────────┬──────────────────┐" << endl;
-                cout << "│ Inventory ID│ Item Name            │ Category     │ Quantity │ Expiry Date  │ Days Until Expiry    │ Unit Price  │ Total Value      │" << endl;
-                cout << "├─────────────┼──────────────────────┼──────────────┼──────────┼──────────────┼──────────────────────┼─────────────┼──────────────────┤" << endl;
+                cout << "\n+-------------+----------------------+--------------+----------+--------------+----------------------+-------------+------------------+" << endl;
+                cout << "| Inventory ID| Item Name            | Category     | Quantity | Expiry Date  | Days Until Expiry    | Unit Price  | Total Value      |" << endl;
+                cout << "+-------------┼----------------------┼--------------┼----------┼--------------┼----------------------┼-------------┼------------------+" << endl;
                 
                 while (res->next()) {
                     int daysLeft = res->getInt("days_until_expiry");
                     string urgency = (daysLeft <= 7) ? "⚠️ URGENT" : (daysLeft <= 14) ? "⚠️ SOON" : "";
                     
-                    cout << "│ " << setw(11) << res->getInt("inventory_id")
-                         << "│ " << setw(20) << left << res->getString("item_name")
-                         << "│ " << setw(12) << res->getString("category")
-                         << "│ " << setw(8) << right << res->getInt("quantity")
-                         << "│ " << setw(12) << res->getString("expiry_date")
-                         << "│ " << setw(20) << right << daysLeft << " " << urgency
-                         << "│ RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("unit_price")
-                         << "│ RM " << setw(14) << right << fixed << setprecision(2) << res->getDouble("total_value") << "│" << endl;
+                    cout << "| " << setw(11) << res->getInt("inventory_id")
+                         << "| " << setw(20) << left << res->getString("item_name")
+                         << "| " << setw(12) << res->getString("category")
+                         << "| " << setw(8) << right << res->getInt("quantity")
+                         << "| " << setw(12) << res->getString("expiry_date")
+                         << "| " << setw(20) << right << daysLeft << " " << urgency
+                         << "| RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("unit_price")
+                         << "| RM " << setw(14) << right << fixed << setprecision(2) << res->getDouble("total_value") << "|" << endl;
                 }
                 
-                cout << "└─────────────┴──────────────────────┴──────────────┴──────────┴──────────────┴──────────────────────┴─────────────┴──────────────────┘" << endl;
+                cout << "+-------------+----------------------+--------------+----------+--------------+----------------------+-------------+------------------+" << endl;
             }
             delete res;
         }
@@ -887,23 +887,23 @@ void Reports::displayVerticalBar(const string& label, double value, double maxVa
 void Reports::displayTableHeader(const string& title) {
     // Bright White/Yellow theme header
     ColorUtils::setColor(WHITE);
-    cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-    cout << "║" << setw(60) << "" << "║" << endl;
+    cout << "\n+----------------------------------------------------------------+" << endl;
+    cout << "|" << setw(60) << "" << "|" << endl;
     ColorUtils::resetColor();
     
     // Highlighted title
     ColorUtils::setColor(WHITE);
-    cout << "║";
+    cout << "|";
     int padding = (60 - title.length()) / 2;
     for (int i = 0; i < padding; i++) cout << " ";
     ColorUtils::printColoredBG(title, BLACK, YELLOW);
     for (int i = 0; i < (60 - title.length() - padding); i++) cout << " ";
     ColorUtils::setColor(WHITE);
-    cout << "║" << endl;
+    cout << "|" << endl;
     
     ColorUtils::setColor(WHITE);
-    cout << "║" << setw(60) << "" << "║" << endl;
-    cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+    cout << "|" << setw(60) << "" << "|" << endl;
+    cout << "+----------------------------------------------------------------+" << endl;
     ColorUtils::resetColor();
 }
 

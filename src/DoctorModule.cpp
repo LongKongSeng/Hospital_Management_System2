@@ -11,38 +11,38 @@ void DoctorModule::showMenu() {
         
         // Yellow color theme for doctor menu
         ColorUtils::setColor(YELLOW);
-        cout << "\n╔════════════════════════════════════════╗" << endl;
+        cout << "\n+----------------------------------------+" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::setColor(WHITE);
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("1. View Patient Record", YELLOW);
         ColorUtils::setColor(WHITE);
-        cout << "              ║" << endl;
+        cout << "              |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("2. Generate Next Appointment", YELLOW);
         ColorUtils::setColor(WHITE);
-        cout << "        ║" << endl;
+        cout << "        |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("3. Make Diagnosis", YELLOW);
         ColorUtils::setColor(WHITE);
-        cout << "                   ║" << endl;
+        cout << "                   |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("4. Edit Patient Medical Record", YELLOW);
         ColorUtils::setColor(WHITE);
-        cout << "      ║" << endl;
+        cout << "      |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("5. Main Menu", RED);
         ColorUtils::setColor(WHITE);
-        cout << "                       ║" << endl;
+        cout << "                       |" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::setColor(YELLOW);
-        cout << "╚════════════════════════════════════════╝" << endl;
+        cout << "+----------------------------------------+" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::printColored("\nEnter your choice: ", CYAN);
@@ -95,17 +95,17 @@ void DoctorModule::viewPatientRecord() {
             return;
         }
 
-        cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-        cout << "║                    PATIENT INFORMATION                         ║" << endl;
-        cout << "╠════════════════════════════════════════════════════════════════╣" << endl;
-        cout << "║ Patient ID: " << left << setw(46) << patientRes->getInt("patient_id") << "║" << endl;
-        cout << "║ Full Name: " << left << setw(46) << patientRes->getString("full_name") << "║" << endl;
-        cout << "║ Gender: " << left << setw(49) << patientRes->getString("gender") << "║" << endl;
-        cout << "║ Date of Birth: " << left << setw(42) << patientRes->getString("date_of_birth") << "║" << endl;
-        cout << "║ Contact Number: " << left << setw(41) << patientRes->getString("contact_number") << "║" << endl;
-        cout << "║ Blood Type: " << left << setw(45) << (patientRes->isNull("blood_type") ? "N/A" : patientRes->getString("blood_type")) << "║" << endl;
-        cout << "║ Status: " << left << setw(49) << patientRes->getString("status") << "║" << endl;
-        cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+        cout << "\n+----------------------------------------------------------------+" << endl;
+        cout << "|                    PATIENT INFORMATION                         |" << endl;
+        cout << "+----------------------------------------------------------------+" << endl;
+        cout << "| Patient ID: " << left << setw(46) << patientRes->getInt("patient_id") << "|" << endl;
+        cout << "| Full Name: " << left << setw(46) << patientRes->getString("full_name") << "|" << endl;
+        cout << "| Gender: " << left << setw(49) << patientRes->getString("gender") << "|" << endl;
+        cout << "| Date of Birth: " << left << setw(42) << patientRes->getString("date_of_birth") << "|" << endl;
+        cout << "| Contact Number: " << left << setw(41) << patientRes->getString("contact_number") << "|" << endl;
+        cout << "| Blood Type: " << left << setw(45) << (patientRes->isNull("blood_type") ? "N/A" : patientRes->getString("blood_type")) << "|" << endl;
+        cout << "| Status: " << left << setw(49) << patientRes->getString("status") << "|" << endl;
+        cout << "+----------------------------------------------------------------+" << endl;
         delete patientRes;
 
         // Display medical records
@@ -118,9 +118,9 @@ void DoctorModule::viewPatientRecord() {
         sql::ResultSet* recordRes = db->executeSelect(recordQuery);
         
         if (recordRes && recordRes->rowsCount() > 0) {
-            cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-            cout << "║                    MEDICAL RECORDS                             ║" << endl;
-            cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+            cout << "\n+----------------------------------------------------------------+" << endl;
+            cout << "|                    MEDICAL RECORDS                             |" << endl;
+            cout << "+----------------------------------------------------------------+" << endl;
             displayMedicalRecordTable(recordRes);
         } else {
             cout << "\n⚠️  No medical records found for this patient." << endl;
@@ -173,14 +173,14 @@ void DoctorModule::generateNextAppointment() {
 
     cout << "\nPatient: " << patientName << endl;
     cout << "\nAvailable Nurses:\n" << endl;
-    cout << "┌───────────┬──────────────────────┐" << endl;
-    cout << "│ Nurse ID  │ Full Name            │" << endl;
-    cout << "├───────────┼──────────────────────┤" << endl;
+    cout << "+-----------+----------------------+" << endl;
+    cout << "| Nurse ID  | Full Name            |" << endl;
+    cout << "+-----------┼----------------------+" << endl;
     while (nurseRes->next()) {
-        cout << "│ " << setw(9) << nurseRes->getInt("nurse_id")
-             << "│ " << setw(20) << nurseRes->getString("full_name") << "│" << endl;
+        cout << "| " << setw(9) << nurseRes->getInt("nurse_id")
+             << "| " << setw(20) << nurseRes->getString("full_name") << "|" << endl;
     }
-    cout << "└───────────┴──────────────────────┘" << endl;
+    cout << "+-----------+----------------------+" << endl;
     delete nurseRes;
 
     int nurseId = getIntInput("\nEnter Nurse ID: ");
@@ -426,58 +426,58 @@ void DoctorModule::editPatientMedicalRecord() {
 
 void DoctorModule::displayPatientRecordTable(sql::ResultSet* res) {
     // Implementation for displaying patient records in table format
-    cout << "\n┌─────────────┬──────────────────────┬──────────┬──────────────┬──────────────┐" << endl;
-    cout << "│ Patient ID  │ Full Name            │ Gender   │ Date of Birth│ Status       │" << endl;
-    cout << "├─────────────┼──────────────────────┼──────────┼──────────────┼──────────────┤" << endl;
+    cout << "\n+-------------+----------------------+----------+--------------+--------------+" << endl;
+    cout << "| Patient ID  | Full Name            | Gender   | Date of Birth| Status       |" << endl;
+    cout << "+-------------┼----------------------┼----------┼--------------┼--------------+" << endl;
     
     while (res->next()) {
-        cout << "│ " << setw(11) << res->getInt("patient_id")
-             << "│ " << setw(20) << res->getString("full_name")
-             << "│ " << setw(8) << res->getString("gender")
-             << "│ " << setw(12) << res->getString("date_of_birth")
-             << "│ " << setw(12) << res->getString("status") << "│" << endl;
+        cout << "| " << setw(11) << res->getInt("patient_id")
+             << "| " << setw(20) << res->getString("full_name")
+             << "| " << setw(8) << res->getString("gender")
+             << "| " << setw(12) << res->getString("date_of_birth")
+             << "| " << setw(12) << res->getString("status") << "|" << endl;
     }
     
-    cout << "└─────────────┴──────────────────────┴──────────┴──────────────┴──────────────┘" << endl;
+    cout << "+-------------+----------------------+----------+--------------+--------------+" << endl;
 }
 
 void DoctorModule::displayMedicalRecordTable(sql::ResultSet* res) {
-    cout << "\n┌─────────────┬──────────────┬──────────────────────┬──────────────────────┬──────────────┬──────────────┐" << endl;
-    cout << "│ Record ID   │ Date         │ Disease              │ Disorder             │ Duration     │ Severity     │" << endl;
-    cout << "├─────────────┼──────────────┼──────────────────────┼──────────────────────┼──────────────┼──────────────┤" << endl;
+    cout << "\n+-------------+--------------+----------------------+----------------------+--------------+--------------+" << endl;
+    cout << "| Record ID   | Date         | Disease              | Disorder             | Duration     | Severity     |" << endl;
+    cout << "+-------------┼--------------┼----------------------┼----------------------┼--------------┼--------------+" << endl;
     
     while (res->next()) {
-        cout << "│ " << setw(11) << res->getInt("record_id")
-             << "│ " << setw(12) << res->getString("date_of_record")
-             << "│ " << setw(20) << (res->isNull("disease") ? "N/A" : res->getString("disease"))
-             << "│ " << setw(20) << (res->isNull("disorder") ? "N/A" : res->getString("disorder"))
-             << "│ " << setw(12) << (res->isNull("duration_of_pain") ? "N/A" : res->getString("duration_of_pain"))
-             << "│ " << setw(12) << (res->isNull("severity") ? "N/A" : res->getString("severity")) << "│" << endl;
+        cout << "| " << setw(11) << res->getInt("record_id")
+             << "| " << setw(12) << res->getString("date_of_record")
+             << "| " << setw(20) << (res->isNull("disease") ? "N/A" : res->getString("disease"))
+             << "| " << setw(20) << (res->isNull("disorder") ? "N/A" : res->getString("disorder"))
+             << "| " << setw(12) << (res->isNull("duration_of_pain") ? "N/A" : res->getString("duration_of_pain"))
+             << "| " << setw(12) << (res->isNull("severity") ? "N/A" : res->getString("severity")) << "|" << endl;
     }
     
-    cout << "└─────────────┴──────────────┴──────────────────────┴──────────────────────┴──────────────┴──────────────┘" << endl;
+    cout << "+-------------+--------------+----------------------+----------------------+--------------+--------------+" << endl;
 }
 
 void DoctorModule::displayTableHeader(const string& title) {
     // Yellow theme header
     ColorUtils::setColor(YELLOW);
-    cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-    cout << "║" << setw(60) << "" << "║" << endl;
+    cout << "\n+----------------------------------------------------------------+" << endl;
+    cout << "|" << setw(60) << "" << "|" << endl;
     ColorUtils::resetColor();
     
     // Highlighted title
     ColorUtils::setColor(WHITE);
-    cout << "║";
+    cout << "|";
     int padding = (60 - title.length()) / 2;
     for (int i = 0; i < padding; i++) cout << " ";
     ColorUtils::printColoredBG(title, BLACK, YELLOW);
     for (int i = 0; i < (60 - title.length() - padding); i++) cout << " ";
     ColorUtils::setColor(WHITE);
-    cout << "║" << endl;
+    cout << "|" << endl;
     
     ColorUtils::setColor(YELLOW);
-    cout << "║" << setw(60) << "" << "║" << endl;
-    cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+    cout << "|" << setw(60) << "" << "|" << endl;
+    cout << "+----------------------------------------------------------------+" << endl;
     ColorUtils::resetColor();
 }
 

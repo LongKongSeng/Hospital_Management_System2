@@ -108,22 +108,22 @@ void Login::logout() {
 void Login::displayTableHeader(const string& title) {
     // Red theme header
     ColorUtils::setColor(RED);
-    cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-    cout << "║" << setw(60) << "" << "║" << endl;
+    cout << "\n+----------------------------------------------------------------+" << endl;
+    cout << "|" << setw(60) << "" << "|" << endl;
     ColorUtils::resetColor();
     
     // Highlighted title
     ColorUtils::setColor(WHITE);
-    cout << "║";
+    cout << "|";
     int padding = (60 - title.length()) / 2;
     for (int i = 0; i < padding; i++) cout << " ";
     ColorUtils::printColoredBG(title, YELLOW, RED);
     for (int i = 0; i < (60 - title.length() - padding); i++) cout << " ";
     ColorUtils::setColor(WHITE);
-    cout << "║" << endl;
+    cout << "|" << endl;
     
     ColorUtils::setColor(RED);
-    cout << "║" << setw(60) << "" << "║" << endl;
-    cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+    cout << "|" << setw(60) << "" << "|" << endl;
+    cout << "+----------------------------------------------------------------+" << endl;
     ColorUtils::resetColor();
 }

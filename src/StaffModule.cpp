@@ -11,43 +11,43 @@ void StaffModule::showMenu() {
         
         // Blue color theme for staff menu
         ColorUtils::setColor(BLUE);
-        cout << "\n╔════════════════════════════════════════╗" << endl;
+        cout << "\n+----------------------------------------+" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::setColor(WHITE);
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("1. View Patient Status", BLUE);
         ColorUtils::setColor(WHITE);
-        cout << "               ║" << endl;
+        cout << "               |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("2. Update Patient Status", BLUE);
         ColorUtils::setColor(WHITE);
-        cout << "              ║" << endl;
+        cout << "              |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("3. Update Patient Prescription", BLUE);
         ColorUtils::setColor(WHITE);
-        cout << "        ║" << endl;
+        cout << "        |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("4. Delete Finished Prescriptions", BLUE);
         ColorUtils::setColor(WHITE);
-        cout << "      ║" << endl;
+        cout << "      |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("5. Update Patient Report", BLUE);
         ColorUtils::setColor(WHITE);
-        cout << "              ║" << endl;
+        cout << "              |" << endl;
         
-        cout << "║  ";
+        cout << "|  ";
         ColorUtils::printColored("0. Back to Main Menu", RED);
         ColorUtils::setColor(WHITE);
-        cout << "                 ║" << endl;
+        cout << "                 |" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::setColor(BLUE);
-        cout << "╚════════════════════════════════════════╝" << endl;
+        cout << "+----------------------------------------+" << endl;
         ColorUtils::resetColor();
         
         ColorUtils::printColored("\nEnter your choice: ", CYAN);
@@ -84,14 +84,14 @@ void StaffModule::viewPatientStatus() {
     displayTableHeader("PATIENT STATUS");
 
     int choice;
-    cout << "\n╔════════════════════════════════════════╗" << endl;
-    cout << "║  1. View All Patients                 ║" << endl;
-    cout << "║  2. View Active Patients               ║" << endl;
-    cout << "║  3. View Patients In Treatment         ║" << endl;
-    cout << "║  4. View Discharged Patients           ║" << endl;
-    cout << "║  5. Search Patient by ID               ║" << endl;
-    cout << "║  0. Back                              ║" << endl;
-    cout << "╚════════════════════════════════════════╝" << endl;
+    cout << "\n+----------------------------------------+" << endl;
+    cout << "|  1. View All Patients                 |" << endl;
+    cout << "|  2. View Active Patients               |" << endl;
+    cout << "|  3. View Patients In Treatment         |" << endl;
+    cout << "|  4. View Discharged Patients           |" << endl;
+    cout << "|  5. Search Patient by ID               |" << endl;
+    cout << "|  0. Back                              |" << endl;
+    cout << "+----------------------------------------+" << endl;
     cout << "\nEnter your choice: ";
     cin >> choice;
     cin.ignore();
@@ -221,12 +221,12 @@ void StaffModule::updatePrescription() {
     displayTableHeader("PRESCRIPTION MANAGEMENT");
 
     int choice;
-    cout << "\n╔════════════════════════════════════════╗" << endl;
-    cout << "║  1. Add New Prescription              ║" << endl;
-    cout << "║  2. View All Prescriptions            ║" << endl;
-    cout << "║  3. Update Existing Prescription      ║" << endl;
-    cout << "║  0. Back                              ║" << endl;
-    cout << "╚════════════════════════════════════════╝" << endl;
+    cout << "\n+----------------------------------------+" << endl;
+    cout << "|  1. Add New Prescription              |" << endl;
+    cout << "|  2. View All Prescriptions            |" << endl;
+    cout << "|  3. Update Existing Prescription      |" << endl;
+    cout << "|  0. Back                              |" << endl;
+    cout << "+----------------------------------------+" << endl;
     cout << "\nEnter your choice: ";
     cin >> choice;
     cin.ignore();
@@ -389,11 +389,11 @@ void StaffModule::deleteFinishedPrescriptions() {
     delete res;
 
     int choice;
-    cout << "\n╔════════════════════════════════════════╗" << endl;
-    cout << "║  1. Delete All Finished Prescriptions ║" << endl;
-    cout << "║  2. Delete Specific Prescription      ║" << endl;
-    cout << "║  0. Back                              ║" << endl;
-    cout << "╚════════════════════════════════════════╝" << endl;
+    cout << "\n+----------------------------------------+" << endl;
+    cout << "|  1. Delete All Finished Prescriptions |" << endl;
+    cout << "|  2. Delete Specific Prescription      |" << endl;
+    cout << "|  0. Back                              |" << endl;
+    cout << "+----------------------------------------+" << endl;
     cout << "\nEnter your choice: ";
     cin >> choice;
     cin.ignore();
@@ -476,12 +476,12 @@ void StaffModule::updatePatientReport() {
     displayTableHeader("PATIENT REPORT MANAGEMENT");
 
     int choice;
-    cout << "\n╔════════════════════════════════════════╗" << endl;
-    cout << "║  1. Add New Report                    ║" << endl;
-    cout << "║  2. View All Reports                  ║" << endl;
-    cout << "║  3. Update Existing Report            ║" << endl;
-    cout << "║  0. Back                              ║" << endl;
-    cout << "╚════════════════════════════════════════╝" << endl;
+    cout << "\n+----------------------------------------+" << endl;
+    cout << "|  1. Add New Report                    |" << endl;
+    cout << "|  2. View All Reports                  |" << endl;
+    cout << "|  3. Update Existing Report            |" << endl;
+    cout << "|  0. Back                              |" << endl;
+    cout << "+----------------------------------------+" << endl;
     cout << "\nEnter your choice: ";
     cin >> choice;
     cin.ignore();
@@ -614,45 +614,45 @@ void StaffModule::updatePatientReport() {
 }
 
 void StaffModule::displayPatientTable(sql::ResultSet* res) {
-    cout << "\n┌─────────────┬──────────────┬──────────────────────┬──────────────────────┬──────────────┬──────────────┬──────────────┐" << endl;
-    cout << "│ Patient ID  │ Username     │ Full Name            │ Email                │ Phone        │ Status       │ Registration │" << endl;
-    cout << "├─────────────┼──────────────┼──────────────────────┼──────────────────────┼──────────────┼──────────────┼──────────────┤" << endl;
+    cout << "\n+-------------+--------------+----------------------+----------------------+--------------+--------------+--------------+" << endl;
+    cout << "| Patient ID  | Username     | Full Name            | Email                | Phone        | Status       | Registration |" << endl;
+    cout << "+-------------┼--------------┼----------------------┼----------------------┼--------------┼--------------┼--------------+" << endl;
     
     while (res->next()) {
-        cout << "│ " << setw(11) << res->getInt("patient_id")
-             << "│ " << setw(12) << res->getString("username")
-             << "│ " << setw(20) << res->getString("full_name")
-             << "│ " << setw(20) << res->getString("email")
-             << "│ " << setw(12) << res->getString("phone")
-             << "│ " << setw(12) << (res->isNull("status") ? "N/A" : res->getString("status"))
-             << "│ " << setw(12) << (res->isNull("registration_date") ? "N/A" : res->getString("registration_date").substr(0, 10)) << "│" << endl;
+        cout << "| " << setw(11) << res->getInt("patient_id")
+             << "| " << setw(12) << res->getString("username")
+             << "| " << setw(20) << res->getString("full_name")
+             << "| " << setw(20) << res->getString("email")
+             << "| " << setw(12) << res->getString("phone")
+             << "| " << setw(12) << (res->isNull("status") ? "N/A" : res->getString("status"))
+             << "| " << setw(12) << (res->isNull("registration_date") ? "N/A" : res->getString("registration_date").substr(0, 10)) << "|" << endl;
     }
     
-    cout << "└─────────────┴──────────────┴──────────────────────┴──────────────────────┴──────────────┴──────────────┴──────────────┘" << endl;
+    cout << "+-------------+--------------+----------------------+----------------------+--------------+--------------+--------------+" << endl;
 }
 
 void StaffModule::displayPrescriptionTable(sql::ResultSet* res) {
-    cout << "\n┌─────────────────┬──────────────────────┬──────────────────────┬───────────┬───────────┬──────────────┬──────────────┐" << endl;
-    cout << "│ Prescription ID │ Patient Name          │ Medication           │ Dosage    │ Frequency │ Status       │ Prescribed   │" << endl;
-    cout << "├─────────────────┼──────────────────────┼──────────────────────┼───────────┼───────────┼──────────────┼──────────────┤" << endl;
+    cout << "\n+-----------------+----------------------+----------------------+-----------+-----------+--------------+--------------+" << endl;
+    cout << "| Prescription ID | Patient Name          | Medication           | Dosage    | Frequency | Status       | Prescribed   |" << endl;
+    cout << "+-----------------┼----------------------┼----------------------┼-----------┼-----------┼--------------┼--------------+" << endl;
     
     while (res->next()) {
-        cout << "│ " << setw(15) << res->getInt("prescription_id")
-             << "│ " << setw(20) << res->getString("patient_name")
-             << "│ " << setw(20) << res->getString("medication_name")
-             << "│ " << setw(9) << res->getString("dosage")
-             << "│ " << setw(9) << res->getString("frequency")
-             << "│ " << setw(12) << res->getString("status")
-             << "│ " << setw(12) << res->getString("prescribed_date").substr(0, 10) << "│" << endl;
+        cout << "| " << setw(15) << res->getInt("prescription_id")
+             << "| " << setw(20) << res->getString("patient_name")
+             << "| " << setw(20) << res->getString("medication_name")
+             << "| " << setw(9) << res->getString("dosage")
+             << "| " << setw(9) << res->getString("frequency")
+             << "| " << setw(12) << res->getString("status")
+             << "| " << setw(12) << res->getString("prescribed_date").substr(0, 10) << "|" << endl;
     }
     
-    cout << "└─────────────────┴──────────────────────┴──────────────────────┴───────────┴───────────┴──────────────┴──────────────┘" << endl;
+    cout << "+-----------------+----------------------+----------------------+-----------+-----------+--------------+--------------+" << endl;
 }
 
 void StaffModule::displayReportTable(sql::ResultSet* res) {
-    cout << "\n┌───────────┬──────────────────────┬──────────────┬──────────────┬──────────────────────┬──────────────────────┐" << endl;
-    cout << "│ Report ID │ Patient Name          │ Report Type  │ Report Date  │ Diagnosis             │ Treatment            │" << endl;
-    cout << "├───────────┼──────────────────────┼──────────────┼──────────────┼──────────────────────┼──────────────────────┤" << endl;
+    cout << "\n+-----------+----------------------+--------------+--------------+----------------------+----------------------+" << endl;
+    cout << "| Report ID | Patient Name          | Report Type  | Report Date  | Diagnosis             | Treatment            |" << endl;
+    cout << "+-----------┼----------------------┼--------------┼--------------┼----------------------┼----------------------+" << endl;
     
     while (res->next()) {
         string diagnosis = res->getString("diagnosis");
@@ -660,37 +660,37 @@ void StaffModule::displayReportTable(sql::ResultSet* res) {
         if (diagnosis.length() > 20) diagnosis = diagnosis.substr(0, 17) + "...";
         if (treatment.length() > 20) treatment = treatment.substr(0, 17) + "...";
         
-        cout << "│ " << setw(9) << res->getInt("report_id")
-             << "│ " << setw(20) << res->getString("patient_name")
-             << "│ " << setw(12) << res->getString("report_type")
-             << "│ " << setw(12) << res->getString("report_date")
-             << "│ " << setw(20) << diagnosis
-             << "│ " << setw(20) << treatment << "│" << endl;
+        cout << "| " << setw(9) << res->getInt("report_id")
+             << "| " << setw(20) << res->getString("patient_name")
+             << "| " << setw(12) << res->getString("report_type")
+             << "| " << setw(12) << res->getString("report_date")
+             << "| " << setw(20) << diagnosis
+             << "| " << setw(20) << treatment << "|" << endl;
     }
     
-    cout << "└───────────┴──────────────────────┴──────────────┴──────────────┴──────────────────────┴──────────────────────┘" << endl;
+    cout << "+-----------+----------------------+--------------+--------------+----------------------+----------------------+" << endl;
 }
 
 void StaffModule::displayTableHeader(const string& title) {
     // Blue theme header
     ColorUtils::setColor(BLUE);
-    cout << "\n╔════════════════════════════════════════════════════════════════╗" << endl;
-    cout << "║" << setw(60) << "" << "║" << endl;
+    cout << "\n+----------------------------------------------------------------+" << endl;
+    cout << "|" << setw(60) << "" << "|" << endl;
     ColorUtils::resetColor();
     
     // Highlighted title
     ColorUtils::setColor(WHITE);
-    cout << "║";
+    cout << "|";
     int padding = (60 - title.length()) / 2;
     for (int i = 0; i < padding; i++) cout << " ";
     ColorUtils::printColoredBG(title, YELLOW, BLUE);
     for (int i = 0; i < (60 - title.length() - padding); i++) cout << " ";
     ColorUtils::setColor(WHITE);
-    cout << "║" << endl;
+    cout << "|" << endl;
     
     ColorUtils::setColor(BLUE);
-    cout << "║" << setw(60) << "" << "║" << endl;
-    cout << "╚════════════════════════════════════════════════════════════════╝" << endl;
+    cout << "|" << setw(60) << "" << "|" << endl;
+    cout << "+----------------------------------------------------------------+" << endl;
     ColorUtils::resetColor();
 }
 
