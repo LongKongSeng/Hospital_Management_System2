@@ -1,74 +1,48 @@
 #include "DoctorModule.h"
 #include "ColorUtils.h"
+#include "MenuNavigator.h"
 
 DoctorModule::DoctorModule(Database* database, int doctorId) : db(database), currentDoctorId(doctorId) {}
 
 void DoctorModule::showMenu() {
     int choice;
     do {
-        system("cls");
-        displayTableHeader("DOCTOR MODULE");
+        vector<string> menuOptions = {
+            "View Patient Record",
+            "Generate Next Appointment",
+            "Make Diagnosis",
+            "Edit Patient Medical Record",
+            "Return to Main Menu"
+        };
         
-        // Yellow color theme for doctor menu
-        ColorUtils::setColor(YELLOW);
-        cout << "\n+----------------------------------------+" << endl;
-        ColorUtils::resetColor();
+        choice = MenuNavigator::showMenu(menuOptions, "DOCTOR MODULE", true);
         
-        ColorUtils::setColor(WHITE);
-        cout << "|  ";
-        ColorUtils::printColored("1. View Patient Record", YELLOW);
-        ColorUtils::setColor(WHITE);
-        cout << "              |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("2. Generate Next Appointment", YELLOW);
-        ColorUtils::setColor(WHITE);
-        cout << "        |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("3. Make Diagnosis", YELLOW);
-        ColorUtils::setColor(WHITE);
-        cout << "                   |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("4. Edit Patient Medical Record", YELLOW);
-        ColorUtils::setColor(WHITE);
-        cout << "      |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("5. Main Menu", RED);
-        ColorUtils::setColor(WHITE);
-        cout << "                       |" << endl;
-        ColorUtils::resetColor();
-        
-        ColorUtils::setColor(YELLOW);
-        cout << "+----------------------------------------+" << endl;
-        ColorUtils::resetColor();
-        
-        ColorUtils::printColored("\nEnter your choice: ", CYAN);
-        cin >> choice;
-        cin.ignore();
+        if (choice == -1) {
+            return; // ESC pressed
+        }
 
         switch (choice) {
-        case 1:
+        case 0:
             viewPatientRecord();
             break;
-        case 2:
+        case 1:
             generateNextAppointment();
             break;
-        case 3:
+        case 2:
             makeDiagnosis();
             break;
-        case 4:
+        case 3:
             editPatientMedicalRecord();
             break;
-        case 5:
+        case 4:
             return;
         default:
+            ColorUtils::setColor(YELLOW);
             cout << "\n❌ Invalid choice! Please try again." << endl;
+            ColorUtils::resetColor();
             pressEnterToContinue();
         }
-    } while (choice != 5);
+    } while (choice != 4);
 }
 
 void DoctorModule::viewPatientRecord() {
@@ -459,23 +433,23 @@ void DoctorModule::displayMedicalRecordTable(sql::ResultSet* res) {
 }
 
 void DoctorModule::displayTableHeader(const string& title) {
-    // Yellow theme header
-    ColorUtils::setColor(YELLOW);
+    // Blue theme header with Yellow text on Blue background
+    ColorUtils::setColor(BLUE);
     cout << "\n+----------------------------------------------------------------+" << endl;
     cout << "|" << setw(60) << "" << "|" << endl;
     ColorUtils::resetColor();
     
-    // Highlighted title
+    // Highlighted title: Yellow text on Blue background
     ColorUtils::setColor(WHITE);
     cout << "|";
     int padding = (60 - title.length()) / 2;
     for (int i = 0; i < padding; i++) cout << " ";
-    ColorUtils::printColoredBG(title, BLACK, YELLOW);
+    ColorUtils::printColoredBG(title, YELLOW, BLUE);
     for (int i = 0; i < (60 - title.length() - padding); i++) cout << " ";
     ColorUtils::setColor(WHITE);
     cout << "|" << endl;
     
-    ColorUtils::setColor(YELLOW);
+    ColorUtils::setColor(BLUE);
     cout << "|" << setw(60) << "" << "|" << endl;
     cout << "+----------------------------------------------------------------+" << endl;
     ColorUtils::resetColor();

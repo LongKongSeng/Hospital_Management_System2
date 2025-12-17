@@ -1,58 +1,40 @@
 #include "NurseModule.h"
 #include "ColorUtils.h"
+#include "MenuNavigator.h"
 
 NurseModule::NurseModule(Database* database, int nurseId) : db(database), currentNurseId(nurseId) {}
 
 void NurseModule::showMenu() {
     int choice;
     do {
-        system("cls");
-        displayTableHeader("NURSE MODULE");
+        vector<string> menuOptions = {
+            "View Patient Record",
+            "Generate Next Appointment",
+            "Return to Main Menu"
+        };
         
-        // Cyan color theme for nurse menu
-        ColorUtils::setColor(CYAN);
-        cout << "\n+----------------------------------------+" << endl;
-        ColorUtils::resetColor();
+        choice = MenuNavigator::showMenu(menuOptions, "NURSE MODULE", true);
         
-        ColorUtils::setColor(WHITE);
-        cout << "|  ";
-        ColorUtils::printColored("1. View Patient Record", CYAN);
-        ColorUtils::setColor(WHITE);
-        cout << "              |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("2. Generate Next Appointment", CYAN);
-        ColorUtils::setColor(WHITE);
-        cout << "        |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("3. Main Menu", RED);
-        ColorUtils::setColor(WHITE);
-        cout << "                       |" << endl;
-        ColorUtils::resetColor();
-        
-        ColorUtils::setColor(CYAN);
-        cout << "+----------------------------------------+" << endl;
-        ColorUtils::resetColor();
-        
-        ColorUtils::printColored("\nEnter your choice: ", CYAN);
-        cin >> choice;
-        cin.ignore();
+        if (choice == -1) {
+            return; // ESC pressed
+        }
 
         switch (choice) {
-        case 1:
+        case 0:
             viewPatientRecord();
             break;
-        case 2:
+        case 1:
             generateNextAppointment();
             break;
-        case 3:
+        case 2:
             return;
         default:
+            ColorUtils::setColor(YELLOW);
             cout << "\n❌ Invalid choice! Please try again." << endl;
+            ColorUtils::resetColor();
             pressEnterToContinue();
         }
-    } while (choice != 3);
+    } while (choice != 2);
 }
 
 void NurseModule::viewPatientRecord() {
@@ -259,23 +241,23 @@ void NurseModule::displayAppointmentTable(sql::ResultSet* res) {
 }
 
 void NurseModule::displayTableHeader(const string& title) {
-    // Cyan theme header
-    ColorUtils::setColor(CYAN);
+    // Blue theme header with Yellow text on Blue background
+    ColorUtils::setColor(BLUE);
     cout << "\n+----------------------------------------------------------------+" << endl;
     cout << "|" << setw(60) << "" << "|" << endl;
     ColorUtils::resetColor();
     
-    // Highlighted title
+    // Highlighted title: Yellow text on Blue background
     ColorUtils::setColor(WHITE);
     cout << "|";
     int padding = (60 - title.length()) / 2;
     for (int i = 0; i < padding; i++) cout << " ";
-    ColorUtils::printColoredBG(title, YELLOW, CYAN);
+    ColorUtils::printColoredBG(title, YELLOW, BLUE);
     for (int i = 0; i < (60 - title.length() - padding); i++) cout << " ";
     ColorUtils::setColor(WHITE);
     cout << "|" << endl;
     
-    ColorUtils::setColor(CYAN);
+    ColorUtils::setColor(BLUE);
     cout << "|" << setw(60) << "" << "|" << endl;
     cout << "+----------------------------------------------------------------+" << endl;
     ColorUtils::resetColor();

@@ -9,54 +9,9 @@
 #include "NurseModule.h"
 #include "Reports.h"
 #include "ColorUtils.h"
+#include "MenuNavigator.h"
 
 using namespace std;
-
-void displayMainMenu() {
-    system("cls");
-    
-    // Beautiful colorful header with highlighted title
-    ColorUtils::setColor(CYAN);
-    cout << "\n+----------------------------------------------------------------------+" << endl;
-    cout << "|                                                                |" << endl;
-    ColorUtils::resetColor();
-    
-    // Highlighted title with bright cyan background
-    ColorUtils::printColoredBG("|              ", CYAN, BLACK);
-    ColorUtils::printColoredBG("HOSPITAL MANAGEMENT SYSTEM", YELLOW, CYAN);
-    ColorUtils::printColoredBG("                        |\n", CYAN, BLACK);
-    
-    ColorUtils::setColor(CYAN);
-    cout << "|                                                                |" << endl;
-    cout << "+----------------------------------------------------------------------+" << endl;
-    ColorUtils::resetColor();
-    
-    // Colorful menu options
-    ColorUtils::setColor(BLUE);
-    cout << "\n+----------------------------------------+" << endl;
-    ColorUtils::resetColor();
-    
-    ColorUtils::setColor(WHITE);
-    cout << "|  ";
-    ColorUtils::printColored("1. Registration", CYAN);
-    ColorUtils::setColor(WHITE);
-    cout << "                        |" << endl;
-    
-    cout << "|  ";
-    ColorUtils::printColored("2. Login", CYAN);
-    ColorUtils::setColor(WHITE);
-    cout << "                              |" << endl;
-    
-    cout << "|  ";
-    ColorUtils::printColored("0. Exit", RED);
-    ColorUtils::setColor(WHITE);
-    cout << "                               |" << endl;
-    ColorUtils::resetColor();
-    
-    ColorUtils::setColor(BLUE);
-    cout << "+----------------------------------------+" << endl;
-    ColorUtils::resetColor();
-}
 
 int main() {
     // Set console to support UTF-8 characters
@@ -65,12 +20,16 @@ int main() {
     Database db;
     
     if (!db.connect()) {
+        ColorUtils::setColor(YELLOW);
         cout << "\n❌ Failed to connect to database!" << endl;
+        ColorUtils::setColor(WHITE);
         cout << "Please ensure:" << endl;
         cout << "1. XAMPP MySQL is running" << endl;
         cout << "2. Database 'hospital_management_system' exists" << endl;
         cout << "3. Run database_schema.sql to create tables" << endl;
+        ColorUtils::setColor(YELLOW);
         cout << "\nPress Enter to exit...";
+        ColorUtils::resetColor();
         cin.get();
         return 1;
     }
@@ -82,33 +41,40 @@ int main() {
     NurseModule* nurseModule = nullptr;
     Reports reports(&db);
 
-    int mainChoice;
+    int mainChoice = -1;
     bool loggedIn = false;
 
     do {
         if (!loggedIn) {
-            displayMainMenu();
-            cout << "\nEnter your choice: ";
-            cin >> mainChoice;
-            cin.ignore();
+            vector<string> mainMenuOptions = {
+                "Registration",
+                "Login",
+                "Exit"
+            };
+            
+            int selected = MenuNavigator::showMenu(mainMenuOptions, "HOSPITAL MANAGEMENT SYSTEM", false);
+            
+            if (selected == -1) {
+                mainChoice = 2; // Exit
+            } else {
+                mainChoice = selected;
+            }
 
             switch (mainChoice) {
-            case 1:
+            case 0: // Registration
                 registration.showPreRegistrationMenu();
                 break;
-            case 2:
+            case 1: // Login
                 login.showLoginMenu();
                 if (login.getCurrentUserId() > 0) {
                     loggedIn = true;
                 }
                 break;
-            case 0:
+            case 2: // Exit
+                ColorUtils::setColor(YELLOW);
                 cout << "\nThank you for using Hospital Management System!" << endl;
+                ColorUtils::resetColor();
                 break;
-            default:
-                cout << "\n❌ Invalid choice! Please try again." << endl;
-                cout << "Press Enter to continue...";
-                cin.get();
             }
         } else {
             // User is logged in - route to appropriate module based on role
@@ -151,12 +117,14 @@ int main() {
                 delete nurseModule;
                 nurseModule = nullptr;
             } else {
+                ColorUtils::setColor(YELLOW);
                 cout << "\n❌ Unknown role! Logging out..." << endl;
+                ColorUtils::resetColor();
                 login.logout();
                 loggedIn = false;
             }
         }
-    } while (mainChoice != 0);
+    } while (mainChoice != 2); // Exit is now index 2
 
     // Cleanup
     if (adminModule) delete adminModule;

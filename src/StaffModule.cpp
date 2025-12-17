@@ -1,82 +1,52 @@
 #include "StaffModule.h"
 #include "ColorUtils.h"
+#include "MenuNavigator.h"
 
 StaffModule::StaffModule(Database* database, int staffId) : db(database), currentStaffId(staffId) {}
 
 void StaffModule::showMenu() {
     int choice;
     do {
-        system("cls");
-        displayTableHeader("STAFF MODULE");
+        vector<string> menuOptions = {
+            "View Patient Status",
+            "Update Patient Status",
+            "Update Patient Prescription",
+            "Delete Finished Prescriptions",
+            "Update Patient Report",
+            "Back to Main Menu"
+        };
         
-        // Blue color theme for staff menu
-        ColorUtils::setColor(BLUE);
-        cout << "\n+----------------------------------------+" << endl;
-        ColorUtils::resetColor();
+        choice = MenuNavigator::showMenu(menuOptions, "STAFF MODULE", true);
         
-        ColorUtils::setColor(WHITE);
-        cout << "|  ";
-        ColorUtils::printColored("1. View Patient Status", BLUE);
-        ColorUtils::setColor(WHITE);
-        cout << "               |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("2. Update Patient Status", BLUE);
-        ColorUtils::setColor(WHITE);
-        cout << "              |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("3. Update Patient Prescription", BLUE);
-        ColorUtils::setColor(WHITE);
-        cout << "        |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("4. Delete Finished Prescriptions", BLUE);
-        ColorUtils::setColor(WHITE);
-        cout << "      |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("5. Update Patient Report", BLUE);
-        ColorUtils::setColor(WHITE);
-        cout << "              |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("0. Back to Main Menu", RED);
-        ColorUtils::setColor(WHITE);
-        cout << "                 |" << endl;
-        ColorUtils::resetColor();
-        
-        ColorUtils::setColor(BLUE);
-        cout << "+----------------------------------------+" << endl;
-        ColorUtils::resetColor();
-        
-        ColorUtils::printColored("\nEnter your choice: ", CYAN);
-        cin >> choice;
-        cin.ignore();
+        if (choice == -1) {
+            return; // ESC pressed
+        }
 
         switch (choice) {
-        case 1:
+        case 0:
             viewPatientStatus();
             break;
-        case 2:
+        case 1:
             updatePatientStatus();
             break;
-        case 3:
+        case 2:
             updatePrescription();
             break;
-        case 4:
+        case 3:
             deleteFinishedPrescriptions();
             break;
-        case 5:
+        case 4:
             updatePatientReport();
             break;
-        case 0:
+        case 5:
             return;
         default:
+            ColorUtils::setColor(YELLOW);
             cout << "\n❌ Invalid choice! Please try again." << endl;
+            ColorUtils::resetColor();
             pressEnterToContinue();
         }
-    } while (choice != 0);
+    } while (choice != 5);
 }
 
 void StaffModule::viewPatientStatus() {
@@ -672,13 +642,13 @@ void StaffModule::displayReportTable(sql::ResultSet* res) {
 }
 
 void StaffModule::displayTableHeader(const string& title) {
-    // Blue theme header
+    // Blue theme header with Yellow text on Blue background
     ColorUtils::setColor(BLUE);
     cout << "\n+----------------------------------------------------------------+" << endl;
     cout << "|" << setw(60) << "" << "|" << endl;
     ColorUtils::resetColor();
     
-    // Highlighted title
+    // Highlighted title: Yellow text on Blue background
     ColorUtils::setColor(WHITE);
     cout << "|";
     int padding = (60 - title.length()) / 2;

@@ -1,71 +1,44 @@
 #include "Registration.h"
 #include "ColorUtils.h"
+#include "MenuNavigator.h"
 
 Registration::Registration(Database* database) : db(database) {}
 
 void Registration::showPreRegistrationMenu() {
     int choice;
     do {
-        system("cls");
-        displayTableHeader("PRE-REGISTRATION");
+        vector<string> menuOptions = {
+            "Doctor",
+            "Nurse",
+            "Admin",
+            "Back to Main Menu"
+        };
         
-        // Magenta color theme for registration menu
-        ColorUtils::setColor(MAGENTA);
-        cout << "\n+----------------------------------------+" << endl;
-        ColorUtils::resetColor();
+        choice = MenuNavigator::showMenu(menuOptions, "PRE-REGISTRATION", true);
         
-        ColorUtils::setColor(WHITE);
-        cout << "|  ";
-        ColorUtils::printColored("Select Role:", MAGENTA);
-        ColorUtils::setColor(WHITE);
-        cout << "                         |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("1. Doctor", MAGENTA);
-        ColorUtils::setColor(WHITE);
-        cout << "                            |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("2. Nurse", MAGENTA);
-        ColorUtils::setColor(WHITE);
-        cout << "                             |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("3. Admin", MAGENTA);
-        ColorUtils::setColor(WHITE);
-        cout << "                             |" << endl;
-        
-        cout << "|  ";
-        ColorUtils::printColored("0. Back to Main Menu", YELLOW);
-        ColorUtils::setColor(WHITE);
-        cout << "                 |" << endl;
-        ColorUtils::resetColor();
-        
-        ColorUtils::setColor(MAGENTA);
-        cout << "+----------------------------------------+" << endl;
-        ColorUtils::resetColor();
-        
-        ColorUtils::printColored("\nEnter your choice: ", CYAN);
-        cin >> choice;
-        cin.ignore();
+        if (choice == -1) {
+            return; // ESC pressed
+        }
 
         switch (choice) {
-        case 1:
+        case 0:
             registerDoctor();
             break;
-        case 2:
+        case 1:
             registerNurse();
             break;
-        case 3:
+        case 2:
             registerAdmin();
             break;
-        case 0:
+        case 3:
             return;
         default:
+            ColorUtils::setColor(YELLOW);
             cout << "\n❌ Invalid choice! Please try again." << endl;
+            ColorUtils::resetColor();
             pressEnterToContinue();
         }
-    } while (choice != 0);
+    } while (choice != 3);
 }
 
 void Registration::registerDoctor() {
@@ -732,23 +705,23 @@ bool Registration::validateContactNumber(const string& contactNumber) {
 }
 
 void Registration::displayTableHeader(const string& title) {
-    // Magenta theme header
-    ColorUtils::setColor(MAGENTA);
+    // Blue theme header with Yellow text on Blue background
+    ColorUtils::setColor(BLUE);
     cout << "\n+----------------------------------------------------------------+" << endl;
     cout << "|" << setw(60) << "" << "|" << endl;
     ColorUtils::resetColor();
     
-    // Highlighted title
+    // Highlighted title: Yellow text on Blue background
     ColorUtils::setColor(WHITE);
     cout << "|";
     int padding = (60 - title.length()) / 2;
     for (int i = 0; i < padding; i++) cout << " ";
-    ColorUtils::printColoredBG(title, YELLOW, MAGENTA);
+    ColorUtils::printColoredBG(title, YELLOW, BLUE);
     for (int i = 0; i < (60 - title.length() - padding); i++) cout << " ";
     ColorUtils::setColor(WHITE);
     cout << "|" << endl;
     
-    ColorUtils::setColor(MAGENTA);
+    ColorUtils::setColor(BLUE);
     cout << "|" << setw(60) << "" << "|" << endl;
     cout << "+----------------------------------------------------------------+" << endl;
     ColorUtils::resetColor();

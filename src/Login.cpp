@@ -1,5 +1,6 @@
 #include "Login.h"
 #include "ColorUtils.h"
+#include "MenuNavigator.h"
 
 Login::Login(Database* database) : db(database), currentUserId(-1), currentUserType(""), currentUsername(""), currentRole("") {}
 
@@ -46,38 +47,49 @@ void Login::showLoginMenu() {
     
     string username, password;
 
-    ColorUtils::printColored("\nEnter Username: ", RED);
+    ColorUtils::setColor(WHITE);
+    cout << "\nEnter Username: ";
+    ColorUtils::resetColor();
     getline(cin, username);
     
     if (username.empty()) {
-        ColorUtils::printColored("\n❌ Username cannot be empty!\n", RED);
-        ColorUtils::printColored("Press Enter to continue...", YELLOW);
+        ColorUtils::setColor(YELLOW);
+        cout << "\n❌ Username cannot be empty!\n";
+        ColorUtils::resetColor();
+        cout << "Press Enter to continue...";
         cin.get();
         return;
     }
 
-    ColorUtils::printColored("Enter Password: ", RED);
+    ColorUtils::setColor(WHITE);
+    cout << "Enter Password: ";
+    ColorUtils::resetColor();
     getline(cin, password);
     
     if (password.empty()) {
-        ColorUtils::printColored("\n❌ Password cannot be empty!\n", RED);
-        ColorUtils::printColored("Press Enter to continue...", YELLOW);
+        ColorUtils::setColor(YELLOW);
+        cout << "\n❌ Password cannot be empty!\n";
+        ColorUtils::resetColor();
+        cout << "Press Enter to continue...";
         cin.get();
         return;
     }
 
     if (authenticate(username, password)) {
-        ColorUtils::printColored("\n✅ Login successful! Welcome, ", GREEN);
-        ColorUtils::printColored(currentUsername, CYAN);
-        ColorUtils::printColored("!\n", GREEN);
+        ColorUtils::setColor(YELLOW);
+        cout << "\n✅ Login successful! Welcome, " << currentUsername << "!\n";
+        ColorUtils::resetColor();
         cout << "Role: ";
-        ColorUtils::printColored(currentRole, YELLOW);
-        cout << endl;
-        ColorUtils::printColored("Press Enter to continue...", YELLOW);
+        ColorUtils::setColor(YELLOW);
+        cout << currentRole << endl;
+        ColorUtils::resetColor();
+        cout << "Press Enter to continue...";
         cin.get();
     } else {
-        ColorUtils::printColored("\n❌ Invalid username or password!\n", RED);
-        ColorUtils::printColored("Press Enter to continue...", YELLOW);
+        ColorUtils::setColor(YELLOW);
+        cout << "\n❌ Invalid username or password!\n";
+        ColorUtils::resetColor();
+        cout << "Press Enter to continue...";
         cin.get();
     }
 }
@@ -106,23 +118,23 @@ void Login::logout() {
 }
 
 void Login::displayTableHeader(const string& title) {
-    // Red theme header
-    ColorUtils::setColor(RED);
+    // Blue theme header with Yellow text on Blue background
+    ColorUtils::setColor(BLUE);
     cout << "\n+----------------------------------------------------------------+" << endl;
     cout << "|" << setw(60) << "" << "|" << endl;
     ColorUtils::resetColor();
     
-    // Highlighted title
+    // Highlighted title: Yellow text on Blue background
     ColorUtils::setColor(WHITE);
     cout << "|";
     int padding = (60 - title.length()) / 2;
     for (int i = 0; i < padding; i++) cout << " ";
-    ColorUtils::printColoredBG(title, YELLOW, RED);
+    ColorUtils::printColoredBG(title, YELLOW, BLUE);
     for (int i = 0; i < (60 - title.length() - padding); i++) cout << " ";
     ColorUtils::setColor(WHITE);
     cout << "|" << endl;
     
-    ColorUtils::setColor(RED);
+    ColorUtils::setColor(BLUE);
     cout << "|" << setw(60) << "" << "|" << endl;
     cout << "+----------------------------------------------------------------+" << endl;
     ColorUtils::resetColor();
