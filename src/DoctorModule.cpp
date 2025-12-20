@@ -302,16 +302,38 @@ void DoctorModule::editPatientMedicalRecord() {
     }
 
     try {
-        // Display current medical record
+        // Verify patient exists
+        string checkPatientQuery = "SELECT full_name FROM patient WHERE patient_id = " + to_string(patientId);
+        sql::ResultSet* checkPatientRes = db->executeSelect(checkPatientQuery);
+        
+        if (!checkPatientRes || !checkPatientRes->next()) {
+            cout << "\n❌ Patient not found!" << endl;
+            if (checkPatientRes) delete checkPatientRes;
+            pressEnterToContinue();
+            return;
+        }
+        string patientName = checkPatientRes->getString("full_name");
+        delete checkPatientRes;
+
+        // Display ALL medical records for this patient
         string recordQuery = "SELECT mr.record_id, mr.date_of_record, d.disease, d.disorder, d.duration_of_pain, d.severity, mr.notes "
                             "FROM medical_record mr "
                             "LEFT JOIN diagnosis d ON mr.diagnosis_id = d.diagnosis_id "
                             "WHERE mr.patient_id = " + to_string(patientId) + " "
-                            "ORDER BY mr.date_of_record DESC LIMIT 1";
+                            "ORDER BY mr.date_of_record DESC";
 
         sql::ResultSet* recordRes = db->executeSelect(recordQuery);
         
-        if (!recordRes || !recordRes->next()) {
+        if (!recordRes) {
+            cout << "\n❌ Error retrieving medical records!" << endl;
+            pressEnterToContinue();
+            return;
+        }
+
+        // Check if there are any records by trying to read the first row
+        bool hasRecords = recordRes->next();
+        
+        if (!hasRecords) {
             cout << "\n⚠️  No medical record found for this patient." << endl;
             cout << "Would you like to create a new record? (yes/no): ";
             string createChoice;
@@ -320,57 +342,94 @@ void DoctorModule::editPatientMedicalRecord() {
             if (createChoice == "yes" || createChoice == "YES") {
                 makeDiagnosis();
             }
-            if (recordRes) delete recordRes;
+            delete recordRes;
             return;
         }
 
-        cout << "\nCurrent Medical Record:" << endl;
+        // Re-execute query to display all records (since we moved the cursor)
+        delete recordRes;
+        recordRes = db->executeSelect(recordQuery);
+
+        cout << "\nPatient: " << patientName << endl;
+        cout << "\nMedical Record History:" << endl;
         displayMedicalRecordTable(recordRes);
         delete recordRes;
 
-        // Get diagnosis_id from the latest record
-        string getDiagQuery = "SELECT diagnosis_id FROM medical_record WHERE patient_id = " + to_string(patientId) + " ORDER BY date_of_record DESC LIMIT 1";
-        sql::ResultSet* diagRes = db->executeSelect(getDiagQuery);
-        int diagnosisId = -1;
-        if (diagRes && diagRes->next()) {
-            diagnosisId = diagRes->getInt("diagnosis_id");
+        // Ask user to select which record to edit
+        int recordId = getIntInput("\nEnter Record ID to edit (or 0 to cancel): ");
+        if (recordId <= 0) {
+            cout << "\n❌ Invalid Record ID or operation cancelled!" << endl;
+            pressEnterToContinue();
+            return;
         }
-        if (diagRes) delete diagRes;
 
-        if (diagnosisId > 0) {
-            cout << "\nEnter new diagnosis details (press Enter to keep current value):" << endl;
-            string disease = getStringInput("Disease: ");
-            string disorder = getStringInput("Disorder: ");
-            string durationOfPain = getStringInput("Duration of Pain: ");
-            string severity = getStringInput("Severity: ");
-            string date = getStringInput("Date (YYYY-MM-DD): ");
+        // Verify record exists and get diagnosis_id for the selected record
+        string getDiagQuery = "SELECT mr.diagnosis_id, d.disease, d.disorder, d.duration_of_pain, d.severity, d.date "
+                             "FROM medical_record mr "
+                             "LEFT JOIN diagnosis d ON mr.diagnosis_id = d.diagnosis_id "
+                             "WHERE mr.record_id = " + to_string(recordId) + " AND mr.patient_id = " + to_string(patientId);
+        
+        sql::ResultSet* diagRes = db->executeSelect(getDiagQuery);
+        
+        if (!diagRes || !diagRes->next()) {
+            cout << "\n❌ Record ID " << recordId << " not found for this patient!" << endl;
+            if (diagRes) delete diagRes;
+            pressEnterToContinue();
+            return;
+        }
 
-            string updateQuery = "UPDATE diagnosis SET ";
-            vector<string> updates;
-            
-            if (!disease.empty()) updates.push_back("disease = '" + disease + "'");
-            if (!disorder.empty()) updates.push_back("disorder = '" + disorder + "'");
-            if (!durationOfPain.empty()) updates.push_back("duration_of_pain = '" + durationOfPain + "'");
-            if (!severity.empty()) updates.push_back("severity = '" + severity + "'");
-            if (!date.empty()) updates.push_back("date = '" + date + "'");
+        int diagnosisId = diagRes->getInt("diagnosis_id");
+        string currentDisease = diagRes->isNull("disease") ? "" : diagRes->getString("disease");
+        string currentDisorder = diagRes->isNull("disorder") ? "" : diagRes->getString("disorder");
+        string currentDuration = diagRes->isNull("duration_of_pain") ? "" : diagRes->getString("duration_of_pain");
+        string currentSeverity = diagRes->isNull("severity") ? "" : diagRes->getString("severity");
+        string currentDate = diagRes->isNull("date") ? "" : diagRes->getString("date");
+        delete diagRes;
 
-            if (!updates.empty()) {
-                for (size_t i = 0; i < updates.size(); i++) {
-                    updateQuery += updates[i];
-                    if (i < updates.size() - 1) updateQuery += ", ";
-                }
-                updateQuery += " WHERE diagnosis_id = " + to_string(diagnosisId);
+        if (diagnosisId <= 0) {
+            cout << "\n❌ No diagnosis found for this record!" << endl;
+            pressEnterToContinue();
+            return;
+        }
 
-                if (db->executeUpdate(updateQuery)) {
-                    cout << "\n✅ Medical record updated successfully!" << endl;
-                } else {
-                    cout << "\n❌ Failed to update medical record!" << endl;
-                }
+        // Display current values and allow editing
+        cout << "\nCurrent Diagnosis Details:" << endl;
+        cout << "Disease: " << (currentDisease.empty() ? "N/A" : currentDisease) << endl;
+        cout << "Disorder: " << (currentDisorder.empty() ? "N/A" : currentDisorder) << endl;
+        cout << "Duration of Pain: " << (currentDuration.empty() ? "N/A" : currentDuration) << endl;
+        cout << "Severity: " << (currentSeverity.empty() ? "N/A" : currentSeverity) << endl;
+        cout << "Date: " << (currentDate.empty() ? "N/A" : currentDate) << endl;
+
+        cout << "\nEnter new diagnosis details (press Enter to keep current value):" << endl;
+        string disease = getStringInput("Disease: ");
+        string disorder = getStringInput("Disorder: ");
+        string durationOfPain = getStringInput("Duration of Pain: ");
+        string severity = getStringInput("Severity: ");
+        string date = getStringInput("Date (YYYY-MM-DD): ");
+
+        string updateQuery = "UPDATE diagnosis SET ";
+        vector<string> updates;
+        
+        if (!disease.empty()) updates.push_back("disease = '" + disease + "'");
+        if (!disorder.empty()) updates.push_back("disorder = '" + disorder + "'");
+        if (!durationOfPain.empty()) updates.push_back("duration_of_pain = '" + durationOfPain + "'");
+        if (!severity.empty()) updates.push_back("severity = '" + severity + "'");
+        if (!date.empty()) updates.push_back("date = '" + date + "'");
+
+        if (!updates.empty()) {
+            for (size_t i = 0; i < updates.size(); i++) {
+                updateQuery += updates[i];
+                if (i < updates.size() - 1) updateQuery += ", ";
+            }
+            updateQuery += " WHERE diagnosis_id = " + to_string(diagnosisId);
+
+            if (db->executeUpdate(updateQuery)) {
+                cout << "\n✅ Medical record updated successfully!" << endl;
             } else {
-                cout << "\n❌ No fields to update!" << endl;
+                cout << "\n❌ Failed to update medical record!" << endl;
             }
         } else {
-            cout << "\n❌ No diagnosis found to update!" << endl;
+            cout << "\n❌ No fields to update!" << endl;
         }
 
     }
