@@ -6,6 +6,7 @@ CREATE DATABASE IF NOT EXISTS hospital_management_system;
 USE hospital_management_system;
 
 -- DOCTOR Table
+-- Note: AUTO_INCREMENT starts at 2000 for Doctor IDs (format: 2xxx)
 CREATE TABLE IF NOT EXISTS doctor (
     doctor_id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
@@ -19,6 +20,7 @@ CREATE TABLE IF NOT EXISTS doctor (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- NURSE Table
+-- Note: AUTO_INCREMENT starts at 4000 for Nurse IDs (format: 4xxx)
 CREATE TABLE IF NOT EXISTS nurse (
     nurse_id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
@@ -30,6 +32,7 @@ CREATE TABLE IF NOT EXISTS nurse (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ADMIN Table
+-- Note: AUTO_INCREMENT starts at 1000 for Admin IDs (format: 1xxx)
 CREATE TABLE IF NOT EXISTS admin (
     admin_id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
@@ -56,6 +59,7 @@ CREATE TABLE IF NOT EXISTS login (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- PATIENT Table
+-- Note: AUTO_INCREMENT starts at 3000 for Patient IDs (format: 3xxxx)
 CREATE TABLE IF NOT EXISTS patient (
     patient_id INT AUTO_INCREMENT PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
@@ -154,6 +158,16 @@ CREATE INDEX idx_login_username ON login(username);
 CREATE INDEX idx_patient_status ON patient(status);
 CREATE INDEX idx_appointment_date ON appointment(appointment_date);
 CREATE INDEX idx_pharmacy_category ON pharmacy(category_of_meds);
+
+-- Set AUTO_INCREMENT starting values for distinct ID ranges
+-- Admin IDs: 1000-1999 (format: 1xxx)
+-- Doctor IDs: 2000-2999 (format: 2xxx)
+-- Patient IDs: 3000-99999 (format: 3xxxx)
+-- Nurse IDs: 4000-4999 (format: 4xxx)
+ALTER TABLE admin AUTO_INCREMENT = 1000;
+ALTER TABLE doctor AUTO_INCREMENT = 2000;
+ALTER TABLE patient AUTO_INCREMENT = 3000;
+ALTER TABLE nurse AUTO_INCREMENT = 4000;
 
 -- Insert default admin account
 INSERT INTO admin (full_name, email, contact_number, status, role) 
