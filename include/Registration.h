@@ -23,6 +23,9 @@ public:
     void registerAdmin();
     bool validatePassword(const string& password1, const string& password2);
     bool validateContactNumber(const string& contactNumber);
+    bool validateFullName(const string& fullName);
+    bool validateICNumber(const string& icNumber);
+    string validateAndCorrectGender(string& gender);
     void displayTableHeader(const string& title);
     void pressEnterToContinue();
     string getStringInput(const string& prompt);

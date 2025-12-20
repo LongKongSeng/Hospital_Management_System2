@@ -60,8 +60,12 @@ void Registration::registerDoctor() {
                 if (fullName == "0") {
                     return; // User wants to cancel
                 }
-                if (fullName.empty()) {
-                    cout << "\n❌ Full name cannot be empty! Please try again." << endl;
+                if (!validateFullName(fullName)) {
+                    if (fullName.empty()) {
+                        cout << "\n❌ Full name cannot be empty! Please try again." << endl;
+                    } else {
+                        cout << "\n❌ Full name must contain only letters, spaces, and hyphens! Please try again." << endl;
+                    }
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("DOCTOR REGISTRATION");
@@ -74,7 +78,7 @@ void Registration::registerDoctor() {
             validInput = false;
             // Gender
             while (!validInput) {
-                cout << "Enter Gender (Male/Female/Other): ";
+                cout << "Enter Gender (Male/Female or M/F): ";
                 getline(cin, gender);
                 if (gender == "0") {
                     return;
@@ -87,20 +91,35 @@ void Registration::registerDoctor() {
                     cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                 } else {
-                    validInput = true;
+                    string correctedGender = validateAndCorrectGender(gender);
+                    if (correctedGender != "Male" && correctedGender != "Female") {
+                        cout << "\n❌ Gender must be Male or Female only! Please try again." << endl;
+                        pressEnterToContinue();
+                        system("cls");
+                        displayTableHeader("DOCTOR REGISTRATION");
+                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
+                        cout << "\nEnter Full Name: " << fullName << endl;
+                    } else {
+                        gender = correctedGender; // Use corrected gender
+                        validInput = true;
+                    }
                 }
             }
 
             validInput = false;
             // IC Number
             while (!validInput) {
-                cout << "Enter IC Number: ";
+                cout << "Enter IC Number (12 digits): ";
                 getline(cin, icNumber);
                 if (icNumber == "0") {
                     return;
                 }
-                if (icNumber.empty()) {
-                    cout << "\n❌ IC number cannot be empty! Please try again." << endl;
+                if (!validateICNumber(icNumber)) {
+                    if (icNumber.empty()) {
+                        cout << "\n❌ IC number cannot be empty! Please try again." << endl;
+                    } else {
+                        cout << "\n❌ IC number must be exactly 12 digits! Please try again." << endl;
+                    }
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("DOCTOR REGISTRATION");
@@ -158,7 +177,7 @@ void Registration::registerDoctor() {
                     if (contactNumber.empty()) {
                         cout << "\n❌ Contact number cannot be empty! Please try again." << endl;
                     } else {
-                        cout << "\n❌ Contact number must contain only digits (0-9)! Please try again." << endl;
+                        cout << "\n❌ Contact number must be 10 or 11 digits! Please try again." << endl;
                     }
                     pressEnterToContinue();
                     system("cls");
@@ -332,8 +351,12 @@ void Registration::registerNurse() {
                 if (fullName == "0") {
                     return; // User wants to cancel
                 }
-                if (fullName.empty()) {
-                    cout << "\n❌ Full name cannot be empty! Please try again." << endl;
+                if (!validateFullName(fullName)) {
+                    if (fullName.empty()) {
+                        cout << "\n❌ Full name cannot be empty! Please try again." << endl;
+                    } else {
+                        cout << "\n❌ Full name must contain only letters, spaces, and hyphens! Please try again." << endl;
+                    }
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("NURSE REGISTRATION");
@@ -346,7 +369,7 @@ void Registration::registerNurse() {
             validInput = false;
             // Gender
             while (!validInput) {
-                cout << "Enter Gender (Male/Female/Other): ";
+                cout << "Enter Gender (Male/Female or M/F): ";
                 getline(cin, gender);
                 if (gender == "0") {
                     return;
@@ -359,20 +382,35 @@ void Registration::registerNurse() {
                     cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                 } else {
-                    validInput = true;
+                    string correctedGender = validateAndCorrectGender(gender);
+                    if (correctedGender != "Male" && correctedGender != "Female") {
+                        cout << "\n❌ Gender must be Male or Female only! Please try again." << endl;
+                        pressEnterToContinue();
+                        system("cls");
+                        displayTableHeader("NURSE REGISTRATION");
+                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
+                        cout << "\nEnter Full Name: " << fullName << endl;
+                    } else {
+                        gender = correctedGender; // Use corrected gender
+                        validInput = true;
+                    }
                 }
             }
 
             validInput = false;
             // IC Number
             while (!validInput) {
-                cout << "Enter IC Number: ";
+                cout << "Enter IC Number (12 digits): ";
                 getline(cin, icNumber);
                 if (icNumber == "0") {
                     return;
                 }
-                if (icNumber.empty()) {
-                    cout << "\n❌ IC number cannot be empty! Please try again." << endl;
+                if (!validateICNumber(icNumber)) {
+                    if (icNumber.empty()) {
+                        cout << "\n❌ IC number cannot be empty! Please try again." << endl;
+                    } else {
+                        cout << "\n❌ IC number must be exactly 12 digits! Please try again." << endl;
+                    }
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("NURSE REGISTRATION");
@@ -408,7 +446,7 @@ void Registration::registerNurse() {
                     if (contactNumber.empty()) {
                         cout << "\n❌ Contact number cannot be empty! Please try again." << endl;
                     } else {
-                        cout << "\n❌ Contact number must contain only digits (0-9)! Please try again." << endl;
+                        cout << "\n❌ Contact number must be 10 or 11 digits! Please try again." << endl;
                     }
                     pressEnterToContinue();
                     system("cls");
@@ -575,8 +613,12 @@ void Registration::registerAdmin() {
                 if (fullName == "0") {
                     return; // User wants to cancel
                 }
-                if (fullName.empty()) {
-                    cout << "\n❌ Full name cannot be empty! Please try again." << endl;
+                if (!validateFullName(fullName)) {
+                    if (fullName.empty()) {
+                        cout << "\n❌ Full name cannot be empty! Please try again." << endl;
+                    } else {
+                        cout << "\n❌ Full name must contain only letters, spaces, and hyphens! Please try again." << endl;
+                    }
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("ADMIN REGISTRATION");
@@ -609,13 +651,17 @@ void Registration::registerAdmin() {
             validInput = false;
             // IC Number
             while (!validInput) {
-                cout << "Enter IC Number: ";
+                cout << "Enter IC Number (12 digits): ";
                 getline(cin, icNumber);
                 if (icNumber == "0") {
                     return;
                 }
-                if (icNumber.empty()) {
-                    cout << "\n❌ IC number cannot be empty! Please try again." << endl;
+                if (!validateICNumber(icNumber)) {
+                    if (icNumber.empty()) {
+                        cout << "\n❌ IC number cannot be empty! Please try again." << endl;
+                    } else {
+                        cout << "\n❌ IC number must be exactly 12 digits! Please try again." << endl;
+                    }
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("ADMIN REGISTRATION");
@@ -651,7 +697,7 @@ void Registration::registerAdmin() {
                     if (contactNumber.empty()) {
                         cout << "\n❌ Contact number cannot be empty! Please try again." << endl;
                     } else {
-                        cout << "\n❌ Contact number must contain only digits (0-9)! Please try again." << endl;
+                        cout << "\n❌ Contact number must be 10 or 11 digits! Please try again." << endl;
                     }
                     pressEnterToContinue();
                     system("cls");
@@ -813,7 +859,67 @@ bool Registration::validateContactNumber(const string& contactNumber) {
             return false;
         }
     }
+    // Check if length is 10 or 11 digits
+    if (contactNumber.length() != 10 && contactNumber.length() != 11) {
+        return false;
+    }
     return true;
+}
+
+bool Registration::validateFullName(const string& fullName) {
+    if (fullName.empty()) {
+        return false;
+    }
+    // Check if all characters are letters or spaces
+    for (char c : fullName) {
+        if (!isalpha(c) && c != ' ' && c != '-') {
+            return false;
+        }
+    }
+    // Check if name has at least one letter
+    bool hasLetter = false;
+    for (char c : fullName) {
+        if (isalpha(c)) {
+            hasLetter = true;
+            break;
+        }
+    }
+    return hasLetter;
+}
+
+bool Registration::validateICNumber(const string& icNumber) {
+    if (icNumber.empty()) {
+        return false;
+    }
+    // Check if all characters are digits
+    for (char c : icNumber) {
+        if (!isdigit(c)) {
+            return false;
+        }
+    }
+    // Check if length is exactly 12 digits
+    if (icNumber.length() != 12) {
+        return false;
+    }
+    return true;
+}
+
+string Registration::validateAndCorrectGender(string& gender) {
+    // Convert to lowercase for comparison
+    string genderLower = gender;
+    for (char& c : genderLower) {
+        c = tolower(c);
+    }
+    
+    // Auto-correct common inputs
+    if (genderLower == "m" || genderLower == "male") {
+        return "Male";
+    } else if (genderLower == "f" || genderLower == "female") {
+        return "Female";
+    } else {
+        // Return original if not valid
+        return gender;
+    }
 }
 
 void Registration::displayTableHeader(const string& title) {
