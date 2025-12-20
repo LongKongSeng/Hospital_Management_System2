@@ -209,21 +209,37 @@ void DoctorModule::makeDiagnosis() {
     if (prescriptionChoice == "yes" || prescriptionChoice == "YES") {
         int pharmacyId = getIntInput("Enter Pharmacy ID (Medication ID): ");
         if (pharmacyId > 0) {
-            string dosage = getStringInput("Enter Dosage: ");
-            string durationOfMeds = getStringInput("Enter Duration of Medications: ");
-            string instructions = getStringInput("Enter Instructions: ");
+            // Validate that pharmacy_id exists
+            string validatePharmacyQuery = "SELECT pharmacy_id, medicine_name FROM pharmacy WHERE pharmacy_id = " + to_string(pharmacyId);
+            sql::ResultSet* validateRes = db->executeSelect(validatePharmacyQuery);
             
-            string presQuery = "INSERT INTO prescription (pharmacy_id, dosage, duration_of_meds, instructions, date) "
-                "VALUES (" + to_string(pharmacyId) + ", '" + dosage + "', '" + durationOfMeds + "', '" + instructions + "', '" + date + "')";
-            
-            if (db->executeUpdate(presQuery)) {
-                // Get the prescription_id
-                string getIdQuery = "SELECT prescription_id FROM prescription WHERE pharmacy_id = " + to_string(pharmacyId) + " ORDER BY prescription_id DESC LIMIT 1";
-                sql::ResultSet* idRes = db->executeSelect(getIdQuery);
-                if (idRes && idRes->next()) {
-                    prescriptionId = idRes->getInt("prescription_id");
+            if (!validateRes || !validateRes->next()) {
+                cout << "\n❌ Pharmacy ID " << pharmacyId << " not found! Please enter a valid Pharmacy ID." << endl;
+                cout << "Continuing without prescription..." << endl;
+                if (validateRes) delete validateRes;
+            } else {
+                string medicineName = validateRes->getString("medicine_name");
+                cout << "Medication: " << medicineName << endl;
+                delete validateRes;
+                
+                string dosage = getStringInput("Enter Dosage: ");
+                string durationOfMeds = getStringInput("Enter Duration of Medications: ");
+                string instructions = getStringInput("Enter Instructions: ");
+                
+                string presQuery = "INSERT INTO prescription (pharmacy_id, dosage, duration_of_meds, instructions, date) "
+                    "VALUES (" + to_string(pharmacyId) + ", '" + dosage + "', '" + durationOfMeds + "', '" + instructions + "', '" + date + "')";
+                
+                if (db->executeUpdate(presQuery)) {
+                    // Get the prescription_id
+                    string getIdQuery = "SELECT prescription_id FROM prescription WHERE pharmacy_id = " + to_string(pharmacyId) + " AND date = '" + date + "' ORDER BY prescription_id DESC LIMIT 1";
+                    sql::ResultSet* idRes = db->executeSelect(getIdQuery);
+                    if (idRes && idRes->next()) {
+                        prescriptionId = idRes->getInt("prescription_id");
+                    }
+                    if (idRes) delete idRes;
+                } else {
+                    cout << "\n⚠️  Failed to create prescription. Continuing without prescription..." << endl;
                 }
-                if (idRes) delete idRes;
             }
         }
     }

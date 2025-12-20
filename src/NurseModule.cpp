@@ -110,11 +110,11 @@ void NurseModule::viewPatientRecord() {
         if (recordRes) delete recordRes;
 
         // Display appointments
-        string appointmentQuery = "SELECT appointment_id, appointment_date, appointment_time, status, p.full_name as patient_name "
+        string appointmentQuery = "SELECT a.appointment_id, a.appointment_date, a.appointment_time, a.status, p.full_name as patient_name "
                                  "FROM appointment a "
                                  "JOIN patient p ON a.patient_id = p.patient_id "
                                  "WHERE a.patient_id = " + to_string(patientId) + " "
-                                 "ORDER BY appointment_date DESC";
+                                 "ORDER BY a.appointment_date DESC";
 
         sql::ResultSet* appointmentRes = db->executeSelect(appointmentQuery);
         
