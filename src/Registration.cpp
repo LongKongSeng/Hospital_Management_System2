@@ -42,7 +42,7 @@ void Registration::showPreRegistrationMenu() {
 }
 
 void Registration::registerDoctor() {
-    string fullName, gender, specialization, contactNumber, password1, password2, username;
+    string fullName, gender, specialization, contactNumber, password1, password2, username, icNumber;
     bool registrationComplete = false;
 
     while (!registrationComplete) {
@@ -92,6 +92,39 @@ void Registration::registerDoctor() {
             }
 
             validInput = false;
+            // IC Number
+            while (!validInput) {
+                cout << "Enter IC Number: ";
+                getline(cin, icNumber);
+                if (icNumber == "0") {
+                    return;
+                }
+                if (icNumber.empty()) {
+                    cout << "\n❌ IC number cannot be empty! Please try again." << endl;
+                    pressEnterToContinue();
+                    system("cls");
+                    displayTableHeader("DOCTOR REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
+                    cout << "\nEnter Full Name: " << fullName << endl;
+                    cout << "Enter Gender: " << gender << endl;
+                } else {
+                    // Check if IC number already exists in doctor table
+                    string checkICQuery = "SELECT doctor_id, full_name FROM doctor WHERE ic_number = '" + icNumber + "'";
+                    sql::ResultSet* checkICRes = db->executeSelect(checkICQuery);
+                    if (checkICRes && checkICRes->next()) {
+                        cout << "\n⚠️  Doctor already exists with this IC number!" << endl;
+                        cout << "Doctor ID: " << checkICRes->getInt("doctor_id") << endl;
+                        cout << "Doctor Name: " << checkICRes->getString("full_name") << endl;
+                        if (checkICRes) delete checkICRes;
+                        pressEnterToContinue();
+                        return;
+                    }
+                    if (checkICRes) delete checkICRes;
+                    validInput = true;
+                }
+            }
+
+            validInput = false;
             // Specialization
             while (!validInput) {
                 cout << "Enter Specialization: ";
@@ -107,6 +140,7 @@ void Registration::registerDoctor() {
                     cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
+                    cout << "Enter IC Number: " << icNumber << endl;
                 } else {
                     validInput = true;
                 }
@@ -132,6 +166,7 @@ void Registration::registerDoctor() {
                     cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
+                    cout << "Enter IC Number: " << icNumber << endl;
                     cout << "Enter Specialization: " << specialization << endl;
                 } else {
                     validInput = true;
@@ -169,6 +204,7 @@ void Registration::registerDoctor() {
                         cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                         cout << "\nEnter Full Name: " << fullName << endl;
                         cout << "Enter Gender: " << gender << endl;
+                        cout << "Enter IC Number: " << icNumber << endl;
                         cout << "Enter Specialization: " << specialization << endl;
                         cout << "Enter Contact Number: " << contactNumber << endl;
                     } else {
@@ -194,6 +230,7 @@ void Registration::registerDoctor() {
                     cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
+                    cout << "Enter IC Number: " << icNumber << endl;
                     cout << "Enter Specialization: " << specialization << endl;
                     cout << "Enter Contact Number: " << contactNumber << endl;
                     cout << "Create Username: " << username << endl;
@@ -212,6 +249,7 @@ void Registration::registerDoctor() {
                         cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                         cout << "\nEnter Full Name: " << fullName << endl;
                         cout << "Enter Gender: " << gender << endl;
+                        cout << "Enter IC Number: " << icNumber << endl;
                         cout << "Enter Specialization: " << specialization << endl;
                         cout << "Enter Contact Number: " << contactNumber << endl;
                         cout << "Create Username: " << username << endl;
@@ -222,8 +260,8 @@ void Registration::registerDoctor() {
             }
 
             // Insert into doctor table
-            string query = "INSERT INTO doctor (full_name, gender, specialization, contact_number, availability, status, role) "
-                "VALUES ('" + fullName + "', '" + gender + "', '" + specialization + "', '" + contactNumber + "', 'Available', 'Active', 'Doctor')";
+            string query = "INSERT INTO doctor (full_name, gender, specialization, contact_number, ic_number, availability, status, role) "
+                "VALUES ('" + fullName + "', '" + gender + "', '" + specialization + "', '" + contactNumber + "', '" + icNumber + "', 'Available', 'Active', 'Doctor')";
 
             if (db->executeUpdate(query)) {
                 // Get the doctor_id that was just inserted
@@ -276,7 +314,7 @@ void Registration::registerDoctor() {
 }
 
 void Registration::registerNurse() {
-    string fullName, gender, contactNumber, password1, password2, username;
+    string fullName, gender, contactNumber, password1, password2, username, icNumber;
     bool registrationComplete = false;
 
     while (!registrationComplete) {
@@ -326,6 +364,39 @@ void Registration::registerNurse() {
             }
 
             validInput = false;
+            // IC Number
+            while (!validInput) {
+                cout << "Enter IC Number: ";
+                getline(cin, icNumber);
+                if (icNumber == "0") {
+                    return;
+                }
+                if (icNumber.empty()) {
+                    cout << "\n❌ IC number cannot be empty! Please try again." << endl;
+                    pressEnterToContinue();
+                    system("cls");
+                    displayTableHeader("NURSE REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
+                    cout << "\nEnter Full Name: " << fullName << endl;
+                    cout << "Enter Gender: " << gender << endl;
+                } else {
+                    // Check if IC number already exists in nurse table
+                    string checkICQuery = "SELECT nurse_id, full_name FROM nurse WHERE ic_number = '" + icNumber + "'";
+                    sql::ResultSet* checkICRes = db->executeSelect(checkICQuery);
+                    if (checkICRes && checkICRes->next()) {
+                        cout << "\n⚠️  Nurse already exists with this IC number!" << endl;
+                        cout << "Nurse ID: " << checkICRes->getInt("nurse_id") << endl;
+                        cout << "Nurse Name: " << checkICRes->getString("full_name") << endl;
+                        if (checkICRes) delete checkICRes;
+                        pressEnterToContinue();
+                        return;
+                    }
+                    if (checkICRes) delete checkICRes;
+                    validInput = true;
+                }
+            }
+
+            validInput = false;
             // Contact Number
             while (!validInput) {
                 cout << "Enter Contact Number: ";
@@ -345,6 +416,7 @@ void Registration::registerNurse() {
                     cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
+                    cout << "Enter IC Number: " << icNumber << endl;
                 } else {
                     validInput = true;
                 }
@@ -380,6 +452,7 @@ void Registration::registerNurse() {
                         cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                         cout << "\nEnter Full Name: " << fullName << endl;
                         cout << "Enter Gender: " << gender << endl;
+                        cout << "Enter IC Number: " << icNumber << endl;
                         cout << "Enter Contact Number: " << contactNumber << endl;
                     } else {
                         if (checkRes) delete checkRes;
@@ -404,6 +477,7 @@ void Registration::registerNurse() {
                     cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
+                    cout << "Enter IC Number: " << icNumber << endl;
                     cout << "Enter Contact Number: " << contactNumber << endl;
                     cout << "Create Username: " << username << endl;
                 } else {
@@ -421,6 +495,7 @@ void Registration::registerNurse() {
                         cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                         cout << "\nEnter Full Name: " << fullName << endl;
                         cout << "Enter Gender: " << gender << endl;
+                        cout << "Enter IC Number: " << icNumber << endl;
                         cout << "Enter Contact Number: " << contactNumber << endl;
                         cout << "Create Username: " << username << endl;
                     } else {
@@ -430,8 +505,8 @@ void Registration::registerNurse() {
             }
 
             // Insert into nurse table
-            string query = "INSERT INTO nurse (full_name, gender, contact_number, status, role) "
-                "VALUES ('" + fullName + "', '" + gender + "', '" + contactNumber + "', 'Active', 'Nurse')";
+            string query = "INSERT INTO nurse (full_name, gender, contact_number, ic_number, status, role) "
+                "VALUES ('" + fullName + "', '" + gender + "', '" + contactNumber + "', '" + icNumber + "', 'Active', 'Nurse')";
 
             if (db->executeUpdate(query)) {
                 // Get the nurse_id
@@ -482,7 +557,7 @@ void Registration::registerNurse() {
 }
 
 void Registration::registerAdmin() {
-    string fullName, email, contactNumber, password1, password2, username;
+    string fullName, email, contactNumber, password1, password2, username, icNumber;
     bool registrationComplete = false;
 
     while (!registrationComplete) {
@@ -532,6 +607,39 @@ void Registration::registerAdmin() {
             }
 
             validInput = false;
+            // IC Number
+            while (!validInput) {
+                cout << "Enter IC Number: ";
+                getline(cin, icNumber);
+                if (icNumber == "0") {
+                    return;
+                }
+                if (icNumber.empty()) {
+                    cout << "\n❌ IC number cannot be empty! Please try again." << endl;
+                    pressEnterToContinue();
+                    system("cls");
+                    displayTableHeader("ADMIN REGISTRATION");
+                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
+                    cout << "\nEnter Full Name: " << fullName << endl;
+                    cout << "Enter Email: " << email << endl;
+                } else {
+                    // Check if IC number already exists in admin table
+                    string checkICQuery = "SELECT admin_id, full_name FROM admin WHERE ic_number = '" + icNumber + "'";
+                    sql::ResultSet* checkICRes = db->executeSelect(checkICQuery);
+                    if (checkICRes && checkICRes->next()) {
+                        cout << "\n⚠️  Admin already exists with this IC number!" << endl;
+                        cout << "Admin ID: " << checkICRes->getInt("admin_id") << endl;
+                        cout << "Admin Name: " << checkICRes->getString("full_name") << endl;
+                        if (checkICRes) delete checkICRes;
+                        pressEnterToContinue();
+                        return;
+                    }
+                    if (checkICRes) delete checkICRes;
+                    validInput = true;
+                }
+            }
+
+            validInput = false;
             // Contact Number
             while (!validInput) {
                 cout << "Enter Contact Number: ";
@@ -551,6 +659,7 @@ void Registration::registerAdmin() {
                     cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Email: " << email << endl;
+                    cout << "Enter IC Number: " << icNumber << endl;
                 } else {
                     validInput = true;
                 }
@@ -586,6 +695,7 @@ void Registration::registerAdmin() {
                         cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                         cout << "\nEnter Full Name: " << fullName << endl;
                         cout << "Enter Email: " << email << endl;
+                        cout << "Enter IC Number: " << icNumber << endl;
                         cout << "Enter Contact Number: " << contactNumber << endl;
                     } else {
                         if (checkRes) delete checkRes;
@@ -610,6 +720,7 @@ void Registration::registerAdmin() {
                     cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Email: " << email << endl;
+                    cout << "Enter IC Number: " << icNumber << endl;
                     cout << "Enter Contact Number: " << contactNumber << endl;
                     cout << "Create Username: " << username << endl;
                 } else {
@@ -627,6 +738,7 @@ void Registration::registerAdmin() {
                         cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
                         cout << "\nEnter Full Name: " << fullName << endl;
                         cout << "Enter Email: " << email << endl;
+                        cout << "Enter IC Number: " << icNumber << endl;
                         cout << "Enter Contact Number: " << contactNumber << endl;
                         cout << "Create Username: " << username << endl;
                     } else {
@@ -636,8 +748,8 @@ void Registration::registerAdmin() {
             }
 
             // Insert into admin table
-            string query = "INSERT INTO admin (full_name, email, contact_number, status, role) "
-                "VALUES ('" + fullName + "', '" + email + "', '" + contactNumber + "', 'Active', 'Admin')";
+            string query = "INSERT INTO admin (full_name, email, contact_number, ic_number, status, role) "
+                "VALUES ('" + fullName + "', '" + email + "', '" + contactNumber + "', '" + icNumber + "', 'Active', 'Admin')";
 
             if (db->executeUpdate(query)) {
                 // Get the admin_id
