@@ -380,18 +380,18 @@ void DoctorModule::editPatientMedicalRecord() {
         delete recordRes;
 
         // Ask user to select which record to edit
-        int recordId = getIntInput("\nEnter Record ID to edit (or 0 to cancel): ");
-        if (recordId <= 0) {
+        string recordId = getStringInput("\nEnter Record ID to edit (e.g., MR001) or press Enter to cancel: ");
+        if (recordId.empty()) {
             cout << "\n[ERROR] Invalid Record ID or operation cancelled!" << endl;
             pressEnterToContinue();
             return;
         }
 
         // Verify record exists and get diagnosis_id for the selected record
-        string getDiagQuery = "SELECT mr.diagnosis_id, d.disease, d.disorder, d.duration_of_pain, d.severity, d.date "
+        string getDiagQuery = "SELECT mr.diagnosis_id, mr.formatted_id as record_formatted_id, d.disease, d.disorder, d.duration_of_pain, d.severity, d.date "
                              "FROM medical_record mr "
-                             "LEFT JOIN diagnosis d ON mr.diagnosis_id = d.diagnosis_id "
-                             "WHERE mr.record_id = " + to_string(recordId) + " AND mr.patient_id = " + to_string(patientId);
+                             "LEFT JOIN diagnosis d ON mr.diagnosis_id = d.formatted_id "
+                             "WHERE mr.formatted_id = '" + recordId + "' AND mr.patient_id = '" + patientId + "'";
         
         sql::ResultSet* diagRes = db->executeSelect(getDiagQuery);
         
@@ -402,7 +402,7 @@ void DoctorModule::editPatientMedicalRecord() {
             return;
         }
 
-        int diagnosisId = diagRes->getInt("diagnosis_id");
+        string diagnosisId = diagRes->isNull("diagnosis_id") ? "" : string(diagRes->getString("diagnosis_id"));
         string currentDisease = diagRes->isNull("disease") ? "" : diagRes->getString("disease");
         string currentDisorder = diagRes->isNull("disorder") ? "" : diagRes->getString("disorder");
         string currentDuration = diagRes->isNull("duration_of_pain") ? "" : diagRes->getString("duration_of_pain");
