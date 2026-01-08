@@ -71,18 +71,21 @@ void DoctorModule::viewPatientRecord() {
             return;
         }
 
-        cout << "\n" << endl;
-        cout << "+================================================================+" << endl;
-        cout << "|                      PATIENT INFORMATION                       |" << endl;
-        cout << "+================================================================+" << endl;
-        cout << "| Patient ID: " << left << setw(53) << string(patientRes->getString("formatted_id")) << "|" << endl;
-        cout << "| Full Name: " << left << setw(55) << patientRes->getString("full_name") << "|" << endl;
-        cout << "| Gender: " << left << setw(57) << patientRes->getString("gender") << "|" << endl;
-        cout << "| Date of Birth: " << left << setw(51) << patientRes->getString("date_of_birth") << "|" << endl;
-        cout << "| Contact Number: " << left << setw(50) << patientRes->getString("contact_number") << "|" << endl;
-        cout << "| Blood Type: " << left << setw(54) << (patientRes->isNull("blood_type") ? "N/A" : patientRes->getString("blood_type")) << "|" << endl;
-        cout << "| Status: " << left << setw(57) << patientRes->getString("status") << "|" << endl;
-        cout << "+================================================================+" << endl;
+  cout << "\n" << endl;
+  cout << "+================================================================+" << endl;
+  cout << "|                      PATIENT INFORMATION                       |" << endl;
+  cout << "+================================================================+" << endl;
+
+  cout << "| Patient ID: " << left << setw(51) << string(patientRes->getString("formatted_id")) << "|" << endl;
+  cout << "| Full Name: " << left << setw(52) << patientRes->getString("full_name") << "|" << endl;
+  cout << "| Gender: " << left << setw(55) << patientRes->getString("gender") << "|" << endl;
+  cout << "| Date of Birth: " << left << setw(48) << patientRes->getString("date_of_birth") << "|" << endl;
+  cout << "| Contact Number: " << left << setw(47) << patientRes->getString("contact_number") << "|" << endl;
+  cout << "| Blood Type: " << left << setw(51) << (patientRes->isNull("blood_type") ? "N/A" : patientRes->getString("blood_type")) << "|" << endl;
+  cout << "| Status: " << left << setw(55) << patientRes->getString("status") << "|" << endl;
+
+  cout << "+================================================================+" << endl;
+    
         delete patientRes;
 
         // Display medical records
