@@ -11,13 +11,14 @@ void NurseModule::showMenu() {
         vector<string> menuOptions = {
             "View Patient Record",
             "Generate Next Appointment",
-            "Return to Main Menu"
+            "Exit"
         };
         
-        choice = MenuNavigator::showMenu(menuOptions, "NURSE MODULE", true);
+        choice = MenuNavigator::showMenu(menuOptions, "NURSE MENU", true);
         
+        // ESC key - stay in menu, don't exit
         if (choice == -1) {
-            return; // ESC pressed
+            continue;
         }
 
         switch (choice) {
@@ -28,14 +29,14 @@ void NurseModule::showMenu() {
             generateNextAppointment();
             break;
         case 2:
-            return;
+            return; // Exit only when user explicitly chooses "Exit"
         default:
             ColorUtils::setColor(LIGHT_CYAN);
             cout << "\n[ERROR] Invalid choice! Please try again." << endl;
             ColorUtils::resetColor();
             pressEnterToContinue();
         }
-    } while (choice != 2);
+    } while (true); // Loop forever until user chooses Exit (case 2)
 }
 
 void NurseModule::viewPatientRecord() {

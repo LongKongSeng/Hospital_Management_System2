@@ -14,13 +14,14 @@ void AdminModule::showMenu() {
             "Generate Hospital Report",
             "Add Patient",
             "Patient Receipt",
-            "Return to Main Menu"
+            "Exit"
         };
         
-        choice = MenuNavigator::showMenu(menuOptions, "ADMIN MODULE", true);
+        choice = MenuNavigator::showMenu(menuOptions, "ADMIN MENU", true);
         
+        // ESC key - stay in menu, don't exit
         if (choice == -1) {
-            return; // ESC pressed
+            continue;
         }
 
         switch (choice) {
@@ -37,14 +38,14 @@ void AdminModule::showMenu() {
             patientReceipt();
             break;
         case 4:
-            return;
+            return; // Exit only when user explicitly chooses "Exit"
         default:
             ColorUtils::setColor(LIGHT_CYAN);
             cout << "\n[ERROR] Invalid choice! Please try again." << endl;
             ColorUtils::resetColor();
             pressEnterToContinue();
         }
-    } while (choice != 4);
+    } while (true); // Loop forever until user chooses Exit (case 4)
 }
 
 void AdminModule::viewPharmacy() {
