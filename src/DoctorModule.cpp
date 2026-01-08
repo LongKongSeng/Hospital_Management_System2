@@ -84,10 +84,10 @@ void DoctorModule::viewPatientRecord() {
         delete patientRes;
 
         // Display medical records
-        string recordQuery = "SELECT mr.record_id, mr.date_of_record, d.disease, d.disorder, d.duration_of_pain, d.severity, mr.notes "
+        string recordQuery = "SELECT mr.formatted_id, mr.date_of_record, d.disease, d.disorder, d.duration_of_pain, d.severity, mr.notes "
                             "FROM medical_record mr "
-                            "LEFT JOIN diagnosis d ON mr.diagnosis_id = d.diagnosis_id "
-                            "WHERE mr.patient_id = " + to_string(patientId) + " "
+                            "LEFT JOIN diagnosis d ON mr.diagnosis_id = d.formatted_id "
+                            "WHERE mr.patient_id = '" + patientId + "' "
                             "ORDER BY mr.date_of_record DESC";
 
         sql::ResultSet* recordRes = db->executeSelect(recordQuery);
@@ -176,15 +176,15 @@ void DoctorModule::makeDiagnosis() {
     system("cls");
     displayTableHeader("MAKE DIAGNOSIS");
 
-    int patientId = getIntInput("Enter Patient ID: ");
-    if (patientId <= 0) {
+    string patientId = getStringInput("Enter Patient ID (e.g., P001): ");
+    if (patientId.empty()) {
         cout << "\n[ERROR] Invalid Patient ID!" << endl;
         pressEnterToContinue();
         return;
     }
 
     // Verify patient exists
-    string checkQuery = "SELECT full_name FROM patient WHERE patient_id = " + to_string(patientId);
+    string checkQuery = "SELECT full_name FROM patient WHERE formatted_id = '" + patientId + "'";
     sql::ResultSet* checkRes = db->executeSelect(checkQuery);
     
     if (!checkRes || !checkRes->next()) {
@@ -214,13 +214,13 @@ void DoctorModule::makeDiagnosis() {
     }
 
     // Get or create prescription
-    int prescriptionId = -1;
+    string prescriptionId = "";
     string prescriptionChoice = getStringInput("Do you want to add prescription? (yes/no): ");
     if (prescriptionChoice == "yes" || prescriptionChoice == "YES") {
-        int pharmacyId = getIntInput("Enter Pharmacy ID (Medication ID): ");
-        if (pharmacyId > 0) {
+        string pharmacyId = getStringInput("Enter Pharmacy ID (e.g., PH001): ");
+        if (!pharmacyId.empty()) {
             // Validate that pharmacy_id exists
-            string validatePharmacyQuery = "SELECT pharmacy_id, formatted_id, medicine_name FROM pharmacy WHERE pharmacy_id = " + to_string(pharmacyId);
+            string validatePharmacyQuery = "SELECT formatted_id, medicine_name FROM pharmacy WHERE formatted_id = '" + pharmacyId + "'";
             sql::ResultSet* validateRes = db->executeSelect(validatePharmacyQuery);
             
             if (!validateRes || !validateRes->next()) {
@@ -236,15 +236,15 @@ void DoctorModule::makeDiagnosis() {
                 string durationOfMeds = getStringInput("Enter Duration of Medications: ");
                 string instructions = getStringInput("Enter Instructions: ");
                 
-                string presQuery = "INSERT INTO prescription (pharmacy_id, dosage, duration_of_meds, instructions, date) "
-                    "VALUES (" + to_string(pharmacyId) + ", '" + dosage + "', '" + durationOfMeds + "', '" + instructions + "', '" + date + "')";
+                string presQuery = "INSERT INTO prescription (formatted_id, pharmacy_id, dosage, duration_of_meds, instructions, date) "
+                    "VALUES (NULL, '" + pharmacyId + "', '" + dosage + "', '" + durationOfMeds + "', '" + instructions + "', '" + date + "')";
                 
                 if (db->executeUpdate(presQuery)) {
-                    // Get the prescription_id
-                    string getIdQuery = "SELECT prescription_id FROM prescription WHERE pharmacy_id = " + to_string(pharmacyId) + " AND date = '" + date + "' ORDER BY prescription_id DESC LIMIT 1";
+                    // Get the formatted_id
+                    string getIdQuery = "SELECT formatted_id FROM prescription WHERE pharmacy_id = '" + pharmacyId + "' AND date = '" + date + "' ORDER BY formatted_id DESC LIMIT 1";
                     sql::ResultSet* idRes = db->executeSelect(getIdQuery);
                     if (idRes && idRes->next()) {
-                        prescriptionId = idRes->getInt("prescription_id");
+                        prescriptionId = string(idRes->getString("formatted_id"));
                     }
                     if (idRes) delete idRes;
                 } else {
@@ -256,29 +256,29 @@ void DoctorModule::makeDiagnosis() {
 
     try {
         // Insert diagnosis
-        string diagQuery = "INSERT INTO diagnosis (disease, disorder, duration_of_pain, severity, prescription_id, date) "
-            "VALUES ('" + disease + "', '" + disorder + "', '" + durationOfPain + "', '" + severity + "', ";
+        string diagQuery = "INSERT INTO diagnosis (formatted_id, disease, disorder, duration_of_pain, severity, prescription_id, date) "
+            "VALUES (NULL, '" + disease + "', '" + disorder + "', '" + durationOfPain + "', '" + severity + "', ";
         
-        if (prescriptionId > 0) {
-            diagQuery += to_string(prescriptionId) + ", '" + date + "')";
+        if (!prescriptionId.empty()) {
+            diagQuery += "'" + prescriptionId + "', '" + date + "')";
         } else {
             diagQuery += "NULL, '" + date + "')";
         }
 
         if (db->executeUpdate(diagQuery)) {
-            // Get diagnosis_id
-            string getIdQuery = "SELECT diagnosis_id FROM diagnosis WHERE disease = '" + disease + "' ORDER BY diagnosis_id DESC LIMIT 1";
+            // Get formatted_id
+            string getIdQuery = "SELECT formatted_id FROM diagnosis WHERE disease = '" + disease + "' ORDER BY formatted_id DESC LIMIT 1";
             sql::ResultSet* idRes = db->executeSelect(getIdQuery);
-            int diagnosisId = -1;
+            string diagnosisId = "";
             if (idRes && idRes->next()) {
-                diagnosisId = idRes->getInt("diagnosis_id");
+                diagnosisId = string(idRes->getString("formatted_id"));
             }
             if (idRes) delete idRes;
 
-            if (diagnosisId > 0) {
+            if (!diagnosisId.empty()) {
                 // Insert medical record
-                string recordQuery = "INSERT INTO medical_record (patient_id, doctor_id, diagnosis_id, date_of_record, notes) "
-                    "VALUES (" + to_string(patientId) + ", " + to_string(currentDoctorId) + ", " + to_string(diagnosisId) + ", '" + date + "', 'Diagnosis made by doctor')";
+                string recordQuery = "INSERT INTO medical_record (formatted_id, patient_id, doctor_id, diagnosis_id, date_of_record, notes) "
+                    "VALUES (NULL, '" + patientId + "', '" + currentDoctorId + "', '" + diagnosisId + "', '" + date + "', 'Diagnosis made by doctor')";
 
                 if (db->executeUpdate(recordQuery)) {
                     cout << "\n✅ Diagnosis made successfully!" << endl;
@@ -314,8 +314,8 @@ void DoctorModule::editPatientMedicalRecord() {
     system("cls");
     displayTableHeader("EDIT PATIENT MEDICAL RECORD");
 
-    int patientId = getIntInput("Enter Patient ID: ");
-    if (patientId <= 0) {
+    string patientId = getStringInput("Enter Patient ID (e.g., P001): ");
+    if (patientId.empty()) {
         cout << "\n[ERROR] Invalid Patient ID!" << endl;
         pressEnterToContinue();
         return;
@@ -323,7 +323,7 @@ void DoctorModule::editPatientMedicalRecord() {
 
     try {
         // Verify patient exists
-        string checkPatientQuery = "SELECT full_name FROM patient WHERE patient_id = " + to_string(patientId);
+        string checkPatientQuery = "SELECT full_name FROM patient WHERE formatted_id = '" + patientId + "'";
         sql::ResultSet* checkPatientRes = db->executeSelect(checkPatientQuery);
         
         if (!checkPatientRes || !checkPatientRes->next()) {
@@ -410,7 +410,7 @@ void DoctorModule::editPatientMedicalRecord() {
         string currentDate = diagRes->isNull("date") ? "" : diagRes->getString("date");
         delete diagRes;
 
-        if (diagnosisId <= 0) {
+        if (diagnosisId.empty()) {
             cout << "\n[ERROR] No diagnosis found for this record!" << endl;
             pressEnterToContinue();
             return;
@@ -448,7 +448,7 @@ void DoctorModule::editPatientMedicalRecord() {
                 updateQuery += updates[i];
                 if (i < updates.size() - 1) updateQuery += ", ";
             }
-            updateQuery += " WHERE diagnosis_id = " + to_string(diagnosisId);
+            updateQuery += " WHERE formatted_id = '" + diagnosisId + "'";
 
             if (db->executeUpdate(updateQuery)) {
                 cout << "\n✅ Medical record updated successfully!" << endl;

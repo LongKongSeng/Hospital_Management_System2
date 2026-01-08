@@ -141,15 +141,15 @@ void NurseModule::generateNextAppointment() {
     system("cls");
     displayTableHeader("GENERATE NEXT APPOINTMENT");
 
-    int patientId = getIntInput("Enter Patient ID: ");
-    if (patientId <= 0) {
+    string patientId = getStringInput("Enter Patient ID (e.g., P001): ");
+    if (patientId.empty()) {
         cout << "\n[ERROR] Invalid Patient ID!" << endl;
         pressEnterToContinue();
         return;
     }
 
     // Verify patient exists
-    string checkQuery = "SELECT full_name, status FROM patient WHERE patient_id = " + to_string(patientId);
+    string checkQuery = "SELECT full_name, status FROM patient WHERE formatted_id = '" + patientId + "'";
     sql::ResultSet* checkRes = db->executeSelect(checkQuery);
     
     if (!checkRes || !checkRes->next()) {
@@ -164,7 +164,7 @@ void NurseModule::generateNextAppointment() {
     delete checkRes;
 
     // Get available doctors
-    string doctorQuery = "SELECT doctor_id, formatted_id, full_name, specialization FROM doctor WHERE status = 'Active' ORDER BY doctor_id";
+    string doctorQuery = "SELECT formatted_id, full_name, specialization FROM doctor WHERE status = 'Active' ORDER BY formatted_id";
     sql::ResultSet* doctorRes = db->executeSelect(doctorQuery);
     
     if (!doctorRes || doctorRes->rowsCount() == 0) {
@@ -184,22 +184,22 @@ void NurseModule::generateNextAppointment() {
     cout << "| Doctor ID | Full Name            | Specialization       |" << endl;
     cout << "+-----------+----------------------+----------------------+" << endl;
     while (doctorRes->next()) {
-        cout << "| " << setw(9) << getFormattedId(doctorRes, "formatted_id", "doctor_id")
+        cout << "| " << setw(9) << string(doctorRes->getString("formatted_id"))
              << "| " << setw(20) << doctorRes->getString("full_name")
              << "| " << setw(20) << doctorRes->getString("specialization") << "|" << endl;
     }
     cout << "+-----------+----------------------+----------------------+" << endl;
     delete doctorRes;
 
-    int doctorId = getIntInput("\nEnter Doctor ID: ");
-    if (doctorId <= 0) {
+    string doctorId = getStringInput("\nEnter Doctor ID (e.g., D001): ");
+    if (doctorId.empty()) {
         cout << "\n[ERROR] Invalid Doctor ID!" << endl;
         pressEnterToContinue();
         return;
     }
 
     // Verify doctor exists
-    string verifyDoctorQuery = "SELECT doctor_id FROM doctor WHERE doctor_id = " + to_string(doctorId) + " AND status = 'Active'";
+    string verifyDoctorQuery = "SELECT formatted_id FROM doctor WHERE formatted_id = '" + doctorId + "' AND status = 'Active'";
     sql::ResultSet* verifyDoctorRes = db->executeSelect(verifyDoctorQuery);
     if (!verifyDoctorRes || !verifyDoctorRes->next()) {
         cout << "\n[ERROR] Doctor not found or not active!" << endl;
@@ -222,16 +222,16 @@ void NurseModule::generateNextAppointment() {
     }
 
     try {
-        string query = "INSERT INTO appointment (patient_id, nurse_id, doctor_id, appointment_date, appointment_time, status) "
-            "VALUES (" + to_string(patientId) + ", " + to_string(currentNurseId) + ", " + to_string(doctorId) + ", '" + appointmentDate + "', '" + appointmentTime + "', 'Scheduled')";
+        string query = "INSERT INTO appointment (formatted_id, patient_id, nurse_id, doctor_id, appointment_date, appointment_time, status) "
+            "VALUES (NULL, '" + patientId + "', '" + currentNurseId + "', '" + doctorId + "', '" + appointmentDate + "', '" + appointmentTime + "', 'Scheduled')";
 
         if (db->executeUpdate(query)) {
             // Update patient status: If next appointment exists -> Active, else Inactive
-            string updateQuery = "UPDATE patient SET status = 'Active' WHERE patient_id = " + to_string(patientId);
+            string updateQuery = "UPDATE patient SET status = 'Active' WHERE formatted_id = '" + patientId + "'";
             db->executeUpdate(updateQuery);
             
             // Get doctor name for display
-            string getDoctorQuery = "SELECT full_name FROM doctor WHERE doctor_id = " + to_string(doctorId);
+            string getDoctorQuery = "SELECT full_name FROM doctor WHERE formatted_id = '" + doctorId + "'";
             sql::ResultSet* doctorRes = db->executeSelect(getDoctorQuery);
             string doctorName = "N/A";
             if (doctorRes && doctorRes->next()) {
@@ -240,7 +240,7 @@ void NurseModule::generateNextAppointment() {
             if (doctorRes) delete doctorRes;
             
             // Show how many times patient has visited
-            string visitQuery = "SELECT COUNT(*) as visit_count FROM appointment WHERE patient_id = " + to_string(patientId);
+            string visitQuery = "SELECT COUNT(*) as visit_count FROM appointment WHERE patient_id = '" + patientId + "'";
             sql::ResultSet* visitRes = db->executeSelect(visitQuery);
             int visitCount = 0;
             if (visitRes && visitRes->next()) {
