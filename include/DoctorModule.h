@@ -12,10 +12,10 @@ using namespace std;
 class DoctorModule {
 private:
     Database* db;
-    int currentDoctorId;
+    string currentDoctorId;  // Now stores formatted_id (D001, D002, etc.)
 
 public:
-    DoctorModule(Database* database, int doctorId);
+    DoctorModule(Database* database, const string& doctorId);  // Takes formatted_id string
     void showMenu(); // Main doctor menu from flowchart
     
     // Doctor Module Functions (from flowchart)

@@ -1,8 +1,9 @@
 #include "NurseModule.h"
 #include "ColorUtils.h"
 #include "MenuNavigator.h"
+#include "IdFormatter.h"
 
-NurseModule::NurseModule(Database* database, int nurseId) : db(database), currentNurseId(nurseId) {}
+NurseModule::NurseModule(Database* database, const string& nurseId) : db(database), currentNurseId(nurseId) {}
 
 void NurseModule::showMenu() {
     int choice;
@@ -64,7 +65,7 @@ void NurseModule::viewPatientRecord() {
         cout << "\n+----------------------------------------------------------------+" << endl;
         cout << "|                    PATIENT INFORMATION                         |" << endl;
         cout << "+----------------------------------------------------------------+" << endl;
-        cout << "| Patient ID: " << left << setw(46) << (patientRes->isNull("formatted_id") ? to_string(patientRes->getInt("patient_id")) : patientRes->getString("formatted_id")) << "|" << endl;
+        cout << "| Patient ID: " << left << setw(46) << getFormattedId(patientRes, "formatted_id", "patient_id") << "|" << endl;
         cout << "| Full Name: " << left << setw(46) << patientRes->getString("full_name") << "|" << endl;
         cout << "| Gender: " << left << setw(49) << patientRes->getString("gender") << "|" << endl;
         cout << "| Date of Birth: " << left << setw(42) << patientRes->getString("date_of_birth") << "|" << endl;
@@ -95,7 +96,7 @@ void NurseModule::viewPatientRecord() {
             cout << "+-------------┼--------------┼----------------------┼----------------------┼--------------┼--------------┼----------------------+" << endl;
             
             while (recordRes->next()) {
-                cout << "| " << setw(11) << (recordRes->isNull("record_formatted_id") ? to_string(recordRes->getInt("record_id")) : recordRes->getString("record_formatted_id"))
+                cout << "| " << setw(11) << getFormattedId(recordRes, "record_formatted_id", "record_id")
                      << "| " << setw(12) << recordRes->getString("date_of_record")
                      << "| " << setw(20) << (recordRes->isNull("disease") ? "N/A" : recordRes->getString("disease"))
                      << "| " << setw(20) << (recordRes->isNull("disorder") ? "N/A" : recordRes->getString("disorder"))
@@ -183,7 +184,7 @@ void NurseModule::generateNextAppointment() {
     cout << "| Doctor ID | Full Name            | Specialization       |" << endl;
     cout << "+-----------+----------------------+----------------------+" << endl;
     while (doctorRes->next()) {
-        cout << "| " << setw(9) << (doctorRes->isNull("formatted_id") ? to_string(doctorRes->getInt("doctor_id")) : doctorRes->getString("formatted_id"))
+        cout << "| " << setw(9) << getFormattedId(doctorRes, "formatted_id", "doctor_id")
              << "| " << setw(20) << doctorRes->getString("full_name")
              << "| " << setw(20) << doctorRes->getString("specialization") << "|" << endl;
     }
@@ -275,7 +276,7 @@ void NurseModule::displayPatientRecordTable(sql::ResultSet* res) {
     cout << "+-------------┼----------------------┼----------┼--------------┼--------------+" << endl;
     
     while (res->next()) {
-        cout << "| " << setw(11) << (res->isNull("patient_formatted_id") ? to_string(res->getInt("patient_id")) : res->getString("patient_formatted_id"))
+        cout << "| " << setw(11) << getFormattedId(res, "patient_formatted_id", "patient_id")
              << "| " << setw(20) << res->getString("full_name")
              << "| " << setw(8) << res->getString("gender")
              << "| " << setw(12) << res->getString("date_of_birth")
@@ -291,7 +292,7 @@ void NurseModule::displayAppointmentTable(sql::ResultSet* res) {
     cout << "+-----------------┼----------------------┼--------------┼--------------┼--------------+" << endl;
     
     while (res->next()) {
-        cout << "| " << setw(15) << (res->isNull("appointment_formatted_id") ? to_string(res->getInt("appointment_id")) : res->getString("appointment_formatted_id"))
+        cout << "| " << setw(15) << getFormattedId(res, "appointment_formatted_id", "appointment_id")
              << "| " << setw(20) << res->getString("patient_name")
              << "| " << setw(12) << res->getString("appointment_date")
              << "| " << setw(12) << res->getString("appointment_time")

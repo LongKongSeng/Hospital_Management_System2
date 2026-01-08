@@ -42,7 +42,7 @@ public:
             // Display menu options (centered)
             for (int i = 0; i < totalOptions; i++) {
                 // Calculate centering for option text
-                int optionLength = options[i].length();
+                int optionLength = static_cast<int>(options[i].length());
                 if (i == selected) {
                     // Selected option: add > and < markers, use light cyan
                     optionLength += 4; // > < and spaces
@@ -80,7 +80,7 @@ public:
             
             // Instructions (in blue highlighted box)
             string instruction1 = "Use 'UP'/'DOWN' key to move selection and press 'ENTER' to select";
-            int inst1Padding = (SEPARATOR_LENGTH - instruction1.length()) / 2;
+            int inst1Padding = (SEPARATOR_LENGTH - static_cast<int>(instruction1.length())) / 2;
             for (int i = 0; i < inst1Padding; i++) cout << " ";
             ColorUtils::printColoredBG(instruction1, WHITE, BLUE);
             int inst1Remaining = SEPARATOR_LENGTH - inst1Padding - instruction1.length();
@@ -89,7 +89,7 @@ public:
             
             if (showExitOption) {
                 string instruction2 = "Press 'ESC' key to go back.";
-                int inst2Padding = (SEPARATOR_LENGTH - instruction2.length()) / 2;
+                int inst2Padding = (SEPARATOR_LENGTH - static_cast<int>(instruction2.length())) / 2;
                 for (int i = 0; i < inst2Padding; i++) cout << " ";
                 ColorUtils::printColoredBG(instruction2, WHITE, BLUE);
                 int inst2Remaining = SEPARATOR_LENGTH - inst2Padding - instruction2.length();
@@ -128,7 +128,7 @@ public:
     // Display title centered in blue highlighted box
     static void displayTitle(const string& title, int separatorLength = 80) {
         // Calculate padding for centered title
-        int padding = (separatorLength - title.length()) / 2;
+        int padding = (separatorLength - static_cast<int>(title.length())) / 2;
         
         // Print spaces before title
         for (int i = 0; i < padding; i++) cout << " ";
@@ -137,7 +137,7 @@ public:
         ColorUtils::printColoredBG(title, WHITE, BLUE);
         
         // Fill remaining space after title
-        int remaining = separatorLength - padding - title.length();
+        int remaining = separatorLength - padding - static_cast<int>(title.length());
         for (int i = 0; i < remaining; i++) cout << " ";
         cout << endl;
     }

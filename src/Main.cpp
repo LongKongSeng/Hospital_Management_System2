@@ -66,7 +66,7 @@ int main() {
                 break;
             case 1: // Login
                 login.showLoginMenu();
-                if (login.getCurrentUserId() > 0) {
+                if (!login.getCurrentUserId().empty()) {  // Check if formatted_id string is not empty
                     loggedIn = true;
                 }
                 break;
@@ -79,7 +79,7 @@ int main() {
         } else {
             // User is logged in - route to appropriate module based on role
             string role = login.getCurrentRole();
-            int userId = login.getCurrentUserId();
+            string userId = login.getCurrentUserId();  // Now returns formatted_id string
             
             if (role == "Admin") {
                 if (!adminModule) {
@@ -95,7 +95,7 @@ int main() {
                 
             } else if (role == "Doctor") {
                 if (!doctorModule) {
-                    doctorModule = new DoctorModule(&db, userId);
+                    doctorModule = new DoctorModule(&db, userId);  // userId is now formatted_id string
                 }
                 doctorModule->showMenu();
                 
@@ -107,7 +107,7 @@ int main() {
                 
             } else if (role == "Nurse") {
                 if (!nurseModule) {
-                    nurseModule = new NurseModule(&db, userId);
+                    nurseModule = new NurseModule(&db, userId);  // userId is now formatted_id string
                 }
                 nurseModule->showMenu();
                 

@@ -2,12 +2,12 @@
 #include "ColorUtils.h"
 #include "MenuNavigator.h"
 
-Login::Login(Database* database) : db(database), currentUserId(-1), currentUserType(""), currentUsername(""), currentRole("") {}
+Login::Login(Database* database) : db(database), currentUserId(""), currentUserType(""), currentUsername(""), currentRole("") {}
 
 bool Login::authenticate(const string& username, const string& password) {
     try {
         // Query the login table which has username, password, and role
-        string query = "SELECT login_id, username, role, doctor_id, nurse_id, admin_id FROM login "
+        string query = "SELECT formatted_id, username, role, doctor_id, nurse_id, admin_id FROM login "
                       "WHERE username = '" + username + "' AND password = '" + password + "'";
         
         sql::ResultSet* res = db->executeSelect(query);
@@ -16,20 +16,20 @@ bool Login::authenticate(const string& username, const string& password) {
             currentUsername = res->getString("username");
             currentRole = res->getString("role");
             
-            // Determine user type and ID based on role
+            // Determine user type and ID based on role (now using formatted_id strings)
             if (currentRole == "Doctor") {
                 currentUserType = "doctor";
-                currentUserId = res->getInt("doctor_id");
+                currentUserId = string(res->getString("doctor_id"));
             } else if (currentRole == "Nurse") {
                 currentUserType = "nurse";
-                currentUserId = res->getInt("nurse_id");
+                currentUserId = string(res->getString("nurse_id"));
             } else if (currentRole == "Admin") {
                 currentUserType = "admin";
-                currentUserId = res->getInt("admin_id");
+                currentUserId = string(res->getString("admin_id"));
             }
             
             delete res;
-            return currentUserId > 0;
+            return !currentUserId.empty();
         }
         
         if (res) delete res;
@@ -119,7 +119,7 @@ void Login::showLoginMenu() {
     }
 }
 
-int Login::getCurrentUserId() {
+string Login::getCurrentUserId() {
     return currentUserId;
 }
 
@@ -136,7 +136,7 @@ string Login::getCurrentRole() {
 }
 
 void Login::logout() {
-    currentUserId = -1;
+    currentUserId = "";
     currentUserType = "";
     currentUsername = "";
     currentRole = "";

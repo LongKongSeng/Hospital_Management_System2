@@ -1,6 +1,7 @@
 #include "AdminModule.h"
 #include "ColorUtils.h"
 #include "MenuNavigator.h"
+#include "IdFormatter.h"
 #include <cctype>
 
 AdminModule::AdminModule(Database* database) : db(database) {}
@@ -501,7 +502,7 @@ void AdminModule::addPatient() {
             
             if (checkICRes && checkICRes->next()) {
                 cout << "\n⚠️  Patient already exists with this IC number!" << endl;
-                cout << "Patient ID: " << (checkICRes->isNull("formatted_id") ? to_string(checkICRes->getInt("patient_id")) : checkICRes->getString("formatted_id")) << endl;
+                cout << "Patient ID: " << getFormattedId(checkICRes, "formatted_id", "patient_id") << endl;
                 cout << "Patient Name: " << checkICRes->getString("full_name") << endl;
                 if (checkICRes) delete checkICRes;
                 pressEnterToContinue();
@@ -652,7 +653,7 @@ void AdminModule::addPatient() {
                 cout << "\n+----------------------------------------------------------------+" << endl;
                 cout << "|                    PATIENT DETAILS                             |" << endl;
                 cout << "+----------------------------------------------------------------+" << endl;
-                cout << "| Patient ID: " << left << setw(44) << (res->isNull("formatted_id") ? to_string(res->getInt("patient_id")) : res->getString("formatted_id")) << "|" << endl;
+                cout << "| Patient ID: " << left << setw(44) << getFormattedId(res, "formatted_id", "patient_id") << "|" << endl;
                 cout << "| Full Name: " << left << setw(46) << res->getString("full_name") << "|" << endl;
                 cout << "| Gender: " << left << setw(49) << res->getString("gender") << "|" << endl;
                 cout << "| Date of Birth: " << left << setw(42) << res->getString("date_of_birth") << "|" << endl;
@@ -789,7 +790,7 @@ void AdminModule::displayReceipt(int patientId, double totalAmount) {
         sql::ResultSet* patientFormattedRes = db->executeSelect(patientFormattedQuery);
         string patientFormattedId = to_string(patientId);
         if (patientFormattedRes && patientFormattedRes->next()) {
-            patientFormattedId = patientFormattedRes->isNull("formatted_id") ? to_string(patientId) : patientFormattedRes->getString("formatted_id");
+            patientFormattedId = patientFormattedRes->isNull("formatted_id") ? to_string(patientId) : string(patientFormattedRes->getString("formatted_id"));
         }
         if (patientFormattedRes) delete patientFormattedRes;
         cout << "| Patient ID: " << left << setw(45) << patientFormattedId << "|" << endl;
@@ -805,8 +806,8 @@ void AdminModule::displayReceipt(int patientId, double totalAmount) {
             cout << "+----------------------------------------------------------------+" << endl;
             
             while (treatmentRes->next()) {
-                cout << "| " << left << setw(5) << (treatmentRes->isNull("treatment_formatted_id") ? to_string(treatmentRes->getInt("treatment_id")) : treatmentRes->getString("treatment_formatted_id"))
-                     << " | " << setw(15) << treatmentRes->getString("doctor_name").substr(0, 15)
+                cout << "| " << left << setw(5) << getFormattedId(treatmentRes, "treatment_formatted_id", "treatment_id")
+                     << " | " << setw(15) << string(treatmentRes->getString("doctor_name")).substr(0, 15)
                      << " | RM " << setw(12) << fixed << setprecision(2) << treatmentRes->getDouble("consultation_fee")
                      << " | RM " << setw(12) << fixed << setprecision(2) << treatmentRes->getDouble("treatment_fee")
                      << " | " << setw(10) << treatmentRes->getString("treatment_date") << "|" << endl;
@@ -833,7 +834,7 @@ void AdminModule::displayPharmacyTable(sql::ResultSet* res) {
     cout << "+-------------┼----------------------┼----------------------┼----------┼-------------+" << endl;
     
     while (res->next()) {
-        cout << "| " << setw(11) << (res->isNull("formatted_id") ? to_string(res->getInt("pharmacy_id")) : res->getString("formatted_id"))
+        cout << "| " << setw(11) << getFormattedId(res, "formatted_id", "pharmacy_id")
              << "| " << setw(20) << res->getString("medicine_name")
              << "| " << setw(20) << res->getString("category_of_meds")
              << "| " << setw(8) << res->getInt("quantity")
@@ -897,7 +898,7 @@ bool AdminModule::validatePhoneNumber(const string& phoneNumber) {
     }
     
     // Check if length is 10 or 11 digits
-    if (phoneNumber.length() != 10 && phoneNumber.length() != 11) {
+    if (phoneNumber.length() != 10U && phoneNumber.length() != 11U) {
         return false;
     }
     
@@ -905,7 +906,7 @@ bool AdminModule::validatePhoneNumber(const string& phoneNumber) {
 }
 
 bool AdminModule::validateDateFormat(const string& date) {
-    if (date.empty() || date.length() != 10) {
+    if (date.empty() || date.length() != 10U) {
         return false;
     }
     
@@ -970,7 +971,7 @@ bool AdminModule::validateICNumber(const string& icNumber) {
         }
     }
     // Check if length is exactly 12 digits
-    if (icNumber.length() != 12) {
+    if (icNumber.length() != 12U) {
         return false;
     }
     return true;
