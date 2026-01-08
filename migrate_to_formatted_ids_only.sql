@@ -232,6 +232,7 @@ BEGIN
     DECLARE columnExists INT DEFAULT 0;
     DECLARE hasPK INT DEFAULT 0;
     DECLARE pkColumn VARCHAR(64);
+    DECLARE isAutoIncrement INT DEFAULT 0;
     SET @dbname = DATABASE();
     
     -- Check if numeric ID column exists
@@ -242,6 +243,14 @@ BEGIN
     AND COLUMN_NAME = numericIdColumn;
     
     IF columnExists > 0 THEN
+        -- Check if the column has AUTO_INCREMENT
+        SELECT COUNT(*) INTO isAutoIncrement
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = @dbname
+        AND TABLE_NAME = tableName
+        AND COLUMN_NAME = numericIdColumn
+        AND EXTRA LIKE '%auto_increment%';
+        
         -- Check if table has primary key and what column it's on
         SELECT COUNT(*), COALESCE(KCU.COLUMN_NAME, '') INTO hasPK, pkColumn
         FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC
@@ -254,8 +263,17 @@ BEGIN
         AND TC.CONSTRAINT_TYPE = 'PRIMARY KEY'
         LIMIT 1;
         
-        -- Drop primary key if it exists and is on the numeric ID column
+        -- If primary key exists and is on the numeric ID column
         IF hasPK > 0 AND pkColumn = numericIdColumn THEN
+            -- If column has AUTO_INCREMENT, remove it first
+            IF isAutoIncrement > 0 THEN
+                SET @sql = CONCAT('ALTER TABLE ', tableName, ' MODIFY ', numericIdColumn, ' INT NOT NULL');
+                PREPARE stmt FROM @sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
+            END IF;
+            
+            -- Now drop the primary key
             SET @sql = CONCAT('ALTER TABLE ', tableName, ' DROP PRIMARY KEY');
             PREPARE stmt FROM @sql;
             EXECUTE stmt;
