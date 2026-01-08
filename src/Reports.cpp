@@ -52,7 +52,7 @@ void Reports::showMenu() {
         case 15: displayPatientStatusChart(); break;
         case 16: return;
         default:
-            cout << "\n❌ Invalid choice! Please try again." << endl;
+            cout << "\n[ERROR] Invalid choice! Please try again." << endl;
             pressEnterToContinue();
         }
     } while (choice != 0);
@@ -94,7 +94,7 @@ void Reports::calculateTotalInventoryValue() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -140,7 +140,7 @@ void Reports::calculateCategoryStatistics() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -186,7 +186,7 @@ void Reports::calculateMonthlySales() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -234,7 +234,7 @@ void Reports::calculateProfitMargins() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -279,7 +279,7 @@ void Reports::calculatePatientStatistics() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -325,7 +325,7 @@ void Reports::calculatePrescriptionStatistics() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -368,7 +368,7 @@ void Reports::generateInventoryReport() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -414,7 +414,7 @@ void Reports::generatePatientReport() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -459,7 +459,7 @@ void Reports::generatePrescriptionReport() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -501,7 +501,7 @@ void Reports::generateFinancialReport() {
         cout << "+----------------------------------------------------------------+" << endl;
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -547,7 +547,7 @@ void Reports::generateLowStockReport() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -598,7 +598,7 @@ void Reports::generateExpiringItemsReport() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -636,7 +636,7 @@ void Reports::displayInventoryValueChart() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -672,7 +672,7 @@ void Reports::displayCategoryDistributionChart() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -721,7 +721,7 @@ void Reports::displayMonthlyTransactionChart() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
@@ -757,7 +757,7 @@ void Reports::displayPatientStatusChart() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
     
     pressEnterToContinue();
