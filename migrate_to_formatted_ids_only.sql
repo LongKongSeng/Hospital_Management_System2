@@ -16,65 +16,140 @@ USE hospital_management_system;
 -- STEP 2: Drop all foreign key constraints that reference numeric IDs
 -- ============================================================================
 
--- Drop foreign keys from login table
-ALTER TABLE login DROP FOREIGN KEY IF EXISTS login_ibfk_1;
-ALTER TABLE login DROP FOREIGN KEY IF EXISTS login_ibfk_2;
-ALTER TABLE login DROP FOREIGN KEY IF EXISTS login_ibfk_3;
+-- Helper procedure to safely drop foreign key if it exists
+DELIMITER //
+DROP PROCEDURE IF EXISTS SafeDropForeignKey//
+CREATE PROCEDURE SafeDropForeignKey(
+    IN tableName VARCHAR(64),
+    IN constraintName VARCHAR(64)
+)
+BEGIN
+    DECLARE constraintCount INT DEFAULT 0;
+    SET @dbname = DATABASE();
+    
+    SELECT COUNT(*) INTO constraintCount
+    FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+    WHERE TABLE_SCHEMA = @dbname
+    AND TABLE_NAME = tableName
+    AND CONSTRAINT_NAME = constraintName
+    AND CONSTRAINT_TYPE = 'FOREIGN KEY';
+    
+    IF constraintCount > 0 THEN
+        SET @sql = CONCAT('ALTER TABLE ', tableName, ' DROP FOREIGN KEY ', constraintName);
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+END//
+DELIMITER ;
+
+-- Drop foreign keys from login table (common constraint names)
+CALL SafeDropForeignKey('login', 'login_ibfk_1');
+CALL SafeDropForeignKey('login', 'login_ibfk_2');
+CALL SafeDropForeignKey('login', 'login_ibfk_3');
+CALL SafeDropForeignKey('login', 'fk_login_doctor');
+CALL SafeDropForeignKey('login', 'fk_login_nurse');
+CALL SafeDropForeignKey('login', 'fk_login_admin');
 
 -- Drop foreign keys from appointment table
-ALTER TABLE appointment DROP FOREIGN KEY IF EXISTS appointment_ibfk_1;
-ALTER TABLE appointment DROP FOREIGN KEY IF EXISTS appointment_ibfk_2;
-ALTER TABLE appointment DROP FOREIGN KEY IF EXISTS fk_appointment_doctor;
+CALL SafeDropForeignKey('appointment', 'appointment_ibfk_1');
+CALL SafeDropForeignKey('appointment', 'appointment_ibfk_2');
+CALL SafeDropForeignKey('appointment', 'fk_appointment_doctor');
+CALL SafeDropForeignKey('appointment', 'fk_appointment_patient');
+CALL SafeDropForeignKey('appointment', 'fk_appointment_nurse');
 
 -- Drop foreign keys from medical_record table
-ALTER TABLE medical_record DROP FOREIGN KEY IF EXISTS medical_record_ibfk_1;
-ALTER TABLE medical_record DROP FOREIGN KEY IF EXISTS medical_record_ibfk_2;
-ALTER TABLE medical_record DROP FOREIGN KEY IF EXISTS medical_record_ibfk_3;
+CALL SafeDropForeignKey('medical_record', 'medical_record_ibfk_1');
+CALL SafeDropForeignKey('medical_record', 'medical_record_ibfk_2');
+CALL SafeDropForeignKey('medical_record', 'medical_record_ibfk_3');
+CALL SafeDropForeignKey('medical_record', 'fk_medical_record_patient');
+CALL SafeDropForeignKey('medical_record', 'fk_medical_record_doctor');
+CALL SafeDropForeignKey('medical_record', 'fk_medical_record_diagnosis');
 
 -- Drop foreign keys from treatment table
-ALTER TABLE treatment DROP FOREIGN KEY IF EXISTS treatment_ibfk_1;
+CALL SafeDropForeignKey('treatment', 'treatment_ibfk_1');
+CALL SafeDropForeignKey('treatment', 'fk_treatment_doctor');
 
 -- Drop foreign keys from finance table
-ALTER TABLE finance DROP FOREIGN KEY IF EXISTS finance_ibfk_1;
-ALTER TABLE finance DROP FOREIGN KEY IF EXISTS finance_ibfk_2;
+CALL SafeDropForeignKey('finance', 'finance_ibfk_1');
+CALL SafeDropForeignKey('finance', 'finance_ibfk_2');
+CALL SafeDropForeignKey('finance', 'fk_finance_treatment');
+CALL SafeDropForeignKey('finance', 'fk_finance_patient');
 
 -- Drop foreign keys from prescription table
-ALTER TABLE prescription DROP FOREIGN KEY IF EXISTS prescription_ibfk_1;
+CALL SafeDropForeignKey('prescription', 'prescription_ibfk_1');
+CALL SafeDropForeignKey('prescription', 'fk_prescription_pharmacy');
 
 -- Drop foreign keys from diagnosis table
-ALTER TABLE diagnosis DROP FOREIGN KEY IF EXISTS diagnosis_ibfk_1;
+CALL SafeDropForeignKey('diagnosis', 'diagnosis_ibfk_1');
+CALL SafeDropForeignKey('diagnosis', 'fk_diagnosis_prescription');
+
+-- Clean up helper
+DROP PROCEDURE IF EXISTS SafeDropForeignKey;
 
 -- ============================================================================
 -- STEP 3: Add new foreign key columns using formatted_id (VARCHAR)
+-- (Only if they don't already exist)
 -- ============================================================================
 
--- Login table: Change doctor_id, nurse_id, admin_id to VARCHAR
-ALTER TABLE login 
-ADD COLUMN doctor_formatted_id VARCHAR(20) NULL AFTER admin_id,
-ADD COLUMN nurse_formatted_id VARCHAR(20) NULL AFTER doctor_formatted_id,
-ADD COLUMN admin_formatted_id VARCHAR(20) NULL AFTER nurse_formatted_id;
+-- Helper procedure to add column only if it doesn't exist
+DELIMITER //
+DROP PROCEDURE IF EXISTS AddColumnIfNotExists//
+CREATE PROCEDURE AddColumnIfNotExists(
+    IN tableName VARCHAR(64),
+    IN columnName VARCHAR(64),
+    IN columnDefinition TEXT
+)
+BEGIN
+    DECLARE columnCount INT DEFAULT 0;
+    SET @dbname = DATABASE();
+    
+    SELECT COUNT(*) INTO columnCount
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = @dbname
+    AND TABLE_NAME = tableName
+    AND COLUMN_NAME = columnName;
+    
+    IF columnCount = 0 THEN
+        SET @sql = CONCAT('ALTER TABLE ', tableName, ' ADD COLUMN ', columnDefinition);
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+END//
+DELIMITER ;
 
--- Copy formatted_ids to new columns
+-- Login table: Add new VARCHAR columns for formatted_id foreign keys
+CALL AddColumnIfNotExists('login', 'doctor_formatted_id', 'doctor_formatted_id VARCHAR(20) NULL AFTER admin_id');
+CALL AddColumnIfNotExists('login', 'nurse_formatted_id', 'nurse_formatted_id VARCHAR(20) NULL AFTER doctor_formatted_id');
+CALL AddColumnIfNotExists('login', 'admin_formatted_id', 'admin_formatted_id VARCHAR(20) NULL AFTER nurse_formatted_id');
+
+-- Copy formatted_ids to new columns (only if old numeric columns exist and formatted_id columns exist)
 UPDATE login l
 JOIN doctor d ON l.doctor_id = d.doctor_id
 SET l.doctor_formatted_id = d.formatted_id
-WHERE l.doctor_id IS NOT NULL;
+WHERE l.doctor_id IS NOT NULL 
+AND l.doctor_formatted_id IS NULL
+AND EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'login' AND COLUMN_NAME = 'doctor_formatted_id');
 
 UPDATE login l
 JOIN nurse n ON l.nurse_id = n.nurse_id
 SET l.nurse_formatted_id = n.formatted_id
-WHERE l.nurse_id IS NOT NULL;
+WHERE l.nurse_id IS NOT NULL 
+AND l.nurse_formatted_id IS NULL
+AND EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'login' AND COLUMN_NAME = 'nurse_formatted_id');
 
 UPDATE login l
 JOIN admin a ON l.admin_id = a.admin_id
 SET l.admin_formatted_id = a.formatted_id
-WHERE l.admin_id IS NOT NULL;
+WHERE l.admin_id IS NOT NULL 
+AND l.admin_formatted_id IS NULL
+AND EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'login' AND COLUMN_NAME = 'admin_formatted_id');
 
--- Appointment table: Change patient_id, nurse_id, doctor_id to VARCHAR
-ALTER TABLE appointment 
-ADD COLUMN patient_formatted_id VARCHAR(20) NULL AFTER appointment_id,
-ADD COLUMN nurse_formatted_id VARCHAR(20) NULL AFTER patient_formatted_id,
-ADD COLUMN doctor_formatted_id VARCHAR(20) NULL AFTER nurse_formatted_id;
+-- Appointment table: Add new VARCHAR columns for formatted_id foreign keys
+CALL AddColumnIfNotExists('appointment', 'patient_formatted_id', 'patient_formatted_id VARCHAR(20) NULL AFTER appointment_id');
+CALL AddColumnIfNotExists('appointment', 'nurse_formatted_id', 'nurse_formatted_id VARCHAR(20) NULL AFTER patient_formatted_id');
+CALL AddColumnIfNotExists('appointment', 'doctor_formatted_id', 'doctor_formatted_id VARCHAR(20) NULL AFTER nurse_formatted_id');
 
 UPDATE appointment a
 JOIN patient p ON a.patient_id = p.patient_id
@@ -89,11 +164,10 @@ JOIN doctor d ON a.doctor_id = d.doctor_id
 SET a.doctor_formatted_id = d.formatted_id
 WHERE a.doctor_id IS NOT NULL;
 
--- Medical_record table: Change patient_id, doctor_id, diagnosis_id to VARCHAR
-ALTER TABLE medical_record 
-ADD COLUMN patient_formatted_id VARCHAR(20) NULL AFTER record_id,
-ADD COLUMN doctor_formatted_id VARCHAR(20) NULL AFTER patient_formatted_id,
-ADD COLUMN diagnosis_formatted_id VARCHAR(20) NULL AFTER doctor_formatted_id;
+-- Medical_record table: Add new VARCHAR columns for formatted_id foreign keys
+CALL AddColumnIfNotExists('medical_record', 'patient_formatted_id', 'patient_formatted_id VARCHAR(20) NULL AFTER record_id');
+CALL AddColumnIfNotExists('medical_record', 'doctor_formatted_id', 'doctor_formatted_id VARCHAR(20) NULL AFTER patient_formatted_id');
+CALL AddColumnIfNotExists('medical_record', 'diagnosis_formatted_id', 'diagnosis_formatted_id VARCHAR(20) NULL AFTER doctor_formatted_id');
 
 UPDATE medical_record mr
 JOIN patient p ON mr.patient_id = p.patient_id
@@ -108,18 +182,16 @@ JOIN diagnosis diag ON mr.diagnosis_id = diag.diagnosis_id
 SET mr.diagnosis_formatted_id = diag.formatted_id
 WHERE mr.diagnosis_id IS NOT NULL;
 
--- Treatment table: Change doctor_id to VARCHAR
-ALTER TABLE treatment 
-ADD COLUMN doctor_formatted_id VARCHAR(20) NULL AFTER treatment_id;
+-- Treatment table: Add new VARCHAR column for formatted_id foreign key
+CALL AddColumnIfNotExists('treatment', 'doctor_formatted_id', 'doctor_formatted_id VARCHAR(20) NULL AFTER treatment_id');
 
 UPDATE treatment t
 JOIN doctor d ON t.doctor_id = d.doctor_id
 SET t.doctor_formatted_id = d.formatted_id;
 
--- Finance table: Change treatment_id, patient_id to VARCHAR
-ALTER TABLE finance 
-ADD COLUMN treatment_formatted_id VARCHAR(20) NULL AFTER finance_id,
-ADD COLUMN patient_formatted_id VARCHAR(20) NULL AFTER treatment_formatted_id;
+-- Finance table: Add new VARCHAR columns for formatted_id foreign keys
+CALL AddColumnIfNotExists('finance', 'treatment_formatted_id', 'treatment_formatted_id VARCHAR(20) NULL AFTER finance_id');
+CALL AddColumnIfNotExists('finance', 'patient_formatted_id', 'patient_formatted_id VARCHAR(20) NULL AFTER treatment_formatted_id');
 
 UPDATE finance f
 JOIN treatment t ON f.treatment_id = t.treatment_id
@@ -129,17 +201,15 @@ UPDATE finance f
 JOIN patient p ON f.patient_id = p.patient_id
 SET f.patient_formatted_id = p.formatted_id;
 
--- Prescription table: Change pharmacy_id to VARCHAR
-ALTER TABLE prescription 
-ADD COLUMN pharmacy_formatted_id VARCHAR(20) NULL AFTER prescription_id;
+-- Prescription table: Add new VARCHAR column for formatted_id foreign key
+CALL AddColumnIfNotExists('prescription', 'pharmacy_formatted_id', 'pharmacy_formatted_id VARCHAR(20) NULL AFTER prescription_id');
 
 UPDATE prescription pr
 JOIN pharmacy ph ON pr.pharmacy_id = ph.pharmacy_id
 SET pr.pharmacy_formatted_id = ph.formatted_id;
 
--- Diagnosis table: Change prescription_id to VARCHAR
-ALTER TABLE diagnosis 
-ADD COLUMN prescription_formatted_id VARCHAR(20) NULL AFTER diagnosis_id;
+-- Diagnosis table: Add new VARCHAR column for formatted_id foreign key
+CALL AddColumnIfNotExists('diagnosis', 'prescription_formatted_id', 'prescription_formatted_id VARCHAR(20) NULL AFTER diagnosis_id');
 
 UPDATE diagnosis diag
 JOIN prescription pr ON diag.prescription_id = pr.prescription_id
@@ -148,121 +218,210 @@ WHERE diag.prescription_id IS NOT NULL;
 
 -- ============================================================================
 -- STEP 4: Make formatted_id the primary key for all main tables
+-- (Safely drop old numeric ID columns if they exist)
 -- ============================================================================
 
--- Drop old primary keys and auto_increment
-ALTER TABLE doctor DROP PRIMARY KEY, MODIFY doctor_id INT, DROP COLUMN doctor_id;
-ALTER TABLE doctor MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY;
+-- Helper to safely convert to formatted_id primary key
+DELIMITER //
+DROP PROCEDURE IF EXISTS SafeConvertToFormattedId//
+CREATE PROCEDURE SafeConvertToFormattedId(
+    IN tableName VARCHAR(64),
+    IN numericIdColumn VARCHAR(64)
+)
+BEGIN
+    DECLARE columnExists INT DEFAULT 0;
+    DECLARE hasPK INT DEFAULT 0;
+    SET @dbname = DATABASE();
+    
+    -- Check if numeric ID column exists
+    SELECT COUNT(*) INTO columnExists
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = @dbname
+    AND TABLE_NAME = tableName
+    AND COLUMN_NAME = numericIdColumn;
+    
+    IF columnExists > 0 THEN
+        -- Check if table has primary key
+        SELECT COUNT(*) INTO hasPK
+        FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+        WHERE TABLE_SCHEMA = @dbname
+        AND TABLE_NAME = tableName
+        AND CONSTRAINT_TYPE = 'PRIMARY KEY';
+        
+        IF hasPK > 0 THEN
+            -- Drop primary key and column
+            SET @sql = CONCAT('ALTER TABLE ', tableName, ' DROP PRIMARY KEY, MODIFY ', numericIdColumn, ' INT, DROP COLUMN ', numericIdColumn);
+        ELSE
+            -- Just drop column (no primary key)
+            SET @sql = CONCAT('ALTER TABLE ', tableName, ' MODIFY ', numericIdColumn, ' INT, DROP COLUMN ', numericIdColumn);
+        END IF;
+        
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+    
+    -- Make formatted_id primary key
+    SET @sql = CONCAT('ALTER TABLE ', tableName, ' MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY');
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+END//
+DELIMITER ;
 
-ALTER TABLE nurse DROP PRIMARY KEY, MODIFY nurse_id INT, DROP COLUMN nurse_id;
-ALTER TABLE nurse MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY;
+-- Convert all tables to use formatted_id as primary key
+CALL SafeConvertToFormattedId('doctor', 'doctor_id');
+CALL SafeConvertToFormattedId('nurse', 'nurse_id');
+CALL SafeConvertToFormattedId('admin', 'admin_id');
+CALL SafeConvertToFormattedId('patient', 'patient_id');
+CALL SafeConvertToFormattedId('pharmacy', 'pharmacy_id');
+CALL SafeConvertToFormattedId('prescription', 'prescription_id');
+CALL SafeConvertToFormattedId('diagnosis', 'diagnosis_id');
+CALL SafeConvertToFormattedId('medical_record', 'record_id');
+CALL SafeConvertToFormattedId('appointment', 'appointment_id');
+CALL SafeConvertToFormattedId('treatment', 'treatment_id');
+CALL SafeConvertToFormattedId('finance', 'finance_id');
+CALL SafeConvertToFormattedId('login', 'login_id');
 
-ALTER TABLE admin DROP PRIMARY KEY, MODIFY admin_id INT, DROP COLUMN admin_id;
-ALTER TABLE admin MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY;
-
-ALTER TABLE patient DROP PRIMARY KEY, MODIFY patient_id INT, DROP COLUMN patient_id;
-ALTER TABLE patient MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY;
-
-ALTER TABLE pharmacy DROP PRIMARY KEY, MODIFY pharmacy_id INT, DROP COLUMN pharmacy_id;
-ALTER TABLE pharmacy MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY;
-
-ALTER TABLE prescription DROP PRIMARY KEY, MODIFY prescription_id INT, DROP COLUMN prescription_id;
-ALTER TABLE prescription MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY;
-
-ALTER TABLE diagnosis DROP PRIMARY KEY, MODIFY diagnosis_id INT, DROP COLUMN diagnosis_id;
-ALTER TABLE diagnosis MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY;
-
-ALTER TABLE medical_record DROP PRIMARY KEY, MODIFY record_id INT, DROP COLUMN record_id;
-ALTER TABLE medical_record MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY;
-
-ALTER TABLE appointment DROP PRIMARY KEY, MODIFY appointment_id INT, DROP COLUMN appointment_id;
-ALTER TABLE appointment MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY;
-
-ALTER TABLE treatment DROP PRIMARY KEY, MODIFY treatment_id INT, DROP COLUMN treatment_id;
-ALTER TABLE treatment MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY;
-
-ALTER TABLE finance DROP PRIMARY KEY, MODIFY finance_id INT, DROP COLUMN finance_id;
-ALTER TABLE finance MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY;
-
-ALTER TABLE login DROP PRIMARY KEY, MODIFY login_id INT, DROP COLUMN login_id;
-ALTER TABLE login MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY;
+-- Clean up procedures
+DROP PROCEDURE IF EXISTS SafeConvertToFormattedId;
+DROP PROCEDURE IF EXISTS AddColumnIfNotExists;
 
 -- ============================================================================
 -- STEP 5: Update foreign key columns to NOT NULL and rename them
+-- (Only drop old numeric columns if they exist)
 -- ============================================================================
 
+-- Helper to safely drop column if it exists
+DELIMITER //
+DROP PROCEDURE IF EXISTS DropColumnIfExists//
+CREATE PROCEDURE DropColumnIfExists(
+    IN tableName VARCHAR(64),
+    IN columnName VARCHAR(64)
+)
+BEGIN
+    DECLARE columnCount INT DEFAULT 0;
+    SET @dbname = DATABASE();
+    
+    SELECT COUNT(*) INTO columnCount
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = @dbname
+    AND TABLE_NAME = tableName
+    AND COLUMN_NAME = columnName;
+    
+    IF columnCount > 0 THEN
+        SET @sql = CONCAT('ALTER TABLE ', tableName, ' DROP COLUMN ', columnName);
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+END//
+DELIMITER ;
+
 -- Login table
+CALL DropColumnIfExists('login', 'doctor_id');
+CALL DropColumnIfExists('login', 'nurse_id');
+CALL DropColumnIfExists('login', 'admin_id');
 ALTER TABLE login 
-DROP COLUMN doctor_id, DROP COLUMN nurse_id, DROP COLUMN admin_id,
 MODIFY doctor_formatted_id VARCHAR(20),
 MODIFY nurse_formatted_id VARCHAR(20),
 MODIFY admin_formatted_id VARCHAR(20);
 
 -- Appointment table
+CALL DropColumnIfExists('appointment', 'patient_id');
+CALL DropColumnIfExists('appointment', 'nurse_id');
+CALL DropColumnIfExists('appointment', 'doctor_id');
 ALTER TABLE appointment 
-DROP COLUMN patient_id, DROP COLUMN nurse_id, DROP COLUMN doctor_id,
 MODIFY patient_formatted_id VARCHAR(20) NOT NULL,
 MODIFY nurse_formatted_id VARCHAR(20) NOT NULL;
 
 -- Medical_record table
+CALL DropColumnIfExists('medical_record', 'patient_id');
+CALL DropColumnIfExists('medical_record', 'doctor_id');
+CALL DropColumnIfExists('medical_record', 'diagnosis_id');
 ALTER TABLE medical_record 
-DROP COLUMN patient_id, DROP COLUMN doctor_id, DROP COLUMN diagnosis_id,
 MODIFY patient_formatted_id VARCHAR(20) NOT NULL,
 MODIFY doctor_formatted_id VARCHAR(20) NOT NULL,
 MODIFY diagnosis_formatted_id VARCHAR(20);
 
 -- Treatment table
+CALL DropColumnIfExists('treatment', 'doctor_id');
 ALTER TABLE treatment 
-DROP COLUMN doctor_id,
 MODIFY doctor_formatted_id VARCHAR(20) NOT NULL;
 
 -- Finance table
+CALL DropColumnIfExists('finance', 'treatment_id');
+CALL DropColumnIfExists('finance', 'patient_id');
 ALTER TABLE finance 
-DROP COLUMN treatment_id, DROP COLUMN patient_id,
 MODIFY treatment_formatted_id VARCHAR(20) NOT NULL,
 MODIFY patient_formatted_id VARCHAR(20) NOT NULL;
 
 -- Prescription table
+CALL DropColumnIfExists('prescription', 'pharmacy_id');
 ALTER TABLE prescription 
-DROP COLUMN pharmacy_id,
 MODIFY pharmacy_formatted_id VARCHAR(20) NOT NULL;
 
 -- Diagnosis table
+CALL DropColumnIfExists('diagnosis', 'prescription_id');
 ALTER TABLE diagnosis 
-DROP COLUMN prescription_id,
 MODIFY prescription_formatted_id VARCHAR(20);
 
 -- ============================================================================
 -- STEP 6: Add new foreign key constraints using formatted_id
+-- (Drop existing constraints first if they exist)
 -- ============================================================================
 
+-- Login table
+CALL DropForeignKeyIfExists('login', 'fk_login_doctor');
+CALL DropForeignKeyIfExists('login', 'fk_login_nurse');
+CALL DropForeignKeyIfExists('login', 'fk_login_admin');
 ALTER TABLE login 
 ADD CONSTRAINT fk_login_doctor FOREIGN KEY (doctor_formatted_id) REFERENCES doctor(formatted_id) ON DELETE CASCADE,
 ADD CONSTRAINT fk_login_nurse FOREIGN KEY (nurse_formatted_id) REFERENCES nurse(formatted_id) ON DELETE CASCADE,
 ADD CONSTRAINT fk_login_admin FOREIGN KEY (admin_formatted_id) REFERENCES admin(formatted_id) ON DELETE CASCADE;
 
+-- Appointment table
+CALL DropForeignKeyIfExists('appointment', 'fk_appointment_patient');
+CALL DropForeignKeyIfExists('appointment', 'fk_appointment_nurse');
+CALL DropForeignKeyIfExists('appointment', 'fk_appointment_doctor');
 ALTER TABLE appointment 
 ADD CONSTRAINT fk_appointment_patient FOREIGN KEY (patient_formatted_id) REFERENCES patient(formatted_id) ON DELETE CASCADE,
 ADD CONSTRAINT fk_appointment_nurse FOREIGN KEY (nurse_formatted_id) REFERENCES nurse(formatted_id) ON DELETE CASCADE,
 ADD CONSTRAINT fk_appointment_doctor FOREIGN KEY (doctor_formatted_id) REFERENCES doctor(formatted_id) ON DELETE CASCADE;
 
+-- Medical_record table
+CALL DropForeignKeyIfExists('medical_record', 'fk_medical_record_patient');
+CALL DropForeignKeyIfExists('medical_record', 'fk_medical_record_doctor');
+CALL DropForeignKeyIfExists('medical_record', 'fk_medical_record_diagnosis');
 ALTER TABLE medical_record 
 ADD CONSTRAINT fk_medical_record_patient FOREIGN KEY (patient_formatted_id) REFERENCES patient(formatted_id) ON DELETE CASCADE,
 ADD CONSTRAINT fk_medical_record_doctor FOREIGN KEY (doctor_formatted_id) REFERENCES doctor(formatted_id) ON DELETE CASCADE,
 ADD CONSTRAINT fk_medical_record_diagnosis FOREIGN KEY (diagnosis_formatted_id) REFERENCES diagnosis(formatted_id) ON DELETE SET NULL;
 
+-- Treatment table
+CALL DropForeignKeyIfExists('treatment', 'fk_treatment_doctor');
 ALTER TABLE treatment 
 ADD CONSTRAINT fk_treatment_doctor FOREIGN KEY (doctor_formatted_id) REFERENCES doctor(formatted_id) ON DELETE CASCADE;
 
+-- Finance table
+CALL DropForeignKeyIfExists('finance', 'fk_finance_treatment');
+CALL DropForeignKeyIfExists('finance', 'fk_finance_patient');
 ALTER TABLE finance 
 ADD CONSTRAINT fk_finance_treatment FOREIGN KEY (treatment_formatted_id) REFERENCES treatment(formatted_id) ON DELETE CASCADE,
 ADD CONSTRAINT fk_finance_patient FOREIGN KEY (patient_formatted_id) REFERENCES patient(formatted_id) ON DELETE CASCADE;
 
+-- Prescription table
+CALL DropForeignKeyIfExists('prescription', 'fk_prescription_pharmacy');
 ALTER TABLE prescription 
 ADD CONSTRAINT fk_prescription_pharmacy FOREIGN KEY (pharmacy_formatted_id) REFERENCES pharmacy(formatted_id) ON DELETE CASCADE;
 
+-- Diagnosis table
+CALL DropForeignKeyIfExists('diagnosis', 'fk_diagnosis_prescription');
 ALTER TABLE diagnosis 
 ADD CONSTRAINT fk_diagnosis_prescription FOREIGN KEY (prescription_formatted_id) REFERENCES prescription(formatted_id) ON DELETE SET NULL;
+
+-- Clean up procedure
+DROP PROCEDURE IF EXISTS DropForeignKeyIfExists;
 
 -- ============================================================================
 -- STEP 7: Update triggers to generate formatted_id before insert
