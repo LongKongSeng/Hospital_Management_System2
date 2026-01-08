@@ -175,19 +175,28 @@ void NurseModule::generateNextAppointment() {
         return;
     }
 
-    cout << "\n+----------------------------------------------------------------+" << endl;
-    cout << "|                    PATIENT INFORMATION                         |" << endl;
-    cout << "+----------------------------------------------------------------+" << endl;
-    cout << "| Patient Name: " << left << setw(44) << patientName << "|" << endl;
-    cout << "+----------------------------------------------------------------+" << endl;
+    cout << "\n" << endl;
+    cout << "+================================================================+" << endl;
+    cout << "|                      PATIENT INFORMATION                       |" << endl;
+    cout << "+================================================================+" << endl;
+    cout << "| Patient Name: " << left << setw(51) << patientName << "|" << endl;
+    cout << "+================================================================+" << endl;
     cout << "\nAvailable Doctors:\n" << endl;
     cout << "+-----------+----------------------+----------------------+" << endl;
     cout << "| Doctor ID | Full Name            | Specialization       |" << endl;
     cout << "+-----------+----------------------+----------------------+" << endl;
     while (doctorRes->next()) {
-        cout << "| " << setw(9) << string(doctorRes->getString("formatted_id"))
-             << "| " << setw(20) << doctorRes->getString("full_name")
-             << "| " << setw(20) << doctorRes->getString("specialization") << "|" << endl;
+        string doctorId = string(doctorRes->getString("formatted_id"));
+        string doctorName = string(doctorRes->getString("full_name"));
+        string specialization = string(doctorRes->getString("specialization"));
+        
+        // Truncate long text to fit column width
+        if (doctorName.length() > 20) doctorName = doctorName.substr(0, 17) + "...";
+        if (specialization.length() > 20) specialization = specialization.substr(0, 17) + "...";
+        
+        cout << "| " << left << setw(9) << doctorId
+             << "| " << left << setw(20) << doctorName
+             << "| " << left << setw(20) << specialization << "|" << endl;
     }
     cout << "+-----------+----------------------+----------------------+" << endl;
     delete doctorRes;
@@ -290,14 +299,23 @@ void NurseModule::displayPatientRecordTable(sql::ResultSet* res) {
 void NurseModule::displayAppointmentTable(sql::ResultSet* res) {
     cout << "\n+-----------------+----------------------+--------------+--------------+--------------+" << endl;
     cout << "| Appointment ID  | Patient Name          | Date         | Time         | Status       |" << endl;
-    cout << "+-----------------┼----------------------┼--------------┼--------------┼--------------+" << endl;
+    cout << "+-----------------+----------------------+--------------+--------------+--------------+" << endl;
     
     while (res->next()) {
-        cout << "| " << setw(15) << getFormattedId(res, "appointment_formatted_id", "appointment_id")
-             << "| " << setw(20) << res->getString("patient_name")
-             << "| " << setw(12) << res->getString("appointment_date")
-             << "| " << setw(12) << res->getString("appointment_time")
-             << "| " << setw(12) << res->getString("status") << "|" << endl;
+        string appointmentId = string(res->getString("appointment_formatted_id"));
+        string patientName = string(res->getString("patient_name"));
+        string date = res->isNull("appointment_date") ? "N/A" : string(res->getString("appointment_date"));
+        string time = res->isNull("appointment_time") ? "N/A" : string(res->getString("appointment_time"));
+        string status = string(res->getString("status"));
+        
+        // Truncate long names to fit column width
+        if (patientName.length() > 20) patientName = patientName.substr(0, 17) + "...";
+        
+        cout << "| " << left << setw(15) << appointmentId
+             << "| " << left << setw(20) << patientName
+             << "| " << left << setw(12) << date
+             << "| " << left << setw(12) << time
+             << "| " << left << setw(12) << status << "|" << endl;
     }
     
     cout << "+-----------------+----------------------+--------------+--------------+--------------+" << endl;

@@ -232,13 +232,21 @@ void AdminModule::generateMonthlyReport() {
         if (res) {
             cout << "\n+-----------+----------------------+----------------------+--------------------------+" << endl;
             cout << "| Month     | Category              | Prescription Count   | Total Quantity Prescribed|" << endl;
-            cout << "+-----------┼----------------------┼----------------------┼--------------------------+" << endl;
+            cout << "+-----------+----------------------+----------------------+--------------------------+" << endl;
             
             while (res->next()) {
-                cout << "| " << setw(9) << res->getString("month")
-                     << "| " << setw(20) << res->getString("category_of_meds")
-                     << "| " << setw(20) << res->getInt("prescription_count")
-                     << "| " << setw(24) << res->getInt("total_quantity_prescribed") << "|" << endl;
+                string month = string(res->getString("month"));
+                string category = string(res->getString("category_of_meds"));
+                int prescriptionCount = res->getInt("prescription_count");
+                int totalQuantity = res->getInt("total_quantity_prescribed");
+                
+                // Truncate long text to fit column width
+                if (category.length() > 20) category = category.substr(0, 17) + "...";
+                
+                cout << "| " << left << setw(9) << month
+                     << "| " << left << setw(20) << category
+                     << "| " << right << setw(20) << prescriptionCount
+                     << "| " << right << setw(24) << totalQuantity << " |" << endl;
             }
             cout << "+-----------+----------------------+----------------------+--------------------------+" << endl;
             
@@ -297,13 +305,21 @@ void AdminModule::generateYearlyReport() {
         if (res) {
             cout << "\n+-------+----------------------+----------------------+--------------------------+" << endl;
             cout << "| Year  | Category              | Prescription Count   | Total Quantity Prescribed|" << endl;
-            cout << "+-------┼----------------------┼----------------------┼--------------------------+" << endl;
+            cout << "+-------+----------------------+----------------------+--------------------------+" << endl;
             
             while (res->next()) {
-                cout << "| " << setw(5) << res->getInt("year")
-                     << "| " << setw(20) << res->getString("category_of_meds")
-                     << "| " << setw(20) << res->getInt("prescription_count")
-                     << "| " << setw(24) << res->getInt("total_quantity_prescribed") << "|" << endl;
+                int year = res->getInt("year");
+                string category = string(res->getString("category_of_meds"));
+                int prescriptionCount = res->getInt("prescription_count");
+                int totalQuantity = res->getInt("total_quantity_prescribed");
+                
+                // Truncate long text to fit column width
+                if (category.length() > 20) category = category.substr(0, 17) + "...";
+                
+                cout << "| " << right << setw(5) << year
+                     << "| " << left << setw(20) << category
+                     << "| " << right << setw(20) << prescriptionCount
+                     << "| " << right << setw(24) << totalQuantity << " |" << endl;
             }
             cout << "+-------+----------------------+----------------------+--------------------------+" << endl;
             
@@ -393,21 +409,27 @@ void AdminModule::displayGraphicalReport() {
         if (res) {
             cout << "\n+----------------------+----------------------+----------------------+------------------+" << endl;
             cout << "| Category             | Total Prescriptions  | Total Quantity       | Average Price    |" << endl;
-            cout << "+----------------------┼----------------------┼----------------------┼------------------+" << endl;
+            cout << "+----------------------+----------------------+----------------------+------------------+" << endl;
             
             double maxPrescriptions = 0;
             vector<pair<string, int>> chartData;
             
             while (res->next()) {
-                string category = res->getString("category_of_meds");
+                string category = string(res->getString("category_of_meds"));
                 int prescriptions = res->getInt("total_prescriptions");
+                int totalQuantity = res->getInt("total_quantity");
+                double avgPrice = res->getDouble("avg_price");
+                
                 chartData.push_back({category, prescriptions});
                 if (prescriptions > maxPrescriptions) maxPrescriptions = prescriptions;
                 
-                cout << "| " << setw(20) << category
-                     << "| " << setw(20) << prescriptions
-                     << "| " << setw(20) << res->getInt("total_quantity")
-                     << "| RM " << setw(13) << fixed << setprecision(2) << res->getDouble("avg_price") << "|" << endl;
+                // Truncate long text to fit column width
+                if (category.length() > 20) category = category.substr(0, 17) + "...";
+                
+                cout << "| " << left << setw(20) << category
+                     << "| " << right << setw(20) << prescriptions
+                     << "| " << right << setw(20) << totalQuantity
+                     << "| RM " << right << setw(12) << fixed << setprecision(2) << avgPrice << " |" << endl;
             }
             cout << "+----------------------+----------------------+----------------------+------------------+" << endl;
             
@@ -793,37 +815,50 @@ void AdminModule::displayReceipt(const string& patientId, double totalAmount) {
         sql::ResultSet* treatmentRes = db->executeSelect(treatmentQuery);
 
         // Display receipt
-        cout << "\n+----------------------------------------------------------------+" << endl;
-        cout << "|                    HOSPITAL RECEIPT                            |" << endl;
-        cout << "+----------------------------------------------------------------+" << endl;
-        cout << "| Patient ID: " << left << setw(45) << patientFormattedId << "|" << endl;
-        cout << "| Patient Name: " << left << setw(43) << patientName << "|" << endl;
-        cout << "| Contact Number: " << left << setw(42) << contactNumber << "|" << endl;
-        cout << "| Date of Birth: " << left << setw(42) << dob << "|" << endl;
-        cout << "+----------------------------------------------------------------+" << endl;
-        cout << "|                    TREATMENT DETAILS                           |" << endl;
-        cout << "+----------------------------------------------------------------+" << endl;
+        cout << "\n" << endl;
+        cout << "+================================================================+" << endl;
+        cout << "|                        HOSPITAL RECEIPT                         |" << endl;
+        cout << "+================================================================+" << endl;
+        cout << "| Patient ID: " << left << setw(54) << patientFormattedId << "|" << endl;
+        cout << "| Patient Name: " << left << setw(52) << patientName << "|" << endl;
+        cout << "| Contact Number: " << left << setw(50) << contactNumber << "|" << endl;
+        cout << "| Date of Birth: " << left << setw(51) << dob << "|" << endl;
+        cout << "+================================================================+" << endl;
+        cout << "|                        TREATMENT DETAILS                        |" << endl;
+        cout << "+================================================================+" << endl;
 
         if (treatmentRes && treatmentRes->rowsCount() > 0) {
-            cout << "| " << left << setw(58) << "Treatment ID | Doctor | Consultation Fee | Treatment Fee | Date" << "|" << endl;
-            cout << "+----------------------------------------------------------------+" << endl;
+            cout << "+-------------+----------------------+------------------+------------------+--------------+" << endl;
+            cout << "| Treatment ID| Doctor Name          | Consultation Fee | Treatment Fee    | Date         |" << endl;
+            cout << "+-------------+----------------------+------------------+------------------+--------------+" << endl;
             
             while (treatmentRes->next()) {
-                cout << "| " << left << setw(5) << string(treatmentRes->getString("treatment_formatted_id"))
-                     << " | " << setw(15) << string(treatmentRes->getString("doctor_name")).substr(0, 15)
-                     << " | RM " << setw(12) << fixed << setprecision(2) << treatmentRes->getDouble("consultation_fee")
-                     << " | RM " << setw(12) << fixed << setprecision(2) << treatmentRes->getDouble("treatment_fee")
-                     << " | " << setw(10) << treatmentRes->getString("treatment_date") << "|" << endl;
+                string treatmentId = string(treatmentRes->getString("treatment_formatted_id"));
+                string doctorName = string(treatmentRes->getString("doctor_name"));
+                double consultationFee = treatmentRes->getDouble("consultation_fee");
+                double treatmentFee = treatmentRes->getDouble("treatment_fee");
+                string treatmentDate = treatmentRes->isNull("treatment_date") ? "N/A" : string(treatmentRes->getString("treatment_date"));
+                
+                // Truncate long names to fit column width
+                if (doctorName.length() > 20) doctorName = doctorName.substr(0, 17) + "...";
+                
+                cout << "| " << left << setw(11) << treatmentId
+                     << "| " << left << setw(20) << doctorName
+                     << "| RM " << right << setw(13) << fixed << setprecision(2) << consultationFee
+                     << "| RM " << right << setw(13) << fixed << setprecision(2) << treatmentFee
+                     << "| " << left << setw(12) << treatmentDate << "|" << endl;
             }
+            cout << "+-------------+----------------------+------------------+------------------+--------------+" << endl;
         } else {
-            cout << "| " << left << setw(58) << "No treatments found. Default consultation fee applied." << "|" << endl;
+            cout << "| " << left << setw(64) << "No treatments found. Default consultation fee applied." << "|" << endl;
+            cout << "+================================================================+" << endl;
         }
         if (treatmentRes) delete treatmentRes;
 
-        cout << "+----------------------------------------------------------------+" << endl;
-        cout << "| Total Amount: " << left << setw(43) << ("RM " + to_string(totalAmount)) << "|" << endl;
-        cout << "| Date: " << left << setw(50) << (string(__DATE__) + " " + string(__TIME__)) << "|" << endl;
-        cout << "+----------------------------------------------------------------+" << endl;
+        cout << "\n+================================================================+" << endl;
+        cout << "| Total Amount: " << left << setw(51) << ("RM " + to_string((long long)totalAmount)) << "|" << endl;
+        cout << "| Date: " << left << setw(59) << (string(__DATE__) + " " + string(__TIME__)) << "|" << endl;
+        cout << "+================================================================+" << endl;
 
     }
     catch (exception& e) {
@@ -834,14 +869,24 @@ void AdminModule::displayReceipt(const string& patientId, double totalAmount) {
 void AdminModule::displayPharmacyTable(sql::ResultSet* res) {
     cout << "\n+-------------+----------------------+----------------------+----------+-------------+" << endl;
     cout << "| Pharmacy ID | Medicine Name        | Category              | Quantity | Unit Price  |" << endl;
-    cout << "+-------------┼----------------------┼----------------------┼----------┼-------------+" << endl;
+    cout << "+-------------+----------------------+----------------------+----------+-------------+" << endl;
     
     while (res->next()) {
-        cout << "| " << setw(11) << getFormattedId(res, "formatted_id", "pharmacy_id")
-             << "| " << setw(20) << res->getString("medicine_name")
-             << "| " << setw(20) << res->getString("category_of_meds")
-             << "| " << setw(8) << res->getInt("quantity")
-             << "| RM " << setw(9) << fixed << setprecision(2) << res->getDouble("unit_price") << "|" << endl;
+        string pharmacyId = string(res->getString("formatted_id"));
+        string medicineName = string(res->getString("medicine_name"));
+        string category = string(res->getString("category_of_meds"));
+        int quantity = res->getInt("quantity");
+        double unitPrice = res->getDouble("unit_price");
+        
+        // Truncate long names to fit column width
+        if (medicineName.length() > 20) medicineName = medicineName.substr(0, 17) + "...";
+        if (category.length() > 20) category = category.substr(0, 17) + "...";
+        
+        cout << "| " << left << setw(11) << pharmacyId
+             << "| " << left << setw(20) << medicineName
+             << "| " << left << setw(20) << category
+             << "| " << right << setw(8) << quantity
+             << "| RM " << right << setw(7) << fixed << setprecision(2) << unitPrice << " |" << endl;
     }
     
     cout << "+-------------+----------------------+----------------------+----------+-------------+" << endl;
