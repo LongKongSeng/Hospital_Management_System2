@@ -231,6 +231,7 @@ CREATE PROCEDURE SafeConvertToFormattedId(
 BEGIN
     DECLARE columnExists INT DEFAULT 0;
     DECLARE hasPK INT DEFAULT 0;
+    DECLARE pkColumn VARCHAR(64);
     SET @dbname = DATABASE();
     
     -- Check if numeric ID column exists
@@ -241,31 +242,75 @@ BEGIN
     AND COLUMN_NAME = numericIdColumn;
     
     IF columnExists > 0 THEN
-        -- Check if table has primary key
-        SELECT COUNT(*) INTO hasPK
-        FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
-        WHERE TABLE_SCHEMA = @dbname
-        AND TABLE_NAME = tableName
-        AND CONSTRAINT_TYPE = 'PRIMARY KEY';
+        -- Check if table has primary key and what column it's on
+        SELECT COUNT(*), COALESCE(KCU.COLUMN_NAME, '') INTO hasPK, pkColumn
+        FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC
+        LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU 
+            ON TC.CONSTRAINT_SCHEMA = KCU.CONSTRAINT_SCHEMA
+            AND TC.CONSTRAINT_NAME = KCU.CONSTRAINT_NAME
+            AND TC.TABLE_NAME = KCU.TABLE_NAME
+        WHERE TC.TABLE_SCHEMA = @dbname
+        AND TC.TABLE_NAME = tableName
+        AND TC.CONSTRAINT_TYPE = 'PRIMARY KEY'
+        LIMIT 1;
         
-        IF hasPK > 0 THEN
-            -- Drop primary key and column
-            SET @sql = CONCAT('ALTER TABLE ', tableName, ' DROP PRIMARY KEY, MODIFY ', numericIdColumn, ' INT, DROP COLUMN ', numericIdColumn);
-        ELSE
-            -- Just drop column (no primary key)
-            SET @sql = CONCAT('ALTER TABLE ', tableName, ' MODIFY ', numericIdColumn, ' INT, DROP COLUMN ', numericIdColumn);
+        -- Drop primary key if it exists and is on the numeric ID column
+        IF hasPK > 0 AND pkColumn = numericIdColumn THEN
+            SET @sql = CONCAT('ALTER TABLE ', tableName, ' DROP PRIMARY KEY');
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
         END IF;
         
+        -- Drop the numeric ID column
+        SET @sql = CONCAT('ALTER TABLE ', tableName, ' DROP COLUMN ', numericIdColumn);
         PREPARE stmt FROM @sql;
         EXECUTE stmt;
         DEALLOCATE PREPARE stmt;
     END IF;
     
-    -- Make formatted_id primary key
-    SET @sql = CONCAT('ALTER TABLE ', tableName, ' MODIFY formatted_id VARCHAR(20) NOT NULL PRIMARY KEY');
-    PREPARE stmt FROM @sql;
-    EXECUTE stmt;
-    DEALLOCATE PREPARE stmt;
+    -- Check if formatted_id column exists before trying to make it primary key
+    SELECT COUNT(*) INTO columnExists
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = @dbname
+    AND TABLE_NAME = tableName
+    AND COLUMN_NAME = 'formatted_id';
+    
+    IF columnExists > 0 THEN
+        -- Check if formatted_id is already the primary key
+        SELECT COUNT(*) INTO hasPK
+        FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC
+        JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE KCU 
+            ON TC.CONSTRAINT_SCHEMA = KCU.CONSTRAINT_SCHEMA
+            AND TC.CONSTRAINT_NAME = KCU.CONSTRAINT_NAME
+            AND TC.TABLE_NAME = KCU.TABLE_NAME
+        WHERE TC.TABLE_SCHEMA = @dbname
+        AND TC.TABLE_NAME = tableName
+        AND TC.CONSTRAINT_TYPE = 'PRIMARY KEY'
+        AND KCU.COLUMN_NAME = 'formatted_id';
+        
+        IF hasPK = 0 THEN
+            -- Drop existing primary key if it's on a different column
+            SELECT COUNT(*) INTO hasPK
+            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = @dbname
+            AND TABLE_NAME = tableName
+            AND CONSTRAINT_TYPE = 'PRIMARY KEY';
+            
+            IF hasPK > 0 THEN
+                SET @sql = CONCAT('ALTER TABLE ', tableName, ' DROP PRIMARY KEY');
+                PREPARE stmt FROM @sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
+            END IF;
+            
+            -- Make formatted_id the primary key
+            SET @sql = CONCAT('ALTER TABLE ', tableName, ' MODIFY formatted_id VARCHAR(20) NOT NULL, ADD PRIMARY KEY (formatted_id)');
+            PREPARE stmt FROM @sql;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+        END IF;
+    END IF;
 END//
 DELIMITER ;
 
