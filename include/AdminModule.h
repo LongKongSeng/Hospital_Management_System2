@@ -34,8 +34,8 @@ public:
     void displayGraphicalReport();
     
     // Patient Receipt Functions
-    void calculatePatientReceipt(int patientId);
-    void displayReceipt(int patientId, double totalAmount);
+    void calculatePatientReceipt(const string& patientId);
+    void displayReceipt(const string& patientId, double totalAmount);
     
     // Helper Functions
     void displayTableHeader(const string& title);

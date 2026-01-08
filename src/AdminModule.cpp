@@ -649,20 +649,20 @@ void AdminModule::addPatient() {
             validEmergency = true;
         }
 
-        string query = "INSERT INTO patient (full_name, gender, date_of_birth, contact_number, blood_type, emergency_contact, ic_number, status) "
-            "VALUES ('" + fullName + "', '" + gender + "', '" + dob + "', '" + contactNumber + "', '" + bloodType + "', '" + emergencyContact + "', '" + icNumber + "', 'Active')";
+        string query = "INSERT INTO patient (formatted_id, full_name, gender, date_of_birth, contact_number, blood_type, emergency_contact, ic_number, status) "
+            "VALUES (NULL, '" + fullName + "', '" + gender + "', '" + dob + "', '" + contactNumber + "', '" + bloodType + "', '" + emergencyContact + "', '" + icNumber + "', 'Active')";
 
         if (db->executeUpdate(query)) {
             cout << "\n✅ Patient added successfully!" << endl;
             
             // Display patient details
-            string getQuery = "SELECT patient_id, full_name, gender, date_of_birth, contact_number, status FROM patient WHERE ic_number = '" + icNumber + "' ORDER BY patient_id DESC LIMIT 1";
+            string getQuery = "SELECT formatted_id, full_name, gender, date_of_birth, contact_number, status FROM patient WHERE ic_number = '" + icNumber + "' ORDER BY formatted_id DESC LIMIT 1";
             sql::ResultSet* res = db->executeSelect(getQuery);
             if (res && res->next()) {
                 cout << "\n+----------------------------------------------------------------+" << endl;
                 cout << "|                    PATIENT DETAILS                             |" << endl;
                 cout << "+----------------------------------------------------------------+" << endl;
-                cout << "| Patient ID: " << left << setw(44) << getFormattedId(res, "formatted_id", "patient_id") << "|" << endl;
+                cout << "| Patient ID: " << left << setw(44) << string(res->getString("formatted_id")) << "|" << endl;
                 cout << "| Full Name: " << left << setw(46) << res->getString("full_name") << "|" << endl;
                 cout << "| Gender: " << left << setw(49) << res->getString("gender") << "|" << endl;
                 cout << "| Date of Birth: " << left << setw(42) << res->getString("date_of_birth") << "|" << endl;
@@ -686,8 +686,8 @@ void AdminModule::patientReceipt() {
     system("cls");
     displayTableHeader("PATIENT RECEIPT");
 
-    int patientId = getIntInput("Enter Patient ID: ");
-    if (patientId <= 0) {
+    string patientId = getStringInput("Enter Patient ID (e.g., P001): ");
+    if (patientId.empty()) {
         cout << "\n[ERROR] Invalid Patient ID!" << endl;
         pressEnterToContinue();
         return;
@@ -696,10 +696,10 @@ void AdminModule::patientReceipt() {
     calculatePatientReceipt(patientId);
 }
 
-void AdminModule::calculatePatientReceipt(int patientId) {
+void AdminModule::calculatePatientReceipt(const string& patientId) {
     try {
         // First, get patient details
-        string patientQuery = "SELECT patient_id, full_name, contact_number, status FROM patient WHERE patient_id = " + to_string(patientId);
+        string patientQuery = "SELECT formatted_id, full_name, contact_number, status FROM patient WHERE formatted_id = '" + patientId + "'";
         sql::ResultSet* patientRes = db->executeSelect(patientQuery);
         
         if (!patientRes || !patientRes->next()) {
@@ -715,10 +715,10 @@ void AdminModule::calculatePatientReceipt(int patientId) {
         // Calculate total treatment done to patient with consultant fee
         // Using SUM aggregation with JOIN
         string query = "SELECT SUM(t.consultation_fee + t.treatment_fee) as total_amount, "
-                      "COUNT(t.treatment_id) as treatment_count "
+                      "COUNT(t.formatted_id) as treatment_count "
                       "FROM treatment t "
                       "JOIN medical_record mr ON t.doctor_id = mr.doctor_id "
-                      "WHERE mr.patient_id = " + to_string(patientId);
+                      "WHERE mr.patient_id = '" + patientId + "'";
 
         sql::ResultSet* res = db->executeSelect(query);
         
@@ -740,7 +740,7 @@ void AdminModule::calculatePatientReceipt(int patientId) {
         
         // Update patient status based on next appointment
         // If next appointment exists -> patient status = Active, else = Inactive
-        string appointmentQuery = "SELECT COUNT(*) as count FROM appointment WHERE patient_id = " + to_string(patientId) + " AND appointment_date >= CURDATE()";
+        string appointmentQuery = "SELECT COUNT(*) as count FROM appointment WHERE patient_id = '" + patientId + "' AND appointment_date >= CURDATE()";
         sql::ResultSet* apptRes = db->executeSelect(appointmentQuery);
         
         string newStatus = "Inactive";
@@ -750,7 +750,7 @@ void AdminModule::calculatePatientReceipt(int patientId) {
         if (apptRes) delete apptRes;
 
         // Update patient status
-        string updateQuery = "UPDATE patient SET status = '" + newStatus + "' WHERE patient_id = " + to_string(patientId);
+        string updateQuery = "UPDATE patient SET status = '" + newStatus + "' WHERE formatted_id = '" + patientId + "'";
         db->executeUpdate(updateQuery);
 
     }
@@ -761,13 +761,13 @@ void AdminModule::calculatePatientReceipt(int patientId) {
     pressEnterToContinue();
 }
 
-void AdminModule::displayReceipt(int patientId, double totalAmount) {
+void AdminModule::displayReceipt(const string& patientId, double totalAmount) {
     system("cls");
     displayTableHeader("PATIENT RECEIPT");
 
     try {
         // Get patient details
-        string patientQuery = "SELECT patient_id, full_name, contact_number, date_of_birth FROM patient WHERE patient_id = " + to_string(patientId);
+        string patientQuery = "SELECT formatted_id, full_name, contact_number, date_of_birth FROM patient WHERE formatted_id = '" + patientId + "'";
         sql::ResultSet* patientRes = db->executeSelect(patientQuery);
         
         if (!patientRes || !patientRes->next()) {
@@ -776,17 +776,18 @@ void AdminModule::displayReceipt(int patientId, double totalAmount) {
             return;
         }
 
+        string patientFormattedId = string(patientRes->getString("formatted_id"));
         string patientName = patientRes->getString("full_name");
         string contactNumber = patientRes->getString("contact_number");
         string dob = patientRes->isNull("date_of_birth") ? "N/A" : patientRes->getString("date_of_birth");
         delete patientRes;
 
         // Get treatment details
-        string treatmentQuery = "SELECT t.treatment_id, t.formatted_id as treatment_formatted_id, t.consultation_fee, t.treatment_fee, t.treatment_date, d.full_name as doctor_name "
+        string treatmentQuery = "SELECT t.formatted_id as treatment_formatted_id, t.consultation_fee, t.treatment_fee, t.treatment_date, d.full_name as doctor_name "
                               "FROM treatment t "
                               "JOIN medical_record mr ON t.doctor_id = mr.doctor_id "
-                              "JOIN doctor d ON t.doctor_id = d.doctor_id "
-                              "WHERE mr.patient_id = " + to_string(patientId) + " "
+                              "JOIN doctor d ON t.doctor_id = d.formatted_id "
+                              "WHERE mr.patient_id = '" + patientId + "' "
                               "ORDER BY t.treatment_date DESC";
 
         sql::ResultSet* treatmentRes = db->executeSelect(treatmentQuery);
@@ -795,13 +796,6 @@ void AdminModule::displayReceipt(int patientId, double totalAmount) {
         cout << "\n+----------------------------------------------------------------+" << endl;
         cout << "|                    HOSPITAL RECEIPT                            |" << endl;
         cout << "+----------------------------------------------------------------+" << endl;
-        string patientFormattedQuery = "SELECT formatted_id FROM patient WHERE patient_id = " + to_string(patientId);
-        sql::ResultSet* patientFormattedRes = db->executeSelect(patientFormattedQuery);
-        string patientFormattedId = to_string(patientId);
-        if (patientFormattedRes && patientFormattedRes->next()) {
-            patientFormattedId = patientFormattedRes->isNull("formatted_id") ? to_string(patientId) : string(patientFormattedRes->getString("formatted_id"));
-        }
-        if (patientFormattedRes) delete patientFormattedRes;
         cout << "| Patient ID: " << left << setw(45) << patientFormattedId << "|" << endl;
         cout << "| Patient Name: " << left << setw(43) << patientName << "|" << endl;
         cout << "| Contact Number: " << left << setw(42) << contactNumber << "|" << endl;
@@ -815,7 +809,7 @@ void AdminModule::displayReceipt(int patientId, double totalAmount) {
             cout << "+----------------------------------------------------------------+" << endl;
             
             while (treatmentRes->next()) {
-                cout << "| " << left << setw(5) << getFormattedId(treatmentRes, "treatment_formatted_id", "treatment_id")
+                cout << "| " << left << setw(5) << string(treatmentRes->getString("treatment_formatted_id"))
                      << " | " << setw(15) << string(treatmentRes->getString("doctor_name")).substr(0, 15)
                      << " | RM " << setw(12) << fixed << setprecision(2) << treatmentRes->getDouble("consultation_fee")
                      << " | RM " << setw(12) << fixed << setprecision(2) << treatmentRes->getDouble("treatment_fee")
