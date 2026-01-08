@@ -637,8 +637,8 @@ void Registration::registerAdmin() {
                 if (email == "0") {
                     return;
                 }
-                if (email.empty() || email.find('@') == string::npos) {
-                    cout << "\n[ERROR] Invalid email format! Please try again." << endl;
+                if (email.empty() || email.find('@') == string::npos || email.find(".com") == string::npos) {
+                    cout << "\n[ERROR] Invalid email format! Email must contain '@' and '.com'. Please try again." << endl;
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("ADMIN REGISTRATION");
