@@ -773,6 +773,10 @@ void StaffModule::displayReportTable(sql::ResultSet* res) {
         cout << "| " << left << setw(9) << recordId
              << "| " << left << setw(20) << patientName
              << "| " << left << setw(12) << date
+             << "| " << left << setw(70) << notes << "|" << endl;
+    }
+    
+    cout << "+-----------+----------------------+--------------+----------------------------------------------------------------------+" << endl;
              << "| " << setw(70) << notes << "|" << endl;
     }
     
