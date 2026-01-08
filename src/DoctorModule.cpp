@@ -39,7 +39,7 @@ void DoctorModule::showMenu() {
             return;
         default:
             ColorUtils::setColor(LIGHT_CYAN);
-            cout << "\n❌ Invalid choice! Please try again." << endl;
+            cout << "\n[ERROR] Invalid choice! Please try again." << endl;
             ColorUtils::resetColor();
             pressEnterToContinue();
         }
@@ -52,7 +52,7 @@ void DoctorModule::viewPatientRecord() {
 
     string patientId = getStringInput("Enter Patient ID (e.g., P001): ");
     if (patientId.empty()) {
-        cout << "\n❌ Invalid Patient ID!" << endl;
+        cout << "\n[ERROR] Invalid Patient ID!" << endl;
         pressEnterToContinue();
         return;
     }
@@ -64,7 +64,7 @@ void DoctorModule::viewPatientRecord() {
         sql::ResultSet* patientRes = db->executeSelect(patientQuery);
         
         if (!patientRes || !patientRes->next()) {
-            cout << "\n❌ Patient not found!" << endl;
+            cout << "\n[ERROR] Patient not found!" << endl;
             if (patientRes) delete patientRes;
             pressEnterToContinue();
             return;
@@ -104,7 +104,7 @@ void DoctorModule::viewPatientRecord() {
 
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 
     pressEnterToContinue();
@@ -166,7 +166,7 @@ void DoctorModule::viewAppointments() {
         if (appointmentRes) delete appointmentRes;
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 
     pressEnterToContinue();
@@ -178,7 +178,7 @@ void DoctorModule::makeDiagnosis() {
 
     int patientId = getIntInput("Enter Patient ID: ");
     if (patientId <= 0) {
-        cout << "\n❌ Invalid Patient ID!" << endl;
+        cout << "\n[ERROR] Invalid Patient ID!" << endl;
         pressEnterToContinue();
         return;
     }
@@ -188,7 +188,7 @@ void DoctorModule::makeDiagnosis() {
     sql::ResultSet* checkRes = db->executeSelect(checkQuery);
     
     if (!checkRes || !checkRes->next()) {
-        cout << "\n❌ Patient not found!" << endl;
+        cout << "\n[ERROR] Patient not found!" << endl;
         if (checkRes) delete checkRes;
         pressEnterToContinue();
         return;
@@ -224,7 +224,7 @@ void DoctorModule::makeDiagnosis() {
             sql::ResultSet* validateRes = db->executeSelect(validatePharmacyQuery);
             
             if (!validateRes || !validateRes->next()) {
-                cout << "\n❌ Pharmacy ID " << pharmacyId << " not found! Please enter a valid Pharmacy ID." << endl;
+                cout << "\n[ERROR] Pharmacy ID " << pharmacyId << " not found! Please enter a valid Pharmacy ID." << endl;
                 cout << "Continuing without prescription..." << endl;
                 if (validateRes) delete validateRes;
             } else {
@@ -297,14 +297,14 @@ void DoctorModule::makeDiagnosis() {
                     cout << "\n⚠️  Diagnosis created but medical record failed!" << endl;
                 }
             } else {
-                cout << "\n❌ Failed to retrieve diagnosis ID!" << endl;
+                cout << "\n[ERROR] Failed to retrieve diagnosis ID!" << endl;
             }
         } else {
-            cout << "\n❌ Failed to create diagnosis!" << endl;
+            cout << "\n[ERROR] Failed to create diagnosis!" << endl;
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 
     pressEnterToContinue();
@@ -316,7 +316,7 @@ void DoctorModule::editPatientMedicalRecord() {
 
     int patientId = getIntInput("Enter Patient ID: ");
     if (patientId <= 0) {
-        cout << "\n❌ Invalid Patient ID!" << endl;
+        cout << "\n[ERROR] Invalid Patient ID!" << endl;
         pressEnterToContinue();
         return;
     }
@@ -327,7 +327,7 @@ void DoctorModule::editPatientMedicalRecord() {
         sql::ResultSet* checkPatientRes = db->executeSelect(checkPatientQuery);
         
         if (!checkPatientRes || !checkPatientRes->next()) {
-            cout << "\n❌ Patient not found!" << endl;
+            cout << "\n[ERROR] Patient not found!" << endl;
             if (checkPatientRes) delete checkPatientRes;
             pressEnterToContinue();
             return;
@@ -345,7 +345,7 @@ void DoctorModule::editPatientMedicalRecord() {
         sql::ResultSet* recordRes = db->executeSelect(recordQuery);
         
         if (!recordRes) {
-            cout << "\n❌ Error retrieving medical records!" << endl;
+            cout << "\n[ERROR] Error retrieving medical records!" << endl;
             pressEnterToContinue();
             return;
         }
@@ -382,7 +382,7 @@ void DoctorModule::editPatientMedicalRecord() {
         // Ask user to select which record to edit
         int recordId = getIntInput("\nEnter Record ID to edit (or 0 to cancel): ");
         if (recordId <= 0) {
-            cout << "\n❌ Invalid Record ID or operation cancelled!" << endl;
+            cout << "\n[ERROR] Invalid Record ID or operation cancelled!" << endl;
             pressEnterToContinue();
             return;
         }
@@ -396,7 +396,7 @@ void DoctorModule::editPatientMedicalRecord() {
         sql::ResultSet* diagRes = db->executeSelect(getDiagQuery);
         
         if (!diagRes || !diagRes->next()) {
-            cout << "\n❌ Record ID " << recordId << " not found for this patient!" << endl;
+            cout << "\n[ERROR] Record ID " << recordId << " not found for this patient!" << endl;
             if (diagRes) delete diagRes;
             pressEnterToContinue();
             return;
@@ -411,7 +411,7 @@ void DoctorModule::editPatientMedicalRecord() {
         delete diagRes;
 
         if (diagnosisId <= 0) {
-            cout << "\n❌ No diagnosis found for this record!" << endl;
+            cout << "\n[ERROR] No diagnosis found for this record!" << endl;
             pressEnterToContinue();
             return;
         }
@@ -464,15 +464,15 @@ void DoctorModule::editPatientMedicalRecord() {
                 cout << "| Date: " << left << setw(52) << (date.empty() ? "Not changed" : date) << "|" << endl;
                 cout << "+----------------------------------------------------------------+" << endl;
             } else {
-                cout << "\n❌ Failed to update medical record!" << endl;
+                cout << "\n[ERROR] Failed to update medical record!" << endl;
             }
         } else {
-            cout << "\n❌ No fields to update!" << endl;
+            cout << "\n[ERROR] No fields to update!" << endl;
         }
 
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 
     pressEnterToContinue();

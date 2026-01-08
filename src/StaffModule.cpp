@@ -42,7 +42,7 @@ void StaffModule::showMenu() {
             return;
         default:
             ColorUtils::setColor(YELLOW);
-            cout << "\n❌ Invalid choice! Please try again." << endl;
+            cout << "\n[ERROR] Invalid choice! Please try again." << endl;
             ColorUtils::resetColor();
             pressEnterToContinue();
         }
@@ -86,7 +86,7 @@ void StaffModule::viewPatientStatus() {
         {
             int patientId = getIntInput("Enter Patient ID: ");
             if (patientId <= 0) {
-                cout << "\n❌ Invalid Patient ID!" << endl;
+                cout << "\n[ERROR] Invalid Patient ID!" << endl;
                 pressEnterToContinue();
                 return;
             }
@@ -96,7 +96,7 @@ void StaffModule::viewPatientStatus() {
     case 0:
         return;
     default:
-        cout << "\n❌ Invalid choice!" << endl;
+        cout << "\n[ERROR] Invalid choice!" << endl;
         pressEnterToContinue();
         return;
     }
@@ -111,11 +111,11 @@ void StaffModule::viewPatientStatus() {
             }
             delete res;
         } else {
-            cout << "\n❌ Failed to retrieve patient data!" << endl;
+            cout << "\n[ERROR] Failed to retrieve patient data!" << endl;
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 
     pressEnterToContinue();
@@ -127,7 +127,7 @@ void StaffModule::updatePatientStatus() {
 
     int patientId = getIntInput("Enter Patient ID: ");
     if (patientId <= 0) {
-        cout << "\n❌ Invalid Patient ID!" << endl;
+        cout << "\n[ERROR] Invalid Patient ID!" << endl;
         pressEnterToContinue();
         return;
     }
@@ -137,7 +137,7 @@ void StaffModule::updatePatientStatus() {
     sql::ResultSet* checkRes = db->executeSelect(checkQuery);
     
     if (!checkRes || !checkRes->next()) {
-        cout << "\n❌ Patient not found!" << endl;
+        cout << "\n[ERROR] Patient not found!" << endl;
         if (checkRes) delete checkRes;
         pressEnterToContinue();
         return;
@@ -171,7 +171,7 @@ void StaffModule::updatePatientStatus() {
         newStatus = "Inactive";
         break;
     default:
-        cout << "\n❌ Invalid choice!" << endl;
+        cout << "\n[ERROR] Invalid choice!" << endl;
         pressEnterToContinue();
         return;
     }
@@ -188,7 +188,7 @@ void StaffModule::updatePatientStatus() {
         cout << "| New Status: " << left << setw(46) << newStatus << "|" << endl;
         cout << "+----------------------------------------------------------------+" << endl;
     } else {
-        cout << "\n❌ Failed to update patient status!" << endl;
+        cout << "\n[ERROR] Failed to update patient status!" << endl;
     }
 
     pressEnterToContinue();
@@ -217,7 +217,7 @@ void StaffModule::updatePrescription() {
             
             int patientId = getIntInput("Enter Patient ID: ");
             if (patientId <= 0) {
-                cout << "\n❌ Invalid Patient ID!" << endl;
+                cout << "\n[ERROR] Invalid Patient ID!" << endl;
                 pressEnterToContinue();
                 return;
             }
@@ -226,7 +226,7 @@ void StaffModule::updatePrescription() {
             string checkQuery = "SELECT full_name FROM patient WHERE patient_id = " + to_string(patientId);
             sql::ResultSet* checkRes = db->executeSelect(checkQuery);
             if (!checkRes || !checkRes->next()) {
-                cout << "\n❌ Patient not found!" << endl;
+                cout << "\n[ERROR] Patient not found!" << endl;
                 if (checkRes) delete checkRes;
                 pressEnterToContinue();
                 return;
@@ -253,7 +253,7 @@ void StaffModule::updatePrescription() {
             
             int pharmacyId = getIntInput("\nEnter Pharmacy ID (Medication ID): ");
             if (pharmacyId <= 0) {
-                cout << "\n❌ Invalid Pharmacy ID!" << endl;
+                cout << "\n[ERROR] Invalid Pharmacy ID!" << endl;
                 pressEnterToContinue();
                 return;
             }
@@ -291,7 +291,7 @@ void StaffModule::updatePrescription() {
                 cout << "| Date: " << left << setw(52) << (date == "CURDATE()" ? "Today" : date) << "|" << endl;
                 cout << "+----------------------------------------------------------------+" << endl;
             } else {
-                cout << "\n❌ Failed to add prescription!" << endl;
+                cout << "\n[ERROR] Failed to add prescription!" << endl;
             }
             pressEnterToContinue();
         }
@@ -329,7 +329,7 @@ void StaffModule::updatePrescription() {
             
             int prescriptionId = getIntInput("Enter Prescription ID: ");
             if (prescriptionId <= 0) {
-                cout << "\n❌ Invalid Prescription ID!" << endl;
+                cout << "\n[ERROR] Invalid Prescription ID!" << endl;
                 pressEnterToContinue();
                 return;
             }
@@ -351,7 +351,7 @@ void StaffModule::updatePrescription() {
             if (!date.empty()) updates.push_back("date = '" + date + "'");
 
             if (updates.empty()) {
-                cout << "\n❌ No fields to update!" << endl;
+                cout << "\n[ERROR] No fields to update!" << endl;
                 pressEnterToContinue();
                 return;
             }
@@ -365,7 +365,7 @@ void StaffModule::updatePrescription() {
             if (db->executeUpdate(query)) {
                 cout << "\n✅ Prescription updated successfully!" << endl;
             } else {
-                cout << "\n❌ Failed to update prescription!" << endl;
+                cout << "\n[ERROR] Failed to update prescription!" << endl;
             }
             pressEnterToContinue();
         }
@@ -373,7 +373,7 @@ void StaffModule::updatePrescription() {
     case 0:
         return;
     default:
-        cout << "\n❌ Invalid choice!" << endl;
+        cout << "\n[ERROR] Invalid choice!" << endl;
         pressEnterToContinue();
     }
 }
@@ -428,7 +428,7 @@ void StaffModule::deleteFinishedPrescriptions() {
                 if (db->executeUpdate(deleteQuery)) {
                     cout << "\n✅ Old prescriptions deleted successfully!" << endl;
                 } else {
-                    cout << "\n❌ Failed to delete prescriptions!" << endl;
+                    cout << "\n[ERROR] Failed to delete prescriptions!" << endl;
                 }
             } else {
                 cout << "Deletion cancelled." << endl;
@@ -439,7 +439,7 @@ void StaffModule::deleteFinishedPrescriptions() {
         {
             int prescriptionId = getIntInput("Enter Prescription ID to delete: ");
             if (prescriptionId <= 0) {
-                cout << "\n❌ Invalid Prescription ID!" << endl;
+                cout << "\n[ERROR] Invalid Prescription ID!" << endl;
                 pressEnterToContinue();
                 return;
             }
@@ -449,7 +449,7 @@ void StaffModule::deleteFinishedPrescriptions() {
             sql::ResultSet* checkRes = db->executeSelect(checkQuery);
             
             if (!checkRes || !checkRes->next()) {
-                cout << "\n❌ Prescription not found!" << endl;
+                cout << "\n[ERROR] Prescription not found!" << endl;
                 if (checkRes) delete checkRes;
                 pressEnterToContinue();
                 return;
@@ -465,7 +465,7 @@ void StaffModule::deleteFinishedPrescriptions() {
                 if (db->executeUpdate(deleteQuery)) {
                     cout << "\n✅ Prescription deleted successfully!" << endl;
                 } else {
-                    cout << "\n❌ Failed to delete prescription!" << endl;
+                    cout << "\n[ERROR] Failed to delete prescription!" << endl;
                 }
             } else {
                 cout << "Deletion cancelled." << endl;
@@ -475,7 +475,7 @@ void StaffModule::deleteFinishedPrescriptions() {
     case 0:
         return;
     default:
-        cout << "\n❌ Invalid choice!" << endl;
+        cout << "\n[ERROR] Invalid choice!" << endl;
     }
 
     pressEnterToContinue();
@@ -504,7 +504,7 @@ void StaffModule::updatePatientReport() {
             
             int patientId = getIntInput("Enter Patient ID: ");
             if (patientId <= 0) {
-                cout << "\n❌ Invalid Patient ID!" << endl;
+                cout << "\n[ERROR] Invalid Patient ID!" << endl;
                 pressEnterToContinue();
                 return;
             }
@@ -513,7 +513,7 @@ void StaffModule::updatePatientReport() {
             string checkQuery = "SELECT full_name FROM patient WHERE patient_id = " + to_string(patientId);
             sql::ResultSet* checkRes = db->executeSelect(checkQuery);
             if (!checkRes || !checkRes->next()) {
-                cout << "\n❌ Patient not found!" << endl;
+                cout << "\n[ERROR] Patient not found!" << endl;
                 if (checkRes) delete checkRes;
                 pressEnterToContinue();
                 return;
@@ -535,7 +535,7 @@ void StaffModule::updatePatientReport() {
             string notes = getStringInput("Notes: ");
 
             if (reportType.empty() || reportDate.empty()) {
-                cout << "\n❌ Report type and date are required!" << endl;
+                cout << "\n[ERROR] Report type and date are required!" << endl;
                 pressEnterToContinue();
                 return;
             }
@@ -573,7 +573,7 @@ void StaffModule::updatePatientReport() {
                 cout << "| Treatment: " << left << setw(48) << (treatment.empty() ? "N/A" : (treatment.length() > 48 ? treatment.substr(0, 45) + "..." : treatment)) << "|" << endl;
                 cout << "+----------------------------------------------------------------+" << endl;
             } else {
-                cout << "\n❌ Failed to add report!" << endl;
+                cout << "\n[ERROR] Failed to add report!" << endl;
             }
             pressEnterToContinue();
         }
@@ -606,7 +606,7 @@ void StaffModule::updatePatientReport() {
             
             int recordId = getIntInput("Enter Record ID: ");
             if (recordId <= 0) {
-                cout << "\n❌ Invalid Record ID!" << endl;
+                cout << "\n[ERROR] Invalid Record ID!" << endl;
                 pressEnterToContinue();
                 return;
             }
@@ -642,7 +642,7 @@ void StaffModule::updatePatientReport() {
             }
 
             if (updates.empty()) {
-                cout << "\n❌ No fields to update!" << endl;
+                cout << "\n[ERROR] No fields to update!" << endl;
                 pressEnterToContinue();
                 return;
             }
@@ -664,7 +664,7 @@ void StaffModule::updatePatientReport() {
                 cout << "| Report Date: " << left << setw(46) << (reportDate.empty() ? "Not changed" : reportDate) << "|" << endl;
                 cout << "+----------------------------------------------------------------+" << endl;
             } else {
-                cout << "\n❌ Failed to update report!" << endl;
+                cout << "\n[ERROR] Failed to update report!" << endl;
             }
             pressEnterToContinue();
         }
@@ -672,7 +672,7 @@ void StaffModule::updatePatientReport() {
     case 0:
         return;
     default:
-        cout << "\n❌ Invalid choice!" << endl;
+        cout << "\n[ERROR] Invalid choice!" << endl;
         pressEnterToContinue();
     }
 }

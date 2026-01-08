@@ -36,7 +36,7 @@ bool Login::authenticate(const string& username, const string& password) {
         return false;
     }
     catch (exception& e) {
-        cout << "\n❌ Authentication Error: " << e.what() << endl;
+        cout << "\n[ERROR] Authentication Error: " << e.what() << endl;
         return false;
     }
 }
@@ -71,7 +71,7 @@ void Login::showLoginMenu() {
     
     if (username.empty()) {
         ColorUtils::setColor(LIGHT_CYAN);
-        cout << "\n❌ Username cannot be empty!\n";
+        cout << "\n[ERROR] Username cannot be empty!\n";
         ColorUtils::resetColor();
         cout << "Press Enter to continue...";
         cin.get();
@@ -86,7 +86,7 @@ void Login::showLoginMenu() {
     
     if (password.empty()) {
         ColorUtils::setColor(LIGHT_CYAN);
-        cout << "\n❌ Password cannot be empty!\n";
+        cout << "\n[ERROR] Password cannot be empty!\n";
         ColorUtils::resetColor();
         cout << "Press Enter to continue...";
         cin.get();
@@ -112,7 +112,7 @@ void Login::showLoginMenu() {
         cin.get();
     } else {
         ColorUtils::setColor(LIGHT_CYAN);
-        cout << "\n❌ Invalid username or password!\n";
+        cout << "\n[ERROR] Invalid username or password!\n";
         ColorUtils::resetColor();
         cout << "Press Enter to continue...";
         cin.get();

@@ -40,7 +40,7 @@ void AdminModule::showMenu() {
             return;
         default:
             ColorUtils::setColor(LIGHT_CYAN);
-            cout << "\n❌ Invalid choice! Please try again." << endl;
+            cout << "\n[ERROR] Invalid choice! Please try again." << endl;
             ColorUtils::resetColor();
             pressEnterToContinue();
         }
@@ -75,7 +75,7 @@ void AdminModule::viewPharmacy() {
         case 0:
             return;
         default:
-            cout << "\n❌ Invalid choice!" << endl;
+            cout << "\n[ERROR] Invalid choice!" << endl;
             pressEnterToContinue();
         }
     } while (choice != 0);
@@ -94,11 +94,11 @@ void AdminModule::displayPharmacyList() {
             displayPharmacyTable(res);
             delete res;
         } else {
-            cout << "\n❌ Failed to retrieve pharmacy data!" << endl;
+            cout << "\n[ERROR] Failed to retrieve pharmacy data!" << endl;
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 
     pressEnterToContinue();
@@ -150,7 +150,7 @@ void AdminModule::filterPharmacyByCategory() {
     case 3: {
         string category = getStringInput("Enter Category name to search: ");
         if (category.empty()) {
-            cout << "\n❌ Category name cannot be empty!" << endl;
+            cout << "\n[ERROR] Category name cannot be empty!" << endl;
             pressEnterToContinue();
             return;
         }
@@ -174,7 +174,7 @@ void AdminModule::filterPharmacyByCategory() {
     case 0:
         return;
     default:
-        cout << "\n❌ Invalid choice!" << endl;
+        cout << "\n[ERROR] Invalid choice!" << endl;
     }
 
     pressEnterToContinue();
@@ -204,7 +204,7 @@ void AdminModule::displayPharmacyGraphical() {
     case 0:
         return;
     default:
-        cout << "\n❌ Invalid choice! Returning to main menu." << endl;
+        cout << "\n[ERROR] Invalid choice! Returning to main menu." << endl;
     }
 
     pressEnterToContinue();
@@ -269,7 +269,7 @@ void AdminModule::generateMonthlyReport() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 
     pressEnterToContinue();
@@ -334,7 +334,7 @@ void AdminModule::generateYearlyReport() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 
     pressEnterToContinue();
@@ -366,7 +366,7 @@ void AdminModule::generateHospitalReport() {
         pressEnterToContinue();
         return;
     default:
-        cout << "\n❌ Invalid choice! Try again." << endl;
+        cout << "\n[ERROR] Invalid choice! Try again." << endl;
         pressEnterToContinue();
     }
 }
@@ -425,7 +425,7 @@ void AdminModule::displayGraphicalReport() {
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 
     pressEnterToContinue();
@@ -438,7 +438,7 @@ void AdminModule::addPatient() {
     try {
         string fullName = getStringInput("Enter Patient Name: ");
         if (fullName.empty()) {
-            cout << "\n❌ Patient name cannot be empty!" << endl;
+            cout << "\n[ERROR] Patient name cannot be empty!" << endl;
             pressEnterToContinue();
             return;
         }
@@ -449,7 +449,7 @@ void AdminModule::addPatient() {
         while (!validGender) {
             gender = getStringInput("Enter Patient Gender (Male/Female or M/F): ");
             if (gender.empty()) {
-                cout << "\n❌ Gender cannot be empty! Please try again." << endl;
+                cout << "\n[ERROR] Gender cannot be empty! Please try again." << endl;
                 pressEnterToContinue();
                 system("cls");
                 displayTableHeader("ADD PATIENT");
@@ -460,7 +460,7 @@ void AdminModule::addPatient() {
             // Validate and correct gender
             string correctedGender = validateAndCorrectGender(gender);
             if (correctedGender != "Male" && correctedGender != "Female") {
-                cout << "\n❌ Gender must be Male or Female only! Please try again." << endl;
+                cout << "\n[ERROR] Gender must be Male or Female only! Please try again." << endl;
                 pressEnterToContinue();
                 system("cls");
                 displayTableHeader("ADD PATIENT");
@@ -477,7 +477,7 @@ void AdminModule::addPatient() {
         while (!validIC) {
             icNumber = getStringInput("Enter Patient IC Number (12 digits): ");
             if (icNumber.empty()) {
-                cout << "\n❌ IC number cannot be empty! Please try again." << endl;
+                cout << "\n[ERROR] IC number cannot be empty! Please try again." << endl;
                 pressEnterToContinue();
                 system("cls");
                 displayTableHeader("ADD PATIENT");
@@ -487,7 +487,7 @@ void AdminModule::addPatient() {
             }
             
             if (!validateICNumber(icNumber)) {
-                cout << "\n❌ IC number must be exactly 12 digits! Please try again." << endl;
+                cout << "\n[ERROR] IC number must be exactly 12 digits! Please try again." << endl;
                 pressEnterToContinue();
                 system("cls");
                 displayTableHeader("ADD PATIENT");
@@ -518,7 +518,7 @@ void AdminModule::addPatient() {
         while (!validDOB) {
             dob = getStringInput("Enter Patient Date of Birth (YYYY-MM-DD): ");
             if (dob.empty()) {
-                cout << "\n❌ Date of birth cannot be empty!" << endl;
+                cout << "\n[ERROR] Date of birth cannot be empty!" << endl;
                 pressEnterToContinue();
                 system("cls");
                 displayTableHeader("ADD PATIENT");
@@ -529,7 +529,7 @@ void AdminModule::addPatient() {
             }
             
             if (!validateDateFormat(dob)) {
-                cout << "\n❌ Invalid date format! Please use YYYY-MM-DD format (e.g., 1990-01-15)" << endl;
+                cout << "\n[ERROR] Invalid date format! Please use YYYY-MM-DD format (e.g., 1990-01-15)" << endl;
                 pressEnterToContinue();
                 system("cls");
                 displayTableHeader("ADD PATIENT");
@@ -547,7 +547,7 @@ void AdminModule::addPatient() {
         while (!validContact) {
             contactNumber = getStringInput("Enter Patient Contact Number: ");
             if (contactNumber.empty()) {
-                cout << "\n❌ Contact number cannot be empty!" << endl;
+                cout << "\n[ERROR] Contact number cannot be empty!" << endl;
                 pressEnterToContinue();
                 system("cls");
                 displayTableHeader("ADD PATIENT");
@@ -559,7 +559,7 @@ void AdminModule::addPatient() {
             }
             
             if (!validatePhoneNumber(contactNumber)) {
-                cout << "\n❌ Contact number must be 10 or 11 digits!" << endl;
+                cout << "\n[ERROR] Contact number must be 10 or 11 digits!" << endl;
                 pressEnterToContinue();
                 system("cls");
                 displayTableHeader("ADD PATIENT");
@@ -578,7 +578,7 @@ void AdminModule::addPatient() {
         while (!validBloodType) {
             bloodType = getStringInput("Enter Patient Blood Type (A+, A-, B+, B-, AB+, AB-, O+, O-): ");
             if (bloodType.empty()) {
-                cout << "\n❌ Blood type cannot be empty!" << endl;
+                cout << "\n[ERROR] Blood type cannot be empty!" << endl;
                 pressEnterToContinue();
                 system("cls");
                 displayTableHeader("ADD PATIENT");
@@ -591,7 +591,7 @@ void AdminModule::addPatient() {
             }
             
             if (!validateBloodType(bloodType)) {
-                cout << "\n❌ Invalid blood type! Please enter one of: A+, A-, B+, B-, AB+, AB-, O+, O-" << endl;
+                cout << "\n[ERROR] Invalid blood type! Please enter one of: A+, A-, B+, B-, AB+, AB-, O+, O-" << endl;
                 pressEnterToContinue();
                 system("cls");
                 displayTableHeader("ADD PATIENT");
@@ -611,7 +611,7 @@ void AdminModule::addPatient() {
         while (!validEmergency) {
             emergencyContact = getStringInput("Enter Emergency Contact: ");
             if (emergencyContact.empty()) {
-                cout << "\n❌ Emergency contact cannot be empty!" << endl;
+                cout << "\n[ERROR] Emergency contact cannot be empty!" << endl;
                 pressEnterToContinue();
                 system("cls");
                 displayTableHeader("ADD PATIENT");
@@ -625,7 +625,7 @@ void AdminModule::addPatient() {
             }
             
             if (!validatePhoneNumber(emergencyContact)) {
-                cout << "\n❌ Emergency contact must be 10 or 11 digits!" << endl;
+                cout << "\n[ERROR] Emergency contact must be 10 or 11 digits!" << endl;
                 pressEnterToContinue();
                 system("cls");
                 displayTableHeader("ADD PATIENT");
@@ -663,11 +663,11 @@ void AdminModule::addPatient() {
             }
             if (res) delete res;
         } else {
-            cout << "\n❌ Failed to add patient!" << endl;
+            cout << "\n[ERROR] Failed to add patient!" << endl;
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 
     pressEnterToContinue();
@@ -679,7 +679,7 @@ void AdminModule::patientReceipt() {
 
     int patientId = getIntInput("Enter Patient ID: ");
     if (patientId <= 0) {
-        cout << "\n❌ Invalid Patient ID!" << endl;
+        cout << "\n[ERROR] Invalid Patient ID!" << endl;
         pressEnterToContinue();
         return;
     }
@@ -694,7 +694,7 @@ void AdminModule::calculatePatientReceipt(int patientId) {
         sql::ResultSet* patientRes = db->executeSelect(patientQuery);
         
         if (!patientRes || !patientRes->next()) {
-            cout << "\n❌ Patient not found!" << endl;
+            cout << "\n[ERROR] Patient not found!" << endl;
             if (patientRes) delete patientRes;
             pressEnterToContinue();
             return;
@@ -746,7 +746,7 @@ void AdminModule::calculatePatientReceipt(int patientId) {
 
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 
     pressEnterToContinue();
@@ -762,7 +762,7 @@ void AdminModule::displayReceipt(int patientId, double totalAmount) {
         sql::ResultSet* patientRes = db->executeSelect(patientQuery);
         
         if (!patientRes || !patientRes->next()) {
-            cout << "\n❌ Patient not found!" << endl;
+            cout << "\n[ERROR] Patient not found!" << endl;
             if (patientRes) delete patientRes;
             return;
         }
@@ -824,7 +824,7 @@ void AdminModule::displayReceipt(int patientId, double totalAmount) {
 
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 }
 

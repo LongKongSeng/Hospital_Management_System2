@@ -2,7 +2,7 @@
 #define ID_FORMATTER_H
 
 #include <string>
-#include <mysql/jdbc.h>
+#include <cppconn/resultset.h>
 
 using namespace std;
 

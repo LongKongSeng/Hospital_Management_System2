@@ -35,7 +35,7 @@ void Registration::showPreRegistrationMenu() {
             return;
         default:
             ColorUtils::setColor(LIGHT_CYAN);
-            cout << "\n❌ Invalid choice! Please try again." << endl;
+            cout << "\n[ERROR] Invalid choice! Please try again." << endl;
             ColorUtils::resetColor();
             pressEnterToContinue();
         }
@@ -63,9 +63,9 @@ void Registration::registerDoctor() {
                 }
                 if (!validateFullName(fullName)) {
                     if (fullName.empty()) {
-                        cout << "\n❌ Full name cannot be empty! Please try again." << endl;
+                        cout << "\n[ERROR] Full name cannot be empty! Please try again." << endl;
                     } else {
-                        cout << "\n❌ Full name must contain only letters, spaces, and hyphens! Please try again." << endl;
+                        cout << "\n[ERROR] Full name must contain only letters, spaces, and hyphens! Please try again." << endl;
                     }
                     pressEnterToContinue();
                     system("cls");
@@ -85,7 +85,7 @@ void Registration::registerDoctor() {
                     return;
                 }
                 if (gender.empty()) {
-                    cout << "\n❌ Gender cannot be empty! Please try again." << endl;
+                    cout << "\n[ERROR] Gender cannot be empty! Please try again." << endl;
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("DOCTOR REGISTRATION");
@@ -94,7 +94,7 @@ void Registration::registerDoctor() {
                 } else {
                     string correctedGender = validateAndCorrectGender(gender);
                     if (correctedGender != "Male" && correctedGender != "Female") {
-                        cout << "\n❌ Gender must be Male or Female only! Please try again." << endl;
+                        cout << "\n[ERROR] Gender must be Male or Female only! Please try again." << endl;
                         pressEnterToContinue();
                         system("cls");
                         displayTableHeader("DOCTOR REGISTRATION");
@@ -117,9 +117,9 @@ void Registration::registerDoctor() {
                 }
                 if (!validateICNumber(icNumber)) {
                     if (icNumber.empty()) {
-                        cout << "\n❌ IC number cannot be empty! Please try again." << endl;
+                        cout << "\n[ERROR] IC number cannot be empty! Please try again." << endl;
                     } else {
-                        cout << "\n❌ IC number must be exactly 12 digits! Please try again." << endl;
+                        cout << "\n[ERROR] IC number must be exactly 12 digits! Please try again." << endl;
                     }
                     pressEnterToContinue();
                     system("cls");
@@ -153,7 +153,7 @@ void Registration::registerDoctor() {
                     return;
                 }
                 if (specialization.empty()) {
-                    cout << "\n❌ Specialization cannot be empty! Please try again." << endl;
+                    cout << "\n[ERROR] Specialization cannot be empty! Please try again." << endl;
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("DOCTOR REGISTRATION");
@@ -176,9 +176,9 @@ void Registration::registerDoctor() {
                 }
                 if (!validateContactNumber(contactNumber)) {
                     if (contactNumber.empty()) {
-                        cout << "\n❌ Contact number cannot be empty! Please try again." << endl;
+                        cout << "\n[ERROR] Contact number cannot be empty! Please try again." << endl;
                     } else {
-                        cout << "\n❌ Contact number must be 10 or 11 digits! Please try again." << endl;
+                        cout << "\n[ERROR] Contact number must be 10 or 11 digits! Please try again." << endl;
                     }
                     pressEnterToContinue();
                     system("cls");
@@ -202,7 +202,7 @@ void Registration::registerDoctor() {
                     return;
                 }
                 if (username.empty()) {
-                    cout << "\n❌ Username cannot be empty! Please try again." << endl;
+                    cout << "\n[ERROR] Username cannot be empty! Please try again." << endl;
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("DOCTOR REGISTRATION");
@@ -216,7 +216,7 @@ void Registration::registerDoctor() {
                     string checkQuery = "SELECT COUNT(*) as count FROM login WHERE username = '" + username + "'";
                     sql::ResultSet* checkRes = db->executeSelect(checkQuery);
                     if (checkRes && checkRes->next() && checkRes->getInt("count") > 0) {
-                        cout << "\n❌ Username already exists! Please choose another." << endl;
+                        cout << "\n[ERROR] Username already exists! Please choose another." << endl;
                         if (checkRes) delete checkRes;
                         pressEnterToContinue();
                         system("cls");
@@ -243,7 +243,7 @@ void Registration::registerDoctor() {
                     return;
                 }
                 if (password1.empty()) {
-                    cout << "\n❌ Password cannot be empty! Please try again." << endl;
+                    cout << "\n[ERROR] Password cannot be empty! Please try again." << endl;
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("DOCTOR REGISTRATION");
@@ -262,7 +262,7 @@ void Registration::registerDoctor() {
                     }
 
                     if (!validatePassword(password1, password2)) {
-                        cout << "\n❌ Passwords do not match! Please try again." << endl;
+                        cout << "\n[ERROR] Passwords do not match! Please try again." << endl;
                         pressEnterToContinue();
                         system("cls");
                         displayTableHeader("DOCTOR REGISTRATION");
@@ -316,16 +316,16 @@ void Registration::registerDoctor() {
                         registrationComplete = true;
                     }
                 } else {
-                    cout << "\n❌ Failed to retrieve doctor ID!" << endl;
+                    cout << "\n[ERROR] Failed to retrieve doctor ID!" << endl;
                     pressEnterToContinue();
                 }
             } else {
-                cout << "\n❌ Failed to register doctor!" << endl;
+                cout << "\n[ERROR] Failed to register doctor!" << endl;
                 pressEnterToContinue();
             }
         }
         catch (exception& e) {
-            cout << "\n❌ Error: " << e.what() << endl;
+            cout << "\n[ERROR] Error: " << e.what() << endl;
             pressEnterToContinue();
         }
     }
@@ -354,9 +354,9 @@ void Registration::registerNurse() {
                 }
                 if (!validateFullName(fullName)) {
                     if (fullName.empty()) {
-                        cout << "\n❌ Full name cannot be empty! Please try again." << endl;
+                        cout << "\n[ERROR] Full name cannot be empty! Please try again." << endl;
                     } else {
-                        cout << "\n❌ Full name must contain only letters, spaces, and hyphens! Please try again." << endl;
+                        cout << "\n[ERROR] Full name must contain only letters, spaces, and hyphens! Please try again." << endl;
                     }
                     pressEnterToContinue();
                     system("cls");
@@ -376,7 +376,7 @@ void Registration::registerNurse() {
                     return;
                 }
                 if (gender.empty()) {
-                    cout << "\n❌ Gender cannot be empty! Please try again." << endl;
+                    cout << "\n[ERROR] Gender cannot be empty! Please try again." << endl;
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("NURSE REGISTRATION");
@@ -385,7 +385,7 @@ void Registration::registerNurse() {
                 } else {
                     string correctedGender = validateAndCorrectGender(gender);
                     if (correctedGender != "Male" && correctedGender != "Female") {
-                        cout << "\n❌ Gender must be Male or Female only! Please try again." << endl;
+                        cout << "\n[ERROR] Gender must be Male or Female only! Please try again." << endl;
                         pressEnterToContinue();
                         system("cls");
                         displayTableHeader("NURSE REGISTRATION");
@@ -408,9 +408,9 @@ void Registration::registerNurse() {
                 }
                 if (!validateICNumber(icNumber)) {
                     if (icNumber.empty()) {
-                        cout << "\n❌ IC number cannot be empty! Please try again." << endl;
+                        cout << "\n[ERROR] IC number cannot be empty! Please try again." << endl;
                     } else {
-                        cout << "\n❌ IC number must be exactly 12 digits! Please try again." << endl;
+                        cout << "\n[ERROR] IC number must be exactly 12 digits! Please try again." << endl;
                     }
                     pressEnterToContinue();
                     system("cls");
@@ -445,9 +445,9 @@ void Registration::registerNurse() {
                 }
                 if (!validateContactNumber(contactNumber)) {
                     if (contactNumber.empty()) {
-                        cout << "\n❌ Contact number cannot be empty! Please try again." << endl;
+                        cout << "\n[ERROR] Contact number cannot be empty! Please try again." << endl;
                     } else {
-                        cout << "\n❌ Contact number must be 10 or 11 digits! Please try again." << endl;
+                        cout << "\n[ERROR] Contact number must be 10 or 11 digits! Please try again." << endl;
                     }
                     pressEnterToContinue();
                     system("cls");
@@ -470,7 +470,7 @@ void Registration::registerNurse() {
                     return;
                 }
                 if (username.empty()) {
-                    cout << "\n❌ Username cannot be empty! Please try again." << endl;
+                    cout << "\n[ERROR] Username cannot be empty! Please try again." << endl;
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("NURSE REGISTRATION");
@@ -483,7 +483,7 @@ void Registration::registerNurse() {
                     string checkQuery = "SELECT COUNT(*) as count FROM login WHERE username = '" + username + "'";
                     sql::ResultSet* checkRes = db->executeSelect(checkQuery);
                     if (checkRes && checkRes->next() && checkRes->getInt("count") > 0) {
-                        cout << "\n❌ Username already exists! Please choose another." << endl;
+                        cout << "\n[ERROR] Username already exists! Please choose another." << endl;
                         if (checkRes) delete checkRes;
                         pressEnterToContinue();
                         system("cls");
@@ -509,7 +509,7 @@ void Registration::registerNurse() {
                     return;
                 }
                 if (password1.empty()) {
-                    cout << "\n❌ Password cannot be empty! Please try again." << endl;
+                    cout << "\n[ERROR] Password cannot be empty! Please try again." << endl;
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("NURSE REGISTRATION");
@@ -527,7 +527,7 @@ void Registration::registerNurse() {
                     }
 
                     if (!validatePassword(password1, password2)) {
-                        cout << "\n❌ Passwords do not match! Please try again." << endl;
+                        cout << "\n[ERROR] Passwords do not match! Please try again." << endl;
                         pressEnterToContinue();
                         system("cls");
                         displayTableHeader("NURSE REGISTRATION");
@@ -578,16 +578,16 @@ void Registration::registerNurse() {
                         registrationComplete = true;
                     }
                 } else {
-                    cout << "\n❌ Failed to retrieve nurse ID!" << endl;
+                    cout << "\n[ERROR] Failed to retrieve nurse ID!" << endl;
                     pressEnterToContinue();
                 }
             } else {
-                cout << "\n❌ Failed to register nurse!" << endl;
+                cout << "\n[ERROR] Failed to register nurse!" << endl;
                 pressEnterToContinue();
             }
         }
         catch (exception& e) {
-            cout << "\n❌ Error: " << e.what() << endl;
+            cout << "\n[ERROR] Error: " << e.what() << endl;
             pressEnterToContinue();
         }
     }
@@ -616,9 +616,9 @@ void Registration::registerAdmin() {
                 }
                 if (!validateFullName(fullName)) {
                     if (fullName.empty()) {
-                        cout << "\n❌ Full name cannot be empty! Please try again." << endl;
+                        cout << "\n[ERROR] Full name cannot be empty! Please try again." << endl;
                     } else {
-                        cout << "\n❌ Full name must contain only letters, spaces, and hyphens! Please try again." << endl;
+                        cout << "\n[ERROR] Full name must contain only letters, spaces, and hyphens! Please try again." << endl;
                     }
                     pressEnterToContinue();
                     system("cls");
@@ -638,7 +638,7 @@ void Registration::registerAdmin() {
                     return;
                 }
                 if (email.empty() || email.find('@') == string::npos) {
-                    cout << "\n❌ Invalid email format! Please try again." << endl;
+                    cout << "\n[ERROR] Invalid email format! Please try again." << endl;
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("ADMIN REGISTRATION");
@@ -659,9 +659,9 @@ void Registration::registerAdmin() {
                 }
                 if (!validateICNumber(icNumber)) {
                     if (icNumber.empty()) {
-                        cout << "\n❌ IC number cannot be empty! Please try again." << endl;
+                        cout << "\n[ERROR] IC number cannot be empty! Please try again." << endl;
                     } else {
-                        cout << "\n❌ IC number must be exactly 12 digits! Please try again." << endl;
+                        cout << "\n[ERROR] IC number must be exactly 12 digits! Please try again." << endl;
                     }
                     pressEnterToContinue();
                     system("cls");
@@ -696,9 +696,9 @@ void Registration::registerAdmin() {
                 }
                 if (!validateContactNumber(contactNumber)) {
                     if (contactNumber.empty()) {
-                        cout << "\n❌ Contact number cannot be empty! Please try again." << endl;
+                        cout << "\n[ERROR] Contact number cannot be empty! Please try again." << endl;
                     } else {
-                        cout << "\n❌ Contact number must be 10 or 11 digits! Please try again." << endl;
+                        cout << "\n[ERROR] Contact number must be 10 or 11 digits! Please try again." << endl;
                     }
                     pressEnterToContinue();
                     system("cls");
@@ -721,7 +721,7 @@ void Registration::registerAdmin() {
                     return;
                 }
                 if (username.empty()) {
-                    cout << "\n❌ Username cannot be empty! Please try again." << endl;
+                    cout << "\n[ERROR] Username cannot be empty! Please try again." << endl;
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("ADMIN REGISTRATION");
@@ -734,7 +734,7 @@ void Registration::registerAdmin() {
                     string checkQuery = "SELECT COUNT(*) as count FROM login WHERE username = '" + username + "'";
                     sql::ResultSet* checkRes = db->executeSelect(checkQuery);
                     if (checkRes && checkRes->next() && checkRes->getInt("count") > 0) {
-                        cout << "\n❌ Username already exists! Please choose another." << endl;
+                        cout << "\n[ERROR] Username already exists! Please choose another." << endl;
                         if (checkRes) delete checkRes;
                         pressEnterToContinue();
                         system("cls");
@@ -760,7 +760,7 @@ void Registration::registerAdmin() {
                     return;
                 }
                 if (password1.empty()) {
-                    cout << "\n❌ Password cannot be empty! Please try again." << endl;
+                    cout << "\n[ERROR] Password cannot be empty! Please try again." << endl;
                     pressEnterToContinue();
                     system("cls");
                     displayTableHeader("ADMIN REGISTRATION");
@@ -778,7 +778,7 @@ void Registration::registerAdmin() {
                     }
 
                     if (!validatePassword(password1, password2)) {
-                        cout << "\n❌ Passwords do not match! Please try again." << endl;
+                        cout << "\n[ERROR] Passwords do not match! Please try again." << endl;
                         pressEnterToContinue();
                         system("cls");
                         displayTableHeader("ADMIN REGISTRATION");
@@ -829,16 +829,16 @@ void Registration::registerAdmin() {
                         registrationComplete = true;
                     }
                 } else {
-                    cout << "\n❌ Failed to retrieve admin ID!" << endl;
+                    cout << "\n[ERROR] Failed to retrieve admin ID!" << endl;
                     pressEnterToContinue();
                 }
             } else {
-                cout << "\n❌ Failed to register admin!" << endl;
+                cout << "\n[ERROR] Failed to register admin!" << endl;
                 pressEnterToContinue();
             }
         }
         catch (exception& e) {
-            cout << "\n❌ Error: " << e.what() << endl;
+            cout << "\n[ERROR] Error: " << e.what() << endl;
             pressEnterToContinue();
         }
     }

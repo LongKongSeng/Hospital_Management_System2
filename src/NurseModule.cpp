@@ -31,7 +31,7 @@ void NurseModule::showMenu() {
             return;
         default:
             ColorUtils::setColor(LIGHT_CYAN);
-            cout << "\n❌ Invalid choice! Please try again." << endl;
+            cout << "\n[ERROR] Invalid choice! Please try again." << endl;
             ColorUtils::resetColor();
             pressEnterToContinue();
         }
@@ -44,7 +44,7 @@ void NurseModule::viewPatientRecord() {
 
     int patientId = getIntInput("Enter Patient ID: ");
     if (patientId <= 0) {
-        cout << "\n❌ Invalid Patient ID!" << endl;
+        cout << "\n[ERROR] Invalid Patient ID!" << endl;
         pressEnterToContinue();
         return;
     }
@@ -56,7 +56,7 @@ void NurseModule::viewPatientRecord() {
         sql::ResultSet* patientRes = db->executeSelect(patientQuery);
         
         if (!patientRes || !patientRes->next()) {
-            cout << "\n❌ Patient not found!" << endl;
+            cout << "\n[ERROR] Patient not found!" << endl;
             if (patientRes) delete patientRes;
             pressEnterToContinue();
             return;
@@ -131,7 +131,7 @@ void NurseModule::viewPatientRecord() {
 
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 
     pressEnterToContinue();
@@ -143,7 +143,7 @@ void NurseModule::generateNextAppointment() {
 
     int patientId = getIntInput("Enter Patient ID: ");
     if (patientId <= 0) {
-        cout << "\n❌ Invalid Patient ID!" << endl;
+        cout << "\n[ERROR] Invalid Patient ID!" << endl;
         pressEnterToContinue();
         return;
     }
@@ -153,7 +153,7 @@ void NurseModule::generateNextAppointment() {
     sql::ResultSet* checkRes = db->executeSelect(checkQuery);
     
     if (!checkRes || !checkRes->next()) {
-        cout << "\n❌ Patient not found!" << endl;
+        cout << "\n[ERROR] Patient not found!" << endl;
         if (checkRes) delete checkRes;
         pressEnterToContinue();
         return;
@@ -168,7 +168,7 @@ void NurseModule::generateNextAppointment() {
     sql::ResultSet* doctorRes = db->executeSelect(doctorQuery);
     
     if (!doctorRes || doctorRes->rowsCount() == 0) {
-        cout << "\n❌ No active doctors available!" << endl;
+        cout << "\n[ERROR] No active doctors available!" << endl;
         if (doctorRes) delete doctorRes;
         pressEnterToContinue();
         return;
@@ -193,7 +193,7 @@ void NurseModule::generateNextAppointment() {
 
     int doctorId = getIntInput("\nEnter Doctor ID: ");
     if (doctorId <= 0) {
-        cout << "\n❌ Invalid Doctor ID!" << endl;
+        cout << "\n[ERROR] Invalid Doctor ID!" << endl;
         pressEnterToContinue();
         return;
     }
@@ -202,7 +202,7 @@ void NurseModule::generateNextAppointment() {
     string verifyDoctorQuery = "SELECT doctor_id FROM doctor WHERE doctor_id = " + to_string(doctorId) + " AND status = 'Active'";
     sql::ResultSet* verifyDoctorRes = db->executeSelect(verifyDoctorQuery);
     if (!verifyDoctorRes || !verifyDoctorRes->next()) {
-        cout << "\n❌ Doctor not found or not active!" << endl;
+        cout << "\n[ERROR] Doctor not found or not active!" << endl;
         if (verifyDoctorRes) delete verifyDoctorRes;
         pressEnterToContinue();
         return;
@@ -211,7 +211,7 @@ void NurseModule::generateNextAppointment() {
 
     string appointmentDate = getStringInput("Enter Appointment Date (YYYY-MM-DD): ");
     if (appointmentDate.empty()) {
-        cout << "\n❌ Appointment date cannot be empty!" << endl;
+        cout << "\n[ERROR] Appointment date cannot be empty!" << endl;
         pressEnterToContinue();
         return;
     }
@@ -260,11 +260,11 @@ void NurseModule::generateNextAppointment() {
             cout << "| Total Visits: " << left << setw(45) << visitCount << "|" << endl;
             cout << "+----------------------------------------------------------------+" << endl;
         } else {
-            cout << "\n❌ Failed to generate appointment!" << endl;
+            cout << "\n[ERROR] Failed to generate appointment!" << endl;
         }
     }
     catch (exception& e) {
-        cout << "\n❌ Error: " << e.what() << endl;
+        cout << "\n[ERROR] Error: " << e.what() << endl;
     }
 
     pressEnterToContinue();

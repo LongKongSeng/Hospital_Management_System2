@@ -21,7 +21,7 @@ int main() {
     
     if (!db.connect()) {
         ColorUtils::setColor(LIGHT_CYAN);
-        cout << "\n❌ Failed to connect to database!" << endl;
+        cout << "\n[ERROR] Failed to connect to database!" << endl;
         ColorUtils::setColor(WHITE);
         cout << "Please ensure:" << endl;
         cout << "1. XAMPP MySQL is running" << endl;
@@ -118,7 +118,7 @@ int main() {
                 nurseModule = nullptr;
             } else {
                 ColorUtils::setColor(LIGHT_CYAN);
-                cout << "\n❌ Unknown role! Logging out..." << endl;
+                cout << "\n[ERROR] Unknown role! Logging out..." << endl;
                 ColorUtils::resetColor();
                 login.logout();
                 loggedIn = false;

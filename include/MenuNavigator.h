@@ -16,7 +16,7 @@ public:
     // Returns the selected index (0-based)
     static int showMenu(const vector<string>& options, const string& title = "", bool showExitOption = true) {
         int selected = 0;
-        int totalOptions = options.size();
+        int totalOptions = static_cast<int>(options.size());
         const int SEPARATOR_LENGTH = 80; // Length of separator line
         
         while (true) {
@@ -65,7 +65,7 @@ public:
                 }
                 
                 // Fill remaining space (if any)
-                int remaining = SEPARATOR_LENGTH - padding - optionLength;
+                int remaining = SEPARATOR_LENGTH - padding - static_cast<int>(optionLength);
                 for (int j = 0; j < remaining; j++) cout << " ";
                 cout << endl;
             }
@@ -83,7 +83,7 @@ public:
             int inst1Padding = (SEPARATOR_LENGTH - static_cast<int>(instruction1.length())) / 2;
             for (int i = 0; i < inst1Padding; i++) cout << " ";
             ColorUtils::printColoredBG(instruction1, WHITE, BLUE);
-            int inst1Remaining = SEPARATOR_LENGTH - inst1Padding - instruction1.length();
+            int inst1Remaining = SEPARATOR_LENGTH - inst1Padding - static_cast<int>(instruction1.length());
             for (int i = 0; i < inst1Remaining; i++) cout << " ";
             cout << endl;
             
@@ -92,7 +92,7 @@ public:
                 int inst2Padding = (SEPARATOR_LENGTH - static_cast<int>(instruction2.length())) / 2;
                 for (int i = 0; i < inst2Padding; i++) cout << " ";
                 ColorUtils::printColoredBG(instruction2, WHITE, BLUE);
-                int inst2Remaining = SEPARATOR_LENGTH - inst2Padding - instruction2.length();
+                int inst2Remaining = SEPARATOR_LENGTH - inst2Padding - static_cast<int>(instruction2.length());
                 for (int i = 0; i < inst2Remaining; i++) cout << " ";
                 cout << endl;
             }
