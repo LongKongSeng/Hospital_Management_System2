@@ -743,10 +743,10 @@ void StaffModule::displayTableHeader(const string& title) {
     // Highlighted title: Yellow text on Blue background
     ColorUtils::setColor(WHITE);
     cout << "|";
-    int padding = (60 - title.length()) / 2;
+    int padding = static_cast<int>((60 - static_cast<int>(title.length())) / 2);
     for (int i = 0; i < padding; i++) cout << " ";
     ColorUtils::printColoredBG(title, YELLOW, BLUE);
-    for (int i = 0; i < (60 - title.length() - padding); i++) cout << " ";
+    for (int i = 0; i < static_cast<int>(60 - title.length() - padding); i++) cout << " ";
     ColorUtils::setColor(WHITE);
     cout << "|" << endl;
     
