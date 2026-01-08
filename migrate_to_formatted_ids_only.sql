@@ -324,18 +324,31 @@ BEGIN
             END IF;
             
             -- Check if there's an index named 'formatted_id' (non-primary key index)
+            -- or any index on the formatted_id column
             SELECT COUNT(*) INTO idxExists
             FROM INFORMATION_SCHEMA.STATISTICS
             WHERE TABLE_SCHEMA = @dbname
             AND TABLE_NAME = tableName
-            AND INDEX_NAME = 'formatted_id'
+            AND COLUMN_NAME = 'formatted_id'
             AND INDEX_NAME != 'PRIMARY';
             
+            -- Drop any non-primary indexes on formatted_id column
             IF idxExists > 0 THEN
-                SET @sql = CONCAT('ALTER TABLE ', tableName, ' DROP INDEX formatted_id');
-                PREPARE stmt FROM @sql;
-                EXECUTE stmt;
-                DEALLOCATE PREPARE stmt;
+                -- Get the index name (there might be multiple, so get the first one)
+                SELECT INDEX_NAME INTO @idxName
+                FROM INFORMATION_SCHEMA.STATISTICS
+                WHERE TABLE_SCHEMA = @dbname
+                AND TABLE_NAME = tableName
+                AND COLUMN_NAME = 'formatted_id'
+                AND INDEX_NAME != 'PRIMARY'
+                LIMIT 1;
+                
+                IF @idxName IS NOT NULL AND @idxName != '' THEN
+                    SET @sql = CONCAT('ALTER TABLE ', tableName, ' DROP INDEX `', @idxName, '`');
+                    PREPARE stmt FROM @sql;
+                    EXECUTE stmt;
+                    DEALLOCATE PREPARE stmt;
+                END IF;
             END IF;
             
             -- Ensure formatted_id is NOT NULL first
@@ -345,17 +358,19 @@ BEGIN
             DEALLOCATE PREPARE stmt;
             
             -- Make formatted_id the primary key (in separate statement)
-            -- Use a try-catch approach by checking if primary key already exists
-            SET @sql = CONCAT('ALTER TABLE ', tableName, ' ADD PRIMARY KEY (formatted_id)');
-            PREPARE stmt FROM @sql;
-            BEGIN
-                DECLARE CONTINUE HANDLER FOR 1061 -- Error 1061: Duplicate key name
-                BEGIN
-                    -- Primary key already exists, ignore the error
-                END;
+            -- Check one more time if primary key already exists
+            SELECT COUNT(*) INTO hasPK
+            FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+            WHERE TABLE_SCHEMA = @dbname
+            AND TABLE_NAME = tableName
+            AND CONSTRAINT_TYPE = 'PRIMARY KEY';
+            
+            IF hasPK = 0 THEN
+                SET @sql = CONCAT('ALTER TABLE ', tableName, ' ADD PRIMARY KEY (formatted_id)');
+                PREPARE stmt FROM @sql;
                 EXECUTE stmt;
-            END;
-            DEALLOCATE PREPARE stmt;
+                DEALLOCATE PREPARE stmt;
+            END IF;
         END IF;
     END IF;
 END//
