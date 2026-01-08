@@ -233,6 +233,7 @@ BEGIN
     DECLARE hasPK INT DEFAULT 0;
     DECLARE pkColumn VARCHAR(64);
     DECLARE isAutoIncrement INT DEFAULT 0;
+    DECLARE idxExists INT DEFAULT 0;
     SET @dbname = DATABASE();
     
     -- Check if numeric ID column exists
@@ -322,10 +323,38 @@ BEGIN
                 DEALLOCATE PREPARE stmt;
             END IF;
             
-            -- Make formatted_id the primary key
-            SET @sql = CONCAT('ALTER TABLE ', tableName, ' MODIFY formatted_id VARCHAR(20) NOT NULL, ADD PRIMARY KEY (formatted_id)');
+            -- Check if there's an index named 'formatted_id' (non-primary key index)
+            SELECT COUNT(*) INTO idxExists
+            FROM INFORMATION_SCHEMA.STATISTICS
+            WHERE TABLE_SCHEMA = @dbname
+            AND TABLE_NAME = tableName
+            AND INDEX_NAME = 'formatted_id'
+            AND INDEX_NAME != 'PRIMARY';
+            
+            IF idxExists > 0 THEN
+                SET @sql = CONCAT('ALTER TABLE ', tableName, ' DROP INDEX formatted_id');
+                PREPARE stmt FROM @sql;
+                EXECUTE stmt;
+                DEALLOCATE PREPARE stmt;
+            END IF;
+            
+            -- Ensure formatted_id is NOT NULL first
+            SET @sql = CONCAT('ALTER TABLE ', tableName, ' MODIFY formatted_id VARCHAR(20) NOT NULL');
             PREPARE stmt FROM @sql;
             EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+            
+            -- Make formatted_id the primary key (in separate statement)
+            -- Use a try-catch approach by checking if primary key already exists
+            SET @sql = CONCAT('ALTER TABLE ', tableName, ' ADD PRIMARY KEY (formatted_id)');
+            PREPARE stmt FROM @sql;
+            BEGIN
+                DECLARE CONTINUE HANDLER FOR 1061 -- Error 1061: Duplicate key name
+                BEGIN
+                    -- Primary key already exists, ignore the error
+                END;
+                EXECUTE stmt;
+            END;
             DEALLOCATE PREPARE stmt;
         END IF;
     END IF;
