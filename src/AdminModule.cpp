@@ -231,7 +231,10 @@ void AdminModule::generateMonthlyReport() {
         
         if (res) {
             cout << "\n+-----------+----------------------+----------------------+--------------------------+" << endl;
-            cout << "| Month     | Category              | Prescription Count   | Total Quantity Prescribed|" << endl;
+            cout << "| " << left << setw(9) << "Month"
+                 << "| " << left << setw(20) << "Category"
+                 << "| " << right << setw(20) << "Prescription Count"
+                 << "| " << right << setw(24) << "Total Quantity Prescribed" << " |" << endl;
             cout << "+-----------+----------------------+----------------------+--------------------------+" << endl;
             
             while (res->next()) {
@@ -304,7 +307,10 @@ void AdminModule::generateYearlyReport() {
         
         if (res) {
             cout << "\n+-------+----------------------+----------------------+--------------------------+" << endl;
-            cout << "| Year  | Category              | Prescription Count   | Total Quantity Prescribed|" << endl;
+            cout << "| " << right << setw(5) << "Year"
+                 << "| " << left << setw(20) << "Category"
+                 << "| " << right << setw(20) << "Prescription Count"
+                 << "| " << right << setw(24) << "Total Quantity Prescribed" << " |" << endl;
             cout << "+-------+----------------------+----------------------+--------------------------+" << endl;
             
             while (res->next()) {
@@ -408,7 +414,10 @@ void AdminModule::displayGraphicalReport() {
         
         if (res) {
             cout << "\n+----------------------+----------------------+----------------------+------------------+" << endl;
-            cout << "| Category             | Total Prescriptions  | Total Quantity       | Average Price    |" << endl;
+            cout << "| " << left << setw(20) << "Category"
+                 << "| " << right << setw(20) << "Total Prescriptions"
+                 << "| " << right << setw(20) << "Total Quantity"
+                 << "| " << right << setw(16) << "Average Price" << " |" << endl;
             cout << "+----------------------+----------------------+----------------------+------------------+" << endl;
             
             double maxPrescriptions = 0;
@@ -829,7 +838,11 @@ void AdminModule::displayReceipt(const string& patientId, double totalAmount) {
 
         if (treatmentRes && treatmentRes->rowsCount() > 0) {
             cout << "+-------------+----------------------+------------------+------------------+--------------+" << endl;
-            cout << "| Treatment ID| Doctor Name          | Consultation Fee | Treatment Fee    | Date         |" << endl;
+            cout << "| " << left << setw(11) << "Treatment ID"
+                 << "| " << left << setw(20) << "Doctor Name"
+                 << "| " << right << setw(16) << "Consultation Fee"
+                 << "| " << right << setw(16) << "Treatment Fee"
+                 << "| " << left << setw(12) << "Date" << "|" << endl;
             cout << "+-------------+----------------------+------------------+------------------+--------------+" << endl;
             
             while (treatmentRes->next()) {
@@ -844,9 +857,9 @@ void AdminModule::displayReceipt(const string& patientId, double totalAmount) {
                 
                 cout << "| " << left << setw(11) << treatmentId
                      << "| " << left << setw(20) << doctorName
-                     << "| RM " << right << setw(13) << fixed << setprecision(2) << consultationFee
-                     << "| RM " << right << setw(13) << fixed << setprecision(2) << treatmentFee
-                     << "| " << left << setw(12) << treatmentDate << "|" << endl;
+                     << "| " << right << setw(14) << fixed << setprecision(2) << consultationFee << " |"
+                     << " " << right << setw(14) << fixed << setprecision(2) << treatmentFee << " |"
+                     << " " << left << setw(12) << treatmentDate << "|" << endl;
             }
             cout << "+-------------+----------------------+------------------+------------------+--------------+" << endl;
         } else {
@@ -868,7 +881,11 @@ void AdminModule::displayReceipt(const string& patientId, double totalAmount) {
 
 void AdminModule::displayPharmacyTable(sql::ResultSet* res) {
     cout << "\n+-------------+----------------------+----------------------+----------+-------------+" << endl;
-    cout << "| Pharmacy ID | Medicine Name        | Category              | Quantity | Unit Price  |" << endl;
+    cout << "| " << left << setw(11) << "Pharmacy ID"
+         << "| " << left << setw(20) << "Medicine Name"
+         << "| " << left << setw(20) << "Category"
+         << "| " << right << setw(8) << "Quantity"
+         << "| " << right << setw(11) << "Unit Price" << " |" << endl;
     cout << "+-------------+----------------------+----------------------+----------+-------------+" << endl;
     
     while (res->next()) {
@@ -886,7 +903,7 @@ void AdminModule::displayPharmacyTable(sql::ResultSet* res) {
              << "| " << left << setw(20) << medicineName
              << "| " << left << setw(20) << category
              << "| " << right << setw(8) << quantity
-             << "| RM " << right << setw(7) << fixed << setprecision(2) << unitPrice << " |" << endl;
+             << "| " << right << setw(9) << fixed << setprecision(2) << unitPrice << " |" << endl;
     }
     
     cout << "+-------------+----------------------+----------------------+----------+-------------+" << endl;

@@ -95,7 +95,13 @@ void NurseModule::viewPatientRecord() {
             cout << "+================================================================+" << endl;
             
             cout << "\n+-------------+--------------+----------------------+----------------------+--------------+--------------+----------------------+" << endl;
-            cout << "| Record ID   | Date         | Disease              | Disorder             | Duration     | Severity     | Doctor               |" << endl;
+            cout << "| " << left << setw(11) << "Record ID"
+                 << "| " << left << setw(12) << "Date"
+                 << "| " << left << setw(20) << "Disease"
+                 << "| " << left << setw(20) << "Disorder"
+                 << "| " << left << setw(12) << "Duration"
+                 << "| " << left << setw(12) << "Severity"
+                 << "| " << left << setw(20) << "Doctor" << "|" << endl;
             cout << "+-------------+--------------+----------------------+----------------------+--------------+--------------+----------------------+" << endl;
             
             while (recordRes->next()) {
@@ -300,15 +306,28 @@ void NurseModule::generateNextAppointment() {
 
 void NurseModule::displayPatientRecordTable(sql::ResultSet* res) {
     cout << "\n+-------------+----------------------+----------+--------------+--------------+" << endl;
-    cout << "| Patient ID  | Full Name            | Gender   | Date of Birth| Status       |" << endl;
-    cout << "+-------------┼----------------------┼----------┼--------------┼--------------+" << endl;
+    cout << "| " << left << setw(11) << "Patient ID"
+         << "| " << left << setw(20) << "Full Name"
+         << "| " << left << setw(8) << "Gender"
+         << "| " << left << setw(12) << "Date of Birth"
+         << "| " << left << setw(12) << "Status" << "|" << endl;
+    cout << "+-------------+----------------------+----------+--------------+--------------+" << endl;
     
     while (res->next()) {
-        cout << "| " << setw(11) << getFormattedId(res, "patient_formatted_id", "patient_id")
-             << "| " << setw(20) << res->getString("full_name")
-             << "| " << setw(8) << res->getString("gender")
-             << "| " << setw(12) << res->getString("date_of_birth")
-             << "| " << setw(12) << res->getString("status") << "|" << endl;
+        string patientId = string(res->getString("patient_formatted_id"));
+        string fullName = string(res->getString("full_name"));
+        string gender = string(res->getString("gender"));
+        string dob = res->isNull("date_of_birth") ? "N/A" : string(res->getString("date_of_birth"));
+        string status = string(res->getString("status"));
+        
+        // Truncate long names to fit column width
+        if (fullName.length() > 20) fullName = fullName.substr(0, 17) + "...";
+        
+        cout << "| " << left << setw(11) << patientId
+             << "| " << left << setw(20) << fullName
+             << "| " << left << setw(8) << gender
+             << "| " << left << setw(12) << dob
+             << "| " << left << setw(12) << status << "|" << endl;
     }
     
     cout << "+-------------+----------------------+----------+--------------+--------------+" << endl;
@@ -316,7 +335,11 @@ void NurseModule::displayPatientRecordTable(sql::ResultSet* res) {
 
 void NurseModule::displayAppointmentTable(sql::ResultSet* res) {
     cout << "\n+-----------------+----------------------+--------------+--------------+--------------+" << endl;
-    cout << "| Appointment ID  | Patient Name          | Date         | Time         | Status       |" << endl;
+    cout << "| " << left << setw(15) << "Appointment ID"
+         << "| " << left << setw(20) << "Patient Name"
+         << "| " << left << setw(12) << "Date"
+         << "| " << left << setw(12) << "Time"
+         << "| " << left << setw(12) << "Status" << "|" << endl;
     cout << "+-----------------+----------------------+--------------+--------------+--------------+" << endl;
     
     while (res->next()) {

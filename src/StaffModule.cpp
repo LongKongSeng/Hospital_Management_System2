@@ -679,18 +679,38 @@ void StaffModule::updatePatientReport() {
 
 void StaffModule::displayPatientTable(sql::ResultSet* res) {
     cout << "\n+-------------+----------------------+--------+--------------+----------------+----------------+--------------+--------------+" << endl;
-    cout << "| Patient ID  | Full Name            | Gender | Date of Birth| Contact Number | Blood Type     | Status       | Created At   |" << endl;
+    cout << "| " << left << setw(11) << "Patient ID"
+         << "| " << left << setw(20) << "Full Name"
+         << "| " << left << setw(6) << "Gender"
+         << "| " << left << setw(12) << "Date of Birth"
+         << "| " << left << setw(14) << "Contact Number"
+         << "| " << left << setw(14) << "Blood Type"
+         << "| " << left << setw(12) << "Status"
+         << "| " << left << setw(12) << "Created At" << "|" << endl;
     cout << "+-------------+----------------------+--------+--------------+----------------+----------------+--------------+--------------+" << endl;
     
     while (res->next()) {
-        cout << "| " << setw(11) << res->getInt("patient_id")
-             << "| " << setw(20) << res->getString("full_name")
-             << "| " << setw(6) << res->getString("gender")
-             << "| " << setw(12) << res->getString("date_of_birth")
-             << "| " << setw(14) << res->getString("contact_number")
-             << "| " << setw(14) << (res->isNull("blood_type") ? "N/A" : res->getString("blood_type"))
-             << "| " << setw(12) << res->getString("status")
-             << "| " << setw(12) << res->getString("created_at").substr(0, 10) << "|" << endl;
+        string patientId = res->isNull("formatted_id") ? to_string(res->getInt("patient_id")) : string(res->getString("formatted_id"));
+        string fullName = string(res->getString("full_name"));
+        string gender = string(res->getString("gender"));
+        string dob = res->isNull("date_of_birth") ? "N/A" : string(res->getString("date_of_birth"));
+        string contact = string(res->getString("contact_number"));
+        string bloodType = res->isNull("blood_type") ? "N/A" : string(res->getString("blood_type"));
+        string status = string(res->getString("status"));
+        string createdAt = res->isNull("created_at") ? "N/A" : string(res->getString("created_at")).substr(0, 10);
+        
+        // Truncate long text
+        if (fullName.length() > 20) fullName = fullName.substr(0, 17) + "...";
+        if (contact.length() > 14) contact = contact.substr(0, 11) + "...";
+        
+        cout << "| " << left << setw(11) << patientId
+             << "| " << left << setw(20) << fullName
+             << "| " << left << setw(6) << gender
+             << "| " << left << setw(12) << dob
+             << "| " << left << setw(14) << contact
+             << "| " << left << setw(14) << bloodType
+             << "| " << left << setw(12) << status
+             << "| " << left << setw(12) << createdAt << "|" << endl;
     }
     
     cout << "+-------------+----------------------+--------+--------------+----------------+----------------+--------------+--------------+" << endl;
@@ -698,18 +718,37 @@ void StaffModule::displayPatientTable(sql::ResultSet* res) {
 
 void StaffModule::displayPrescriptionTable(sql::ResultSet* res) {
     cout << "\n+-----------------+----------------------+----------------------+-----------+----------------------+----------------------+--------------+" << endl;
-    cout << "| Prescription ID | Patient Name          | Medication           | Dosage    | Duration of Meds     | Instructions          | Date         |" << endl;
+    cout << "| " << left << setw(15) << "Prescription ID"
+         << "| " << left << setw(20) << "Patient Name"
+         << "| " << left << setw(20) << "Medication"
+         << "| " << left << setw(9) << "Dosage"
+         << "| " << left << setw(20) << "Duration of Meds"
+         << "| " << left << setw(20) << "Instructions"
+         << "| " << left << setw(12) << "Date" << "|" << endl;
     cout << "+-----------------+----------------------+----------------------+-----------+----------------------+----------------------+--------------+" << endl;
     
     while (res->next()) {
-        string patientName = res->isNull("patient_name") ? "N/A" : res->getString("patient_name");
-        cout << "| " << setw(15) << res->getInt("prescription_id")
-             << "| " << setw(20) << patientName
-             << "| " << setw(20) << res->getString("medicine_name")
-             << "| " << setw(9) << (res->isNull("dosage") ? "N/A" : res->getString("dosage"))
-             << "| " << setw(20) << (res->isNull("duration_of_meds") ? "N/A" : res->getString("duration_of_meds"))
-             << "| " << setw(20) << (res->isNull("instructions") ? "N/A" : res->getString("instructions").substr(0, 18))
-             << "| " << setw(12) << res->getString("date").substr(0, 10) << "|" << endl;
+        string prescriptionId = res->isNull("formatted_id") ? to_string(res->getInt("prescription_id")) : string(res->getString("formatted_id"));
+        string patientName = res->isNull("patient_name") ? "N/A" : string(res->getString("patient_name"));
+        string medicineName = string(res->getString("medicine_name"));
+        string dosage = res->isNull("dosage") ? "N/A" : string(res->getString("dosage"));
+        string duration = res->isNull("duration_of_meds") ? "N/A" : string(res->getString("duration_of_meds"));
+        string instructions = res->isNull("instructions") ? "N/A" : string(res->getString("instructions"));
+        string date = res->isNull("date") ? "N/A" : string(res->getString("date")).substr(0, 10);
+        
+        // Truncate long text
+        if (patientName.length() > 20) patientName = patientName.substr(0, 17) + "...";
+        if (medicineName.length() > 20) medicineName = medicineName.substr(0, 17) + "...";
+        if (duration.length() > 20) duration = duration.substr(0, 17) + "...";
+        if (instructions.length() > 20) instructions = instructions.substr(0, 17) + "...";
+        
+        cout << "| " << left << setw(15) << prescriptionId
+             << "| " << left << setw(20) << patientName
+             << "| " << left << setw(20) << medicineName
+             << "| " << left << setw(9) << dosage
+             << "| " << left << setw(20) << duration
+             << "| " << left << setw(20) << instructions
+             << "| " << left << setw(12) << date << "|" << endl;
     }
     
     cout << "+-----------------+----------------------+----------------------+-----------+----------------------+----------------------+--------------+" << endl;
@@ -717,16 +756,23 @@ void StaffModule::displayPrescriptionTable(sql::ResultSet* res) {
 
 void StaffModule::displayReportTable(sql::ResultSet* res) {
     cout << "\n+-----------+----------------------+--------------+----------------------------------------------------------------------+" << endl;
-    cout << "| Record ID | Patient Name          | Date         | Notes                                                                 |" << endl;
+    cout << "| " << left << setw(9) << "Record ID"
+         << "| " << left << setw(20) << "Patient Name"
+         << "| " << left << setw(12) << "Date"
+         << "| " << left << setw(70) << "Notes" << "|" << endl;
     cout << "+-----------+----------------------+--------------+----------------------------------------------------------------------+" << endl;
     
     while (res->next()) {
-        string notes = res->getString("notes");
+        string recordId = res->isNull("formatted_id") ? to_string(res->getInt("record_id")) : string(res->getString("formatted_id"));
+        string patientName = string(res->getString("patient_name"));
+        string date = res->isNull("date_of_record") ? "N/A" : string(res->getString("date_of_record")).substr(0, 10);
+        string notes = res->isNull("notes") ? "N/A" : string(res->getString("notes"));
         if (notes.length() > 70) notes = notes.substr(0, 67) + "...";
+        if (patientName.length() > 20) patientName = patientName.substr(0, 17) + "...";
 
-        cout << "| " << setw(9) << res->getInt("record_id")
-             << "| " << setw(20) << res->getString("patient_name")
-             << "| " << setw(12) << res->getString("date_of_record").substr(0, 10)
+        cout << "| " << left << setw(9) << recordId
+             << "| " << left << setw(20) << patientName
+             << "| " << left << setw(12) << date
              << "| " << setw(70) << notes << "|" << endl;
     }
     

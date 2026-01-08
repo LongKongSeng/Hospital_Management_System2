@@ -131,7 +131,13 @@ void DoctorModule::viewAppointments() {
         
         if (appointmentRes && appointmentRes->rowsCount() > 0) {
             cout << "\n+-----------------+-----------+----------------------+----------------------+--------------+--------------+----------------------+" << endl;
-            cout << "| Appointment ID  | Patient ID| Patient Name          | Nurse Name            | Date         | Time         | Status               |" << endl;
+            cout << "| " << left << setw(15) << "Appointment ID"
+                 << "| " << left << setw(9) << "Patient ID"
+                 << "| " << left << setw(20) << "Patient Name"
+                 << "| " << left << setw(20) << "Nurse Name"
+                 << "| " << left << setw(12) << "Date"
+                 << "| " << left << setw(12) << "Time"
+                 << "| " << left << setw(20) << "Status" << "|" << endl;
             cout << "+-----------------+-----------+----------------------+----------------------+--------------+--------------+----------------------+" << endl;
             
             while (appointmentRes->next()) {
@@ -502,7 +508,11 @@ void DoctorModule::editPatientMedicalRecord() {
 void DoctorModule::displayPatientRecordTable(sql::ResultSet* res) {
     // Implementation for displaying patient records in table format
     cout << "\n+-------------+----------------------+----------+--------------+--------------+" << endl;
-    cout << "| Patient ID  | Full Name            | Gender   | Date of Birth| Status       |" << endl;
+    cout << "| " << left << setw(11) << "Patient ID"
+         << "| " << left << setw(20) << "Full Name"
+         << "| " << left << setw(8) << "Gender"
+         << "| " << left << setw(12) << "Date of Birth"
+         << "| " << left << setw(12) << "Status" << "|" << endl;
     cout << "+-------------+----------------------+----------+--------------+--------------+" << endl;
     
     while (res->next()) {
@@ -527,7 +537,12 @@ void DoctorModule::displayPatientRecordTable(sql::ResultSet* res) {
 
 void DoctorModule::displayMedicalRecordTable(sql::ResultSet* res) {
     cout << "\n+-------------+--------------+----------------------+----------------------+--------------+--------------+" << endl;
-    cout << "| Record ID   | Date         | Disease              | Disorder             | Duration     | Severity     |" << endl;
+    cout << "| " << left << setw(11) << "Record ID"
+         << "| " << left << setw(12) << "Date"
+         << "| " << left << setw(20) << "Disease"
+         << "| " << left << setw(20) << "Disorder"
+         << "| " << left << setw(12) << "Duration"
+         << "| " << left << setw(12) << "Severity" << "|" << endl;
     cout << "+-------------+--------------+----------------------+----------------------+--------------+--------------+" << endl;
     
     while (res->next()) {
