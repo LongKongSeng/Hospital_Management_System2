@@ -20,14 +20,14 @@ int main() {
     Database db;
     
     if (!db.connect()) {
-        ColorUtils::setColor(YELLOW);
+        ColorUtils::setColor(LIGHT_CYAN);
         cout << "\n❌ Failed to connect to database!" << endl;
         ColorUtils::setColor(WHITE);
         cout << "Please ensure:" << endl;
         cout << "1. XAMPP MySQL is running" << endl;
         cout << "2. Database 'hospital_management_system' exists" << endl;
         cout << "3. Run database_schema.sql to create tables" << endl;
-        ColorUtils::setColor(YELLOW);
+        ColorUtils::setColor(LIGHT_CYAN);
         cout << "\nPress Enter to exit...";
         ColorUtils::resetColor();
         cin.get();
@@ -71,7 +71,7 @@ int main() {
                 }
                 break;
             case 2: // Exit
-                ColorUtils::setColor(YELLOW);
+                ColorUtils::setColor(LIGHT_CYAN);
                 cout << "\nThank you for using Hospital Management System!" << endl;
                 ColorUtils::resetColor();
                 break;
@@ -117,7 +117,7 @@ int main() {
                 delete nurseModule;
                 nurseModule = nullptr;
             } else {
-                ColorUtils::setColor(YELLOW);
+                ColorUtils::setColor(LIGHT_CYAN);
                 cout << "\n❌ Unknown role! Logging out..." << endl;
                 ColorUtils::resetColor();
                 login.logout();

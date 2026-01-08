@@ -6,10 +6,14 @@
 
 using namespace std;
 
-// Simplified color codes - only Blue, Yellow, White, Black
+// Color codes - Blue shades, Yellow, White, Black
 enum ConsoleColor {
     BLACK = 0,
+    DARK_BLUE = 1,
     BLUE = 9,
+    LIGHT_CYAN = 11,      // Bright light blue for selected items
+    LIGHT_BLUE = 9,       // Light blue
+    CYAN = 3,             // Dark cyan
     YELLOW = 14,
     WHITE = 15
 };

@@ -15,3 +15,8 @@ FOREIGN KEY (doctor_id) REFERENCES doctor(doctor_id) ON DELETE CASCADE;
 -- Update the column to NOT NULL if needed (after populating existing data)
 -- ALTER TABLE appointment MODIFY COLUMN doctor_id INT NOT NULL;
 
+
+
+
+
+

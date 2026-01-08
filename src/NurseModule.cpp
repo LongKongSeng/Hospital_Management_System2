@@ -29,7 +29,7 @@ void NurseModule::showMenu() {
         case 2:
             return;
         default:
-            ColorUtils::setColor(YELLOW);
+            ColorUtils::setColor(LIGHT_CYAN);
             cout << "\n❌ Invalid choice! Please try again." << endl;
             ColorUtils::resetColor();
             pressEnterToContinue();
@@ -302,26 +302,21 @@ void NurseModule::displayAppointmentTable(sql::ResultSet* res) {
 }
 
 void NurseModule::displayTableHeader(const string& title) {
-    // Blue theme header with Yellow text on Blue background
-    ColorUtils::setColor(BLUE);
-    cout << "\n+----------------------------------------------------------------+" << endl;
-    cout << "|" << setw(60) << "" << "|" << endl;
-    ColorUtils::resetColor();
+    // Blue theme header matching new GUI style
+    const int SEPARATOR_LENGTH = 80;
     
-    // Highlighted title: Yellow text on Blue background
-    ColorUtils::setColor(WHITE);
-    cout << "|";
-    int padding = (60 - title.length()) / 2;
-    for (int i = 0; i < padding; i++) cout << " ";
-    ColorUtils::printColoredBG(title, YELLOW, BLUE);
-    for (int i = 0; i < (60 - title.length() - padding); i++) cout << " ";
-    ColorUtils::setColor(WHITE);
-    cout << "|" << endl;
-    
-    ColorUtils::setColor(BLUE);
-    cout << "|" << setw(60) << "" << "|" << endl;
-    cout << "+----------------------------------------------------------------+" << endl;
+    ColorUtils::setColor(LIGHT_BLUE);
+    for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
     ColorUtils::resetColor();
+    cout << endl;
+    
+    // Centered title with white text on blue background
+    MenuNavigator::displayTitle(title, SEPARATOR_LENGTH);
+    
+    ColorUtils::setColor(LIGHT_BLUE);
+    for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
+    ColorUtils::resetColor();
+    cout << endl;
 }
 
 void NurseModule::pressEnterToContinue() {

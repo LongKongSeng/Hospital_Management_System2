@@ -43,17 +43,34 @@ bool Login::authenticate(const string& username, const string& password) {
 
 void Login::showLoginMenu() {
     system("cls");
-    displayTableHeader("LOGIN");
+    
+    const int SEPARATOR_LENGTH = 80;
+    
+    // Top separator line
+    ColorUtils::setColor(LIGHT_BLUE);
+    for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
+    ColorUtils::resetColor();
+    cout << endl;
+    
+    // Display title (centered, in blue box)
+    MenuNavigator::displayTitle("LOGIN", SEPARATOR_LENGTH);
+    
+    // Separator after title
+    ColorUtils::setColor(LIGHT_BLUE);
+    for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
+    ColorUtils::resetColor();
+    cout << endl << endl;
     
     string username, password;
 
+    // Enter Username
     ColorUtils::setColor(WHITE);
-    cout << "\nEnter Username: ";
+    cout << "Enter Username: ";
     ColorUtils::resetColor();
     getline(cin, username);
     
     if (username.empty()) {
-        ColorUtils::setColor(YELLOW);
+        ColorUtils::setColor(LIGHT_CYAN);
         cout << "\n❌ Username cannot be empty!\n";
         ColorUtils::resetColor();
         cout << "Press Enter to continue...";
@@ -61,13 +78,14 @@ void Login::showLoginMenu() {
         return;
     }
 
+    // Enter Password
     ColorUtils::setColor(WHITE);
     cout << "Enter Password: ";
     ColorUtils::resetColor();
     getline(cin, password);
     
     if (password.empty()) {
-        ColorUtils::setColor(YELLOW);
+        ColorUtils::setColor(LIGHT_CYAN);
         cout << "\n❌ Password cannot be empty!\n";
         ColorUtils::resetColor();
         cout << "Press Enter to continue...";
@@ -75,18 +93,25 @@ void Login::showLoginMenu() {
         return;
     }
 
+    // Bottom separator
+    cout << endl;
+    ColorUtils::setColor(LIGHT_BLUE);
+    for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
+    ColorUtils::resetColor();
+    cout << endl;
+
     if (authenticate(username, password)) {
-        ColorUtils::setColor(YELLOW);
+        ColorUtils::setColor(LIGHT_CYAN);
         cout << "\n✅ Login successful! Welcome, " << currentUsername << "!\n";
         ColorUtils::resetColor();
         cout << "Role: ";
-        ColorUtils::setColor(YELLOW);
+        ColorUtils::setColor(LIGHT_CYAN);
         cout << currentRole << endl;
         ColorUtils::resetColor();
         cout << "Press Enter to continue...";
         cin.get();
     } else {
-        ColorUtils::setColor(YELLOW);
+        ColorUtils::setColor(LIGHT_CYAN);
         cout << "\n❌ Invalid username or password!\n";
         ColorUtils::resetColor();
         cout << "Press Enter to continue...";
@@ -118,24 +143,19 @@ void Login::logout() {
 }
 
 void Login::displayTableHeader(const string& title) {
-    // Blue theme header with Yellow text on Blue background
-    ColorUtils::setColor(BLUE);
-    cout << "\n+----------------------------------------------------------------+" << endl;
-    cout << "|" << setw(60) << "" << "|" << endl;
-    ColorUtils::resetColor();
+    // Blue theme header matching new GUI style
+    const int SEPARATOR_LENGTH = 80;
     
-    // Highlighted title: Yellow text on Blue background
-    ColorUtils::setColor(WHITE);
-    cout << "|";
-    int padding = (60 - title.length()) / 2;
-    for (int i = 0; i < padding; i++) cout << " ";
-    ColorUtils::printColoredBG(title, YELLOW, BLUE);
-    for (int i = 0; i < (60 - title.length() - padding); i++) cout << " ";
-    ColorUtils::setColor(WHITE);
-    cout << "|" << endl;
-    
-    ColorUtils::setColor(BLUE);
-    cout << "|" << setw(60) << "" << "|" << endl;
-    cout << "+----------------------------------------------------------------+" << endl;
+    ColorUtils::setColor(LIGHT_BLUE);
+    for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
     ColorUtils::resetColor();
+    cout << endl;
+    
+    // Centered title with white text on blue background
+    MenuNavigator::displayTitle(title, SEPARATOR_LENGTH);
+    
+    ColorUtils::setColor(LIGHT_BLUE);
+    for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
+    ColorUtils::resetColor();
+    cout << endl;
 }

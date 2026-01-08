@@ -11,3 +11,8 @@ ADD COLUMN ic_number VARCHAR(20) UNIQUE NULL AFTER date_of_birth;
 -- with IC numbers and then set the column to NOT NULL if needed
 -- ALTER TABLE patient MODIFY COLUMN ic_number VARCHAR(20) UNIQUE NOT NULL;
 
+
+
+
+
+
