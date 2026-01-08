@@ -128,13 +128,21 @@ void Registration::registerDoctor() {
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
                 } else {
-                    // Check if IC number already exists in doctor table
-                    string checkICQuery = "SELECT formatted_id, full_name FROM doctor WHERE ic_number = '" + icNumber + "'";
+                    // Check if IC number already exists in ANY table (doctor, nurse, admin, patient)
+                    string checkICQuery = "SELECT 'Doctor' as user_type, formatted_id, full_name FROM doctor WHERE ic_number = '" + icNumber + "' "
+                                         "UNION ALL "
+                                         "SELECT 'Nurse' as user_type, formatted_id, full_name FROM nurse WHERE ic_number = '" + icNumber + "' "
+                                         "UNION ALL "
+                                         "SELECT 'Admin' as user_type, formatted_id, full_name FROM admin WHERE ic_number = '" + icNumber + "' "
+                                         "UNION ALL "
+                                         "SELECT 'Patient' as user_type, formatted_id, full_name FROM patient WHERE ic_number = '" + icNumber + "'";
                     sql::ResultSet* checkICRes = db->executeSelect(checkICQuery);
                     if (checkICRes && checkICRes->next()) {
-                        cout << "\n⚠️  Doctor already exists with this IC number!" << endl;
-                        cout << "Doctor ID: " << string(checkICRes->getString("formatted_id")) << endl;
-                        cout << "Doctor Name: " << checkICRes->getString("full_name") << endl;
+                        string userType = checkICRes->getString("user_type");
+                        cout << "\n⚠️  This IC number is already registered!" << endl;
+                        cout << "User Type: " << userType << endl;
+                        cout << userType << " ID: " << string(checkICRes->getString("formatted_id")) << endl;
+                        cout << userType << " Name: " << checkICRes->getString("full_name") << endl;
                         if (checkICRes) delete checkICRes;
                         pressEnterToContinue();
                         return;
@@ -419,13 +427,21 @@ void Registration::registerNurse() {
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Gender: " << gender << endl;
                 } else {
-                    // Check if IC number already exists in nurse table
-                    string checkICQuery = "SELECT formatted_id, full_name FROM nurse WHERE ic_number = '" + icNumber + "'";
+                    // Check if IC number already exists in ANY table (doctor, nurse, admin, patient)
+                    string checkICQuery = "SELECT 'Doctor' as user_type, formatted_id, full_name FROM doctor WHERE ic_number = '" + icNumber + "' "
+                                         "UNION ALL "
+                                         "SELECT 'Nurse' as user_type, formatted_id, full_name FROM nurse WHERE ic_number = '" + icNumber + "' "
+                                         "UNION ALL "
+                                         "SELECT 'Admin' as user_type, formatted_id, full_name FROM admin WHERE ic_number = '" + icNumber + "' "
+                                         "UNION ALL "
+                                         "SELECT 'Patient' as user_type, formatted_id, full_name FROM patient WHERE ic_number = '" + icNumber + "'";
                     sql::ResultSet* checkICRes = db->executeSelect(checkICQuery);
                     if (checkICRes && checkICRes->next()) {
-                        cout << "\n⚠️  Nurse already exists with this IC number!" << endl;
-                        cout << "Nurse ID: " << string(checkICRes->getString("formatted_id")) << endl;
-                        cout << "Nurse Name: " << checkICRes->getString("full_name") << endl;
+                        string userType = checkICRes->getString("user_type");
+                        cout << "\n⚠️  This IC number is already registered!" << endl;
+                        cout << "User Type: " << userType << endl;
+                        cout << userType << " ID: " << string(checkICRes->getString("formatted_id")) << endl;
+                        cout << userType << " Name: " << checkICRes->getString("full_name") << endl;
                         if (checkICRes) delete checkICRes;
                         pressEnterToContinue();
                         return;
@@ -670,13 +686,21 @@ void Registration::registerAdmin() {
                     cout << "\nEnter Full Name: " << fullName << endl;
                     cout << "Enter Email: " << email << endl;
                 } else {
-                    // Check if IC number already exists in admin table
-                    string checkICQuery = "SELECT formatted_id, full_name FROM admin WHERE ic_number = '" + icNumber + "'";
+                    // Check if IC number already exists in ANY table (doctor, nurse, admin, patient)
+                    string checkICQuery = "SELECT 'Doctor' as user_type, formatted_id, full_name FROM doctor WHERE ic_number = '" + icNumber + "' "
+                                         "UNION ALL "
+                                         "SELECT 'Nurse' as user_type, formatted_id, full_name FROM nurse WHERE ic_number = '" + icNumber + "' "
+                                         "UNION ALL "
+                                         "SELECT 'Admin' as user_type, formatted_id, full_name FROM admin WHERE ic_number = '" + icNumber + "' "
+                                         "UNION ALL "
+                                         "SELECT 'Patient' as user_type, formatted_id, full_name FROM patient WHERE ic_number = '" + icNumber + "'";
                     sql::ResultSet* checkICRes = db->executeSelect(checkICQuery);
                     if (checkICRes && checkICRes->next()) {
-                        cout << "\n⚠️  Admin already exists with this IC number!" << endl;
-                        cout << "Admin ID: " << getFormattedId(checkICRes, "formatted_id", "admin_id") << endl;
-                        cout << "Admin Name: " << checkICRes->getString("full_name") << endl;
+                        string userType = checkICRes->getString("user_type");
+                        cout << "\n⚠️  This IC number is already registered!" << endl;
+                        cout << "User Type: " << userType << endl;
+                        cout << userType << " ID: " << string(checkICRes->getString("formatted_id")) << endl;
+                        cout << userType << " Name: " << checkICRes->getString("full_name") << endl;
                         if (checkICRes) delete checkICRes;
                         pressEnterToContinue();
                         return;

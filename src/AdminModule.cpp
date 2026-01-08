@@ -497,14 +497,22 @@ void AdminModule::addPatient() {
                 continue;
             }
             
-            // Check if IC number already exists
-            string checkICQuery = "SELECT patient_id, formatted_id, full_name FROM patient WHERE ic_number = '" + icNumber + "'";
+            // Check if IC number already exists in ANY table (doctor, nurse, admin, patient)
+            string checkICQuery = "SELECT 'Doctor' as user_type, formatted_id, full_name FROM doctor WHERE ic_number = '" + icNumber + "' "
+                                 "UNION ALL "
+                                 "SELECT 'Nurse' as user_type, formatted_id, full_name FROM nurse WHERE ic_number = '" + icNumber + "' "
+                                 "UNION ALL "
+                                 "SELECT 'Admin' as user_type, formatted_id, full_name FROM admin WHERE ic_number = '" + icNumber + "' "
+                                 "UNION ALL "
+                                 "SELECT 'Patient' as user_type, formatted_id, full_name FROM patient WHERE ic_number = '" + icNumber + "'";
             sql::ResultSet* checkICRes = db->executeSelect(checkICQuery);
             
             if (checkICRes && checkICRes->next()) {
-                cout << "\n⚠️  Patient already exists with this IC number!" << endl;
-                cout << "Patient ID: " << getFormattedId(checkICRes, "formatted_id", "patient_id") << endl;
-                cout << "Patient Name: " << checkICRes->getString("full_name") << endl;
+                string userType = checkICRes->getString("user_type");
+                cout << "\n⚠️  This IC number is already registered!" << endl;
+                cout << "User Type: " << userType << endl;
+                cout << userType << " ID: " << string(checkICRes->getString("formatted_id")) << endl;
+                cout << userType << " Name: " << checkICRes->getString("full_name") << endl;
                 if (checkICRes) delete checkICRes;
                 pressEnterToContinue();
                 return;
