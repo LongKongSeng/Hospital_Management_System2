@@ -85,7 +85,7 @@ void AdminModule::displayPharmacyList() {
     displayTableHeader("PHARMACY - ALL MEDICATIONS");
 
     try {
-        string query = "SELECT pharmacy_id, medicine_name, category_of_meds, quantity, unit_price "
+        string query = "SELECT pharmacy_id, formatted_id, medicine_name, category_of_meds, quantity, unit_price "
                       "FROM pharmacy ORDER BY category_of_meds, medicine_name";
         sql::ResultSet* res = db->executeSelect(query);
         
@@ -121,7 +121,7 @@ void AdminModule::filterPharmacyByCategory() {
     string query;
     switch (choice) {
     case 1: {
-        query = "SELECT pharmacy_id, medicine_name, category_of_meds, quantity, unit_price "
+        query = "SELECT pharmacy_id, formatted_id, medicine_name, category_of_meds, quantity, unit_price "
                 "FROM pharmacy ORDER BY quantity DESC, category_of_meds";
         sql::ResultSet* res = db->executeSelect(query);
         if (res) {
@@ -134,7 +134,7 @@ void AdminModule::filterPharmacyByCategory() {
         break;
     }
     case 2: {
-        query = "SELECT pharmacy_id, medicine_name, category_of_meds, quantity, unit_price "
+        query = "SELECT pharmacy_id, formatted_id, medicine_name, category_of_meds, quantity, unit_price "
                 "FROM pharmacy ORDER BY quantity ASC, category_of_meds";
         sql::ResultSet* res = db->executeSelect(query);
         if (res) {
@@ -153,7 +153,7 @@ void AdminModule::filterPharmacyByCategory() {
             pressEnterToContinue();
             return;
         }
-        query = "SELECT pharmacy_id, medicine_name, category_of_meds, quantity, unit_price "
+        query = "SELECT pharmacy_id, formatted_id, medicine_name, category_of_meds, quantity, unit_price "
                 "FROM pharmacy WHERE category_of_meds LIKE '%" + category + "%' "
                 "ORDER BY medicine_name";
         sql::ResultSet* res = db->executeSelect(query);
@@ -496,12 +496,12 @@ void AdminModule::addPatient() {
             }
             
             // Check if IC number already exists
-            string checkICQuery = "SELECT patient_id, full_name FROM patient WHERE ic_number = '" + icNumber + "'";
+            string checkICQuery = "SELECT patient_id, formatted_id, full_name FROM patient WHERE ic_number = '" + icNumber + "'";
             sql::ResultSet* checkICRes = db->executeSelect(checkICQuery);
             
             if (checkICRes && checkICRes->next()) {
                 cout << "\n⚠️  Patient already exists with this IC number!" << endl;
-                cout << "Patient ID: " << checkICRes->getInt("patient_id") << endl;
+                cout << "Patient ID: " << (checkICRes->isNull("formatted_id") ? to_string(checkICRes->getInt("patient_id")) : checkICRes->getString("formatted_id")) << endl;
                 cout << "Patient Name: " << checkICRes->getString("full_name") << endl;
                 if (checkICRes) delete checkICRes;
                 pressEnterToContinue();
@@ -652,7 +652,7 @@ void AdminModule::addPatient() {
                 cout << "\n+----------------------------------------------------------------+" << endl;
                 cout << "|                    PATIENT DETAILS                             |" << endl;
                 cout << "+----------------------------------------------------------------+" << endl;
-                cout << "| Patient ID: " << left << setw(44) << res->getInt("patient_id") << "|" << endl;
+                cout << "| Patient ID: " << left << setw(44) << (res->isNull("formatted_id") ? to_string(res->getInt("patient_id")) : res->getString("formatted_id")) << "|" << endl;
                 cout << "| Full Name: " << left << setw(46) << res->getString("full_name") << "|" << endl;
                 cout << "| Gender: " << left << setw(49) << res->getString("gender") << "|" << endl;
                 cout << "| Date of Birth: " << left << setw(42) << res->getString("date_of_birth") << "|" << endl;
@@ -772,7 +772,7 @@ void AdminModule::displayReceipt(int patientId, double totalAmount) {
         delete patientRes;
 
         // Get treatment details
-        string treatmentQuery = "SELECT t.treatment_id, t.consultation_fee, t.treatment_fee, t.treatment_date, d.full_name as doctor_name "
+        string treatmentQuery = "SELECT t.treatment_id, t.formatted_id as treatment_formatted_id, t.consultation_fee, t.treatment_fee, t.treatment_date, d.full_name as doctor_name "
                               "FROM treatment t "
                               "JOIN medical_record mr ON t.doctor_id = mr.doctor_id "
                               "JOIN doctor d ON t.doctor_id = d.doctor_id "
@@ -785,7 +785,14 @@ void AdminModule::displayReceipt(int patientId, double totalAmount) {
         cout << "\n+----------------------------------------------------------------+" << endl;
         cout << "|                    HOSPITAL RECEIPT                            |" << endl;
         cout << "+----------------------------------------------------------------+" << endl;
-        cout << "| Patient ID: " << left << setw(45) << to_string(patientId) << "|" << endl;
+        string patientFormattedQuery = "SELECT formatted_id FROM patient WHERE patient_id = " + to_string(patientId);
+        sql::ResultSet* patientFormattedRes = db->executeSelect(patientFormattedQuery);
+        string patientFormattedId = to_string(patientId);
+        if (patientFormattedRes && patientFormattedRes->next()) {
+            patientFormattedId = patientFormattedRes->isNull("formatted_id") ? to_string(patientId) : patientFormattedRes->getString("formatted_id");
+        }
+        if (patientFormattedRes) delete patientFormattedRes;
+        cout << "| Patient ID: " << left << setw(45) << patientFormattedId << "|" << endl;
         cout << "| Patient Name: " << left << setw(43) << patientName << "|" << endl;
         cout << "| Contact Number: " << left << setw(42) << contactNumber << "|" << endl;
         cout << "| Date of Birth: " << left << setw(42) << dob << "|" << endl;
@@ -798,7 +805,7 @@ void AdminModule::displayReceipt(int patientId, double totalAmount) {
             cout << "+----------------------------------------------------------------+" << endl;
             
             while (treatmentRes->next()) {
-                cout << "| " << left << setw(5) << treatmentRes->getInt("treatment_id")
+                cout << "| " << left << setw(5) << (treatmentRes->isNull("treatment_formatted_id") ? to_string(treatmentRes->getInt("treatment_id")) : treatmentRes->getString("treatment_formatted_id"))
                      << " | " << setw(15) << treatmentRes->getString("doctor_name").substr(0, 15)
                      << " | RM " << setw(12) << fixed << setprecision(2) << treatmentRes->getDouble("consultation_fee")
                      << " | RM " << setw(12) << fixed << setprecision(2) << treatmentRes->getDouble("treatment_fee")
@@ -826,7 +833,7 @@ void AdminModule::displayPharmacyTable(sql::ResultSet* res) {
     cout << "+-------------┼----------------------┼----------------------┼----------┼-------------+" << endl;
     
     while (res->next()) {
-        cout << "| " << setw(11) << res->getInt("pharmacy_id")
+        cout << "| " << setw(11) << (res->isNull("formatted_id") ? to_string(res->getInt("pharmacy_id")) : res->getString("formatted_id"))
              << "| " << setw(20) << res->getString("medicine_name")
              << "| " << setw(20) << res->getString("category_of_meds")
              << "| " << setw(8) << res->getInt("quantity")

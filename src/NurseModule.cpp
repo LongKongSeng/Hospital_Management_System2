@@ -50,7 +50,7 @@ void NurseModule::viewPatientRecord() {
 
     try {
         // Display patient details
-        string patientQuery = "SELECT patient_id, full_name, gender, date_of_birth, contact_number, blood_type, emergency_contact, status "
+        string patientQuery = "SELECT patient_id, formatted_id, full_name, gender, date_of_birth, contact_number, blood_type, emergency_contact, status "
                              "FROM patient WHERE patient_id = " + to_string(patientId);
         sql::ResultSet* patientRes = db->executeSelect(patientQuery);
         
@@ -64,7 +64,7 @@ void NurseModule::viewPatientRecord() {
         cout << "\n+----------------------------------------------------------------+" << endl;
         cout << "|                    PATIENT INFORMATION                         |" << endl;
         cout << "+----------------------------------------------------------------+" << endl;
-        cout << "| Patient ID: " << left << setw(46) << patientRes->getInt("patient_id") << "|" << endl;
+        cout << "| Patient ID: " << left << setw(46) << (patientRes->isNull("formatted_id") ? to_string(patientRes->getInt("patient_id")) : patientRes->getString("formatted_id")) << "|" << endl;
         cout << "| Full Name: " << left << setw(46) << patientRes->getString("full_name") << "|" << endl;
         cout << "| Gender: " << left << setw(49) << patientRes->getString("gender") << "|" << endl;
         cout << "| Date of Birth: " << left << setw(42) << patientRes->getString("date_of_birth") << "|" << endl;
@@ -76,7 +76,7 @@ void NurseModule::viewPatientRecord() {
         delete patientRes;
 
         // Display medical records (Nurse can view but not edit)
-        string recordQuery = "SELECT mr.record_id, mr.date_of_record, d.disease, d.disorder, d.duration_of_pain, d.severity, mr.notes, doc.full_name as doctor_name "
+        string recordQuery = "SELECT mr.record_id, mr.formatted_id as record_formatted_id, mr.date_of_record, d.disease, d.disorder, d.duration_of_pain, d.severity, mr.notes, doc.full_name as doctor_name "
                             "FROM medical_record mr "
                             "LEFT JOIN diagnosis d ON mr.diagnosis_id = d.diagnosis_id "
                             "LEFT JOIN doctor doc ON mr.doctor_id = doc.doctor_id "
@@ -95,7 +95,7 @@ void NurseModule::viewPatientRecord() {
             cout << "+-------------┼--------------┼----------------------┼----------------------┼--------------┼--------------┼----------------------+" << endl;
             
             while (recordRes->next()) {
-                cout << "| " << setw(11) << recordRes->getInt("record_id")
+                cout << "| " << setw(11) << (recordRes->isNull("record_formatted_id") ? to_string(recordRes->getInt("record_id")) : recordRes->getString("record_formatted_id"))
                      << "| " << setw(12) << recordRes->getString("date_of_record")
                      << "| " << setw(20) << (recordRes->isNull("disease") ? "N/A" : recordRes->getString("disease"))
                      << "| " << setw(20) << (recordRes->isNull("disorder") ? "N/A" : recordRes->getString("disorder"))
@@ -110,7 +110,7 @@ void NurseModule::viewPatientRecord() {
         if (recordRes) delete recordRes;
 
         // Display appointments
-        string appointmentQuery = "SELECT a.appointment_id, a.appointment_date, a.appointment_time, a.status, p.full_name as patient_name "
+        string appointmentQuery = "SELECT a.appointment_id, a.formatted_id as appointment_formatted_id, a.appointment_date, a.appointment_time, a.status, p.full_name as patient_name "
                                  "FROM appointment a "
                                  "JOIN patient p ON a.patient_id = p.patient_id "
                                  "WHERE a.patient_id = " + to_string(patientId) + " "
@@ -163,7 +163,7 @@ void NurseModule::generateNextAppointment() {
     delete checkRes;
 
     // Get available doctors
-    string doctorQuery = "SELECT doctor_id, full_name, specialization FROM doctor WHERE status = 'Active' ORDER BY doctor_id";
+    string doctorQuery = "SELECT doctor_id, formatted_id, full_name, specialization FROM doctor WHERE status = 'Active' ORDER BY doctor_id";
     sql::ResultSet* doctorRes = db->executeSelect(doctorQuery);
     
     if (!doctorRes || doctorRes->rowsCount() == 0) {
@@ -183,7 +183,7 @@ void NurseModule::generateNextAppointment() {
     cout << "| Doctor ID | Full Name            | Specialization       |" << endl;
     cout << "+-----------+----------------------+----------------------+" << endl;
     while (doctorRes->next()) {
-        cout << "| " << setw(9) << doctorRes->getInt("doctor_id")
+        cout << "| " << setw(9) << (doctorRes->isNull("formatted_id") ? to_string(doctorRes->getInt("doctor_id")) : doctorRes->getString("formatted_id"))
              << "| " << setw(20) << doctorRes->getString("full_name")
              << "| " << setw(20) << doctorRes->getString("specialization") << "|" << endl;
     }
@@ -275,7 +275,7 @@ void NurseModule::displayPatientRecordTable(sql::ResultSet* res) {
     cout << "+-------------┼----------------------┼----------┼--------------┼--------------+" << endl;
     
     while (res->next()) {
-        cout << "| " << setw(11) << res->getInt("patient_id")
+        cout << "| " << setw(11) << (res->isNull("patient_formatted_id") ? to_string(res->getInt("patient_id")) : res->getString("patient_formatted_id"))
              << "| " << setw(20) << res->getString("full_name")
              << "| " << setw(8) << res->getString("gender")
              << "| " << setw(12) << res->getString("date_of_birth")
@@ -291,7 +291,7 @@ void NurseModule::displayAppointmentTable(sql::ResultSet* res) {
     cout << "+-----------------┼----------------------┼--------------┼--------------┼--------------+" << endl;
     
     while (res->next()) {
-        cout << "| " << setw(15) << res->getInt("appointment_id")
+        cout << "| " << setw(15) << (res->isNull("appointment_formatted_id") ? to_string(res->getInt("appointment_id")) : res->getString("appointment_formatted_id"))
              << "| " << setw(20) << res->getString("patient_name")
              << "| " << setw(12) << res->getString("appointment_date")
              << "| " << setw(12) << res->getString("appointment_time")
