@@ -1,60 +1,58 @@
 -- Migration Script: Add Formatted IDs to All Tables
 -- This script adds formatted_id columns and triggers to auto-generate IDs with prefixes
 -- Format: D001, A001, P001, N001, PH001, T001, AP001, PR001, DI001, MR001, F001, L001
+-- This script is idempotent - it can be run multiple times safely
 
 USE hospital_management_system;
 
 -- ============================================================================
--- STEP 1: Add formatted_id columns to all tables
+-- Helper procedure to add column only if it doesn't exist
+-- ============================================================================
+DELIMITER //
+DROP PROCEDURE IF EXISTS AddColumnIfNotExists//
+CREATE PROCEDURE AddColumnIfNotExists(
+    IN tableName VARCHAR(64),
+    IN columnName VARCHAR(64),
+    IN columnDefinition TEXT
+)
+BEGIN
+    DECLARE columnCount INT DEFAULT 0;
+    SET @dbname = DATABASE();
+    
+    SELECT COUNT(*) INTO columnCount
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = @dbname
+    AND TABLE_NAME = tableName
+    AND COLUMN_NAME = columnName;
+    
+    IF columnCount = 0 THEN
+        SET @sql = CONCAT('ALTER TABLE ', tableName, ' ADD COLUMN ', columnDefinition);
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+END//
+DELIMITER ;
+
+-- ============================================================================
+-- STEP 1: Add formatted_id columns to all tables (only if they don't exist)
 -- ============================================================================
 
--- Doctor Table
-ALTER TABLE doctor 
-ADD COLUMN formatted_id VARCHAR(20) UNIQUE NULL AFTER doctor_id;
+CALL AddColumnIfNotExists('doctor', 'formatted_id', 'formatted_id VARCHAR(20) UNIQUE NULL AFTER doctor_id');
+CALL AddColumnIfNotExists('admin', 'formatted_id', 'formatted_id VARCHAR(20) UNIQUE NULL AFTER admin_id');
+CALL AddColumnIfNotExists('patient', 'formatted_id', 'formatted_id VARCHAR(20) UNIQUE NULL AFTER patient_id');
+CALL AddColumnIfNotExists('nurse', 'formatted_id', 'formatted_id VARCHAR(20) UNIQUE NULL AFTER nurse_id');
+CALL AddColumnIfNotExists('pharmacy', 'formatted_id', 'formatted_id VARCHAR(20) UNIQUE NULL AFTER pharmacy_id');
+CALL AddColumnIfNotExists('treatment', 'formatted_id', 'formatted_id VARCHAR(20) UNIQUE NULL AFTER treatment_id');
+CALL AddColumnIfNotExists('appointment', 'formatted_id', 'formatted_id VARCHAR(20) UNIQUE NULL AFTER appointment_id');
+CALL AddColumnIfNotExists('prescription', 'formatted_id', 'formatted_id VARCHAR(20) UNIQUE NULL AFTER prescription_id');
+CALL AddColumnIfNotExists('diagnosis', 'formatted_id', 'formatted_id VARCHAR(20) UNIQUE NULL AFTER diagnosis_id');
+CALL AddColumnIfNotExists('medical_record', 'formatted_id', 'formatted_id VARCHAR(20) UNIQUE NULL AFTER record_id');
+CALL AddColumnIfNotExists('finance', 'formatted_id', 'formatted_id VARCHAR(20) UNIQUE NULL AFTER finance_id');
+CALL AddColumnIfNotExists('login', 'formatted_id', 'formatted_id VARCHAR(20) UNIQUE NULL AFTER login_id');
 
--- Admin Table
-ALTER TABLE admin 
-ADD COLUMN formatted_id VARCHAR(20) UNIQUE NULL AFTER admin_id;
-
--- Patient Table
-ALTER TABLE patient 
-ADD COLUMN formatted_id VARCHAR(20) UNIQUE NULL AFTER patient_id;
-
--- Nurse Table
-ALTER TABLE nurse 
-ADD COLUMN formatted_id VARCHAR(20) UNIQUE NULL AFTER nurse_id;
-
--- Pharmacy Table
-ALTER TABLE pharmacy 
-ADD COLUMN formatted_id VARCHAR(20) UNIQUE NULL AFTER pharmacy_id;
-
--- Treatment Table
-ALTER TABLE treatment 
-ADD COLUMN formatted_id VARCHAR(20) UNIQUE NULL AFTER treatment_id;
-
--- Appointment Table
-ALTER TABLE appointment 
-ADD COLUMN formatted_id VARCHAR(20) UNIQUE NULL AFTER appointment_id;
-
--- Prescription Table
-ALTER TABLE prescription 
-ADD COLUMN formatted_id VARCHAR(20) UNIQUE NULL AFTER prescription_id;
-
--- Diagnosis Table
-ALTER TABLE diagnosis 
-ADD COLUMN formatted_id VARCHAR(20) UNIQUE NULL AFTER diagnosis_id;
-
--- Medical Record Table
-ALTER TABLE medical_record 
-ADD COLUMN formatted_id VARCHAR(20) UNIQUE NULL AFTER record_id;
-
--- Finance Table
-ALTER TABLE finance 
-ADD COLUMN formatted_id VARCHAR(20) UNIQUE NULL AFTER finance_id;
-
--- Login Table
-ALTER TABLE login 
-ADD COLUMN formatted_id VARCHAR(20) UNIQUE NULL AFTER login_id;
+-- Clean up procedure
+DROP PROCEDURE IF EXISTS AddColumnIfNotExists;
 
 -- ============================================================================
 -- STEP 2: Drop existing triggers if they exist
@@ -243,72 +241,84 @@ DELIMITER ;
 SET @row_num = 0;
 UPDATE doctor 
 SET formatted_id = CONCAT('D', LPAD((@row_num := @row_num + 1), 3, '0'))
+WHERE formatted_id IS NULL OR formatted_id = ''
 ORDER BY doctor_id ASC;
 
 -- Backfill Admin formatted IDs (sequential: A001, A002, etc.)
 SET @row_num = 0;
 UPDATE admin 
 SET formatted_id = CONCAT('A', LPAD((@row_num := @row_num + 1), 3, '0'))
+WHERE formatted_id IS NULL OR formatted_id = ''
 ORDER BY admin_id ASC;
 
 -- Backfill Patient formatted IDs (sequential: P001, P002, etc.)
 SET @row_num = 0;
 UPDATE patient 
 SET formatted_id = CONCAT('P', LPAD((@row_num := @row_num + 1), 3, '0'))
+WHERE formatted_id IS NULL OR formatted_id = ''
 ORDER BY patient_id ASC;
 
 -- Backfill Nurse formatted IDs (sequential: N001, N002, etc.)
 SET @row_num = 0;
 UPDATE nurse 
 SET formatted_id = CONCAT('N', LPAD((@row_num := @row_num + 1), 3, '0'))
+WHERE formatted_id IS NULL OR formatted_id = ''
 ORDER BY nurse_id ASC;
 
 -- Backfill Pharmacy formatted IDs (sequential: PH001, PH002, etc.)
 SET @row_num = 0;
 UPDATE pharmacy 
 SET formatted_id = CONCAT('PH', LPAD((@row_num := @row_num + 1), 3, '0'))
+WHERE formatted_id IS NULL OR formatted_id = ''
 ORDER BY pharmacy_id ASC;
 
 -- Backfill Treatment formatted IDs (sequential: T001, T002, etc.)
 SET @row_num = 0;
 UPDATE treatment 
 SET formatted_id = CONCAT('T', LPAD((@row_num := @row_num + 1), 3, '0'))
+WHERE formatted_id IS NULL OR formatted_id = ''
 ORDER BY treatment_id ASC;
 
 -- Backfill Appointment formatted IDs (sequential: AP001, AP002, etc.)
 SET @row_num = 0;
 UPDATE appointment 
 SET formatted_id = CONCAT('AP', LPAD((@row_num := @row_num + 1), 3, '0'))
+WHERE formatted_id IS NULL OR formatted_id = ''
 ORDER BY appointment_id ASC;
 
 -- Backfill Prescription formatted IDs (sequential: PR001, PR002, etc.)
 SET @row_num = 0;
 UPDATE prescription 
 SET formatted_id = CONCAT('PR', LPAD((@row_num := @row_num + 1), 3, '0'))
+WHERE formatted_id IS NULL OR formatted_id = ''
 ORDER BY prescription_id ASC;
 
 -- Backfill Diagnosis formatted IDs (sequential: DI001, DI002, etc.)
 SET @row_num = 0;
 UPDATE diagnosis 
 SET formatted_id = CONCAT('DI', LPAD((@row_num := @row_num + 1), 3, '0'))
+WHERE formatted_id IS NULL OR formatted_id = ''
 ORDER BY diagnosis_id ASC;
 
 -- Backfill Medical Record formatted IDs (sequential: MR001, MR002, etc.)
 SET @row_num = 0;
 UPDATE medical_record 
 SET formatted_id = CONCAT('MR', LPAD((@row_num := @row_num + 1), 3, '0'))
+WHERE formatted_id IS NULL OR formatted_id = ''
 ORDER BY record_id ASC;
 
 -- Backfill Finance formatted IDs (sequential: F001, F002, etc.)
 SET @row_num = 0;
 UPDATE finance 
 SET formatted_id = CONCAT('F', LPAD((@row_num := @row_num + 1), 3, '0'))
+WHERE formatted_id IS NULL OR formatted_id = ''
 ORDER BY finance_id ASC;
 
 -- Backfill Login formatted IDs (sequential: L001, L002, etc.)
 SET @row_num = 0;
 UPDATE login 
 SET formatted_id = CONCAT('L', LPAD((@row_num := @row_num + 1), 3, '0'))
+WHERE formatted_id IS NULL OR formatted_id = ''
 ORDER BY login_id ASC;
 
 -- ============================================================================
@@ -332,4 +342,3 @@ ALTER TABLE login MODIFY COLUMN formatted_id VARCHAR(20) NOT NULL;
 -- Completion Message
 -- ============================================================================
 SELECT 'Formatted IDs migration completed successfully!' AS Status;
-
