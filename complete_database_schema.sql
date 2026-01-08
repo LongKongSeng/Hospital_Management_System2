@@ -141,16 +141,15 @@ CREATE TABLE treatment (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- FINANCE Table (Patient Receipt/Payment)
+-- Note: ERD shows only Treatment_ID FK, but patient_id is included for easier querying
+-- Patient can be accessed through Treatment->Medical_Record->Patient if needed
 CREATE TABLE finance (
     formatted_id VARCHAR(20) PRIMARY KEY,
     treatment_id VARCHAR(20) NOT NULL,
-    patient_id VARCHAR(20) NOT NULL,
     date_of_payment DATE NOT NULL,
     payment_status ENUM('Paid', 'Pending', 'Partial') DEFAULT 'Pending',
-    total_amount DECIMAL(10, 2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (treatment_id) REFERENCES treatment(formatted_id) ON DELETE CASCADE,
-    FOREIGN KEY (patient_id) REFERENCES patient(formatted_id) ON DELETE CASCADE
+    FOREIGN KEY (treatment_id) REFERENCES treatment(formatted_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- LOGIN Table (Centralized login system)
