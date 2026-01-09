@@ -55,9 +55,8 @@ void AdminModule::viewPharmacy() {
         displayTableHeader("VIEW PHARMACY");
         cout << "\n+----------------------------------------+" << endl;
         cout << "|  1. Display All Medications            |" << endl;
-        cout << "|  2. Filter by Category                |" << endl;
-        cout << "|  3. Display Graphical Report           |" << endl;
-        cout << "|  0. Back                              |" << endl;
+        cout << "|  2. Filter by Category                 |" << endl;
+        cout << "|  0. Back                               |" << endl;
         cout << "+----------------------------------------+" << endl;
         cout << "\nEnter your choice: ";
         cin >> choice;
@@ -69,9 +68,6 @@ void AdminModule::viewPharmacy() {
             break;
         case 2:
             filterPharmacyByCategory();
-            break;
-        case 3:
-            displayPharmacyGraphical();
             break;
         case 0:
             return;
@@ -87,14 +83,16 @@ void AdminModule::displayPharmacyList() {
     displayTableHeader("PHARMACY - ALL MEDICATIONS");
 
     try {
-        string query = "SELECT pharmacy_id, formatted_id, medicine_name, category_of_meds, quantity, unit_price "
-                      "FROM pharmacy ORDER BY category_of_meds, medicine_name";
+        // Removed 'quantity' from SELECT list
+        string query = "SELECT formatted_id, medicine_name, category_of_meds, unit_price "
+            "FROM pharmacy ORDER BY category_of_meds, medicine_name";
         sql::ResultSet* res = db->executeSelect(query);
-        
+
         if (res) {
             displayPharmacyTable(res);
             delete res;
-        } else {
+        }
+        else {
             cout << "\n[ERROR] Failed to retrieve pharmacy data!" << endl;
         }
     }
@@ -106,79 +104,84 @@ void AdminModule::displayPharmacyList() {
 }
 
 void AdminModule::filterPharmacyByCategory() {
-    system("cls");
-    displayTableHeader("FILTER PHARMACY BY CATEGORY");
-
     int choice;
-    cout << "\n+----------------------------------------+" << endl;
-    cout << "|  1. Maximum (DESC by quantity)         |" << endl;
-    cout << "|  2. Minimum (ASC by quantity)          |" << endl;
-    cout << "|  3. Select Specific Category           |" << endl;
-    cout << "|  0. Back                              |" << endl;
-    cout << "+----------------------------------------+" << endl;
-    cout << "\nEnter your choice: ";
-    cin >> choice;
-    cin.ignore();
+    do {
+        system("cls");
+        displayTableHeader("FILTER PHARMACY BY CATEGORY");
 
-    string query;
-    switch (choice) {
-    case 1: {
-        query = "SELECT pharmacy_id, formatted_id, medicine_name, category_of_meds, quantity, unit_price "
-                "FROM pharmacy ORDER BY quantity DESC, category_of_meds";
-        sql::ResultSet* res = db->executeSelect(query);
-        if (res) {
-            cout << "\n+----------------------------------------------------------------+" << endl;
-            cout << "|          PHARMACY - SORTED BY MAXIMUM QUANTITY (DESC)            |" << endl;
-            cout << "+----------------------------------------------------------------+" << endl;
-            displayPharmacyTable(res);
-            delete res;
-        }
-        break;
-    }
-    case 2: {
-        query = "SELECT pharmacy_id, formatted_id, medicine_name, category_of_meds, quantity, unit_price "
-                "FROM pharmacy ORDER BY quantity ASC, category_of_meds";
-        sql::ResultSet* res = db->executeSelect(query);
-        if (res) {
-            cout << "\n+----------------------------------------------------------------+" << endl;
-            cout << "|          PHARMACY - SORTED BY MINIMUM QUANTITY (ASC)            |" << endl;
-            cout << "+----------------------------------------------------------------+" << endl;
-            displayPharmacyTable(res);
-            delete res;
-        }
-        break;
-    }
-    case 3: {
-        string category = getStringInput("Enter Category name to search: ");
-        if (category.empty()) {
-            cout << "\n[ERROR] Category name cannot be empty!" << endl;
+        cout << "\n+----------------------------------------+" << endl;
+        cout << "|  1. Search Specific Category           |" << endl;
+        cout << "|  0. Back                               |" << endl;
+        cout << "+----------------------------------------+" << endl;
+
+        // OPTIMIZATION: Use getIntInput to prevent buffer glitches
+        choice = getIntInput("\nEnter your choice: ");
+
+        if (choice == -1) {
+            ColorUtils::setColor(LIGHT_RED);
+            cout << "\n[ERROR] Invalid input! Please enter a number." << endl;
+            ColorUtils::resetColor();
             pressEnterToContinue();
-            return;
+            continue;
         }
-        query = "SELECT pharmacy_id, formatted_id, medicine_name, category_of_meds, quantity, unit_price "
+
+        string query;
+        switch (choice) {
+        case 1: {
+            // OPTIMIZATION: Check for empty input to prevent empty searches
+            string category = getStringInput("Enter Category name to search: ");
+
+            // Trim whitespace (optional but recommended)
+            size_t first = category.find_first_not_of(' ');
+            if (string::npos == first) {
+                category = "";
+            }
+            else {
+                size_t last = category.find_last_not_of(' ');
+                category = category.substr(first, (last - first + 1));
+            }
+
+            if (category.empty()) {
+                ColorUtils::setColor(LIGHT_RED);
+                cout << "\n[ERROR] Category name cannot be empty!" << endl;
+                ColorUtils::resetColor();
+                pressEnterToContinue();
+                break; // Don't return, just break to loop again
+            }
+
+            // Using unit_price since quantity was removed
+            query = "SELECT formatted_id, medicine_name, category_of_meds, unit_price "
                 "FROM pharmacy WHERE category_of_meds LIKE '%" + category + "%' "
                 "ORDER BY medicine_name";
-        sql::ResultSet* res = db->executeSelect(query);
-        if (res) {
-            cout << "\n+----------------------------------------------------------------+" << endl;
-            cout << "|          PHARMACY - CATEGORY: " << left << setw(30) << category << "|" << endl;
-            cout << "+----------------------------------------------------------------+" << endl;
-            if (res->rowsCount() == 0) {
-                cout << "\n⚠️  No medications found in this category!" << endl;
-            } else {
-                displayPharmacyTable(res);
-            }
-            delete res;
-        }
-        break;
-    }
-    case 0:
-        return;
-    default:
-        cout << "\n[ERROR] Invalid choice!" << endl;
-    }
 
-    pressEnterToContinue();
+            sql::ResultSet* res = db->executeSelect(query);
+            if (res) {
+                cout << "\n+----------------------------------------------------------------+" << endl;
+                cout << "|          PHARMACY - CATEGORY: " << left << setw(30) << category << "|" << endl;
+                cout << "+----------------------------------------------------------------+" << endl;
+
+                if (res->rowsCount() == 0) {
+                    ColorUtils::setColor(YELLOW);
+                    cout << "\n⚠️  No medications found in this category!" << endl;
+                    ColorUtils::resetColor();
+                }
+                else {
+                    displayPharmacyTable(res);
+                }
+                delete res;
+            }
+            pressEnterToContinue(); // Pause so user can see results
+            break;
+        }
+        case 0:
+            return;
+        default:
+            ColorUtils::setColor(LIGHT_RED);
+            cout << "\n[ERROR] Invalid choice! Please try again." << endl;
+            ColorUtils::resetColor();
+            pressEnterToContinue();
+        }
+    } while (choice != 0);
 }
 
 void AdminModule::displayPharmacyGraphical() {
@@ -364,85 +367,84 @@ void AdminModule::generateYearlyReport() {
 }
 
 void AdminModule::generateHospitalReport() {
-    system("cls");
-    displayTableHeader("GENERATE HOSPITAL REPORT");
-
     int choice;
-    cout << "\n+----------------------------------------+" << endl;
-    cout << "|  1. Filter Category                    |" << endl;
-    cout << "|  2. Display Graph                      |" << endl;
-    cout << "|  3. Exit Report Generation             |" << endl;
-    cout << "+----------------------------------------+" << endl;
-    cout << "\nEnter your choice: ";
-    cin >> choice;
-    cin.ignore();
+    do {
+        system("cls");
+        displayTableHeader("GENERATE HOSPITAL REPORT");
 
-    switch (choice) {
-    case 1:
-        filterPharmacyByCategory();
-        break;
-    case 2:
-        displayGraphicalReport();
-        break;
-    case 3:
-        cout << "\nExiting Report Generation..." << endl;
-        pressEnterToContinue();
-        return;
-    default:
-        cout << "\n[ERROR] Invalid choice! Try again." << endl;
-        pressEnterToContinue();
-    }
+        cout << "\n+----------------------------------------+" << endl;
+        cout << "|  1. Monthly Medication Report          |" << endl;
+        cout << "|  2. Yearly Medication Report           |" << endl;
+        cout << "|  3. Category Overview Graph            |" << endl;
+        cout << "|  0. Back                               |" << endl;
+        cout << "+----------------------------------------+" << endl;
+        cout << "\nEnter your choice: ";
+        cin >> choice;
+        cin.ignore();
+
+        switch (choice) {
+        case 1:
+            generateMonthlyReport(); // Moved from Pharmacy menu
+            break;
+        case 2:
+            generateYearlyReport(); // Moved from Pharmacy menu
+            break;
+        case 3:
+            displayGraphicalReport(); // Existing Category Graph
+            break;
+        case 0:
+            return;
+        default:
+            cout << "\n[ERROR] Invalid choice! Try again." << endl;
+            pressEnterToContinue();
+        }
+    } while (choice != 0);
 }
 
 void AdminModule::displayGraphicalReport() {
     system("cls");
     displayTableHeader("GRAPHICAL HOSPITAL REPORT");
 
-    // This will show medication prescribed in given timeline
-    // Using complex aggregation and grouping
     try {
+        // Removed SUM(ph.quantity)
         string query = "SELECT ph.category_of_meds, "
-                      "COUNT(p.prescription_id) as total_prescriptions, "
-                      "SUM(ph.quantity) as total_quantity, "
-                      "AVG(ph.unit_price) as avg_price "
-                      "FROM prescription p "
-                      "JOIN pharmacy ph ON p.pharmacy_id = ph.pharmacy_id "
-                      "GROUP BY ph.category_of_meds "
-                      "ORDER BY total_prescriptions DESC";
+            "COUNT(p.prescription_id) as total_prescriptions, "
+            "AVG(ph.unit_price) as avg_price "
+            "FROM prescription p "
+            "JOIN pharmacy ph ON p.pharmacy_id = ph.formatted_id " //Fixed join condition for formatted_id
+            "GROUP BY ph.category_of_meds "
+            "ORDER BY total_prescriptions DESC";
 
         sql::ResultSet* res = db->executeSelect(query);
-        
+
         if (res) {
-            cout << "\n+----------------------+----------------------+----------------------+------------------+" << endl;
+            // Removed Total Quantity column from header
+            cout << "\n+----------------------+----------------------+------------------+" << endl;
             cout << "| " << left << setw(20) << "Category"
-                 << "| " << right << setw(20) << "Total Prescriptions"
-                 << "| " << right << setw(20) << "Total Quantity"
-                 << "| " << right << setw(16) << "Average Price" << " |" << endl;
-            cout << "+----------------------+----------------------+----------------------+------------------+" << endl;
-            
+                << "| " << right << setw(20) << "Total Prescriptions"
+                << "| " << right << setw(16) << "Average Price" << " |" << endl;
+            cout << "+----------------------+----------------------+------------------+" << endl;
+
             double maxPrescriptions = 0;
             vector<pair<string, int>> chartData;
-            
+
             while (res->next()) {
                 string category = string(res->getString("category_of_meds"));
                 int prescriptions = res->getInt("total_prescriptions");
-                int totalQuantity = res->getInt("total_quantity");
                 double avgPrice = res->getDouble("avg_price");
-                
-                chartData.push_back({category, prescriptions});
+
+                chartData.push_back({ category, prescriptions });
                 if (prescriptions > maxPrescriptions) maxPrescriptions = prescriptions;
-                
-                // Truncate long text to fit column width
+
                 if (category.length() > 20) category = category.substr(0, 17) + "...";
-                
+
+                // Removed totalQuantity output
                 cout << "| " << left << setw(20) << category
-                     << "| " << right << setw(20) << prescriptions
-                     << "| " << right << setw(20) << totalQuantity
-                     << "| RM " << right << setw(12) << fixed << setprecision(2) << avgPrice << " |" << endl;
+                    << "| " << right << setw(20) << prescriptions
+                    << "| RM " << right << setw(12) << fixed << setprecision(2) << avgPrice << " |" << endl;
             }
-            cout << "+----------------------+----------------------+----------------------+------------------+" << endl;
-            
-            // Display bar chart
+            cout << "+----------------------+----------------------+------------------+" << endl;
+
             cout << "\n\nGRAPHICAL CHART (Amount of Medication Prescribed):\n" << endl;
             for (const auto& item : chartData) {
                 int barLength = maxPrescriptions > 0 ? (int)((item.second / maxPrescriptions) * 50) : 0;
@@ -450,9 +452,10 @@ void AdminModule::displayGraphicalReport() {
                 for (int i = 0; i < barLength; i++) cout << "█";
                 cout << " " << item.second << " prescriptions" << endl;
             }
-            
+
             delete res;
-        } else {
+        }
+        else {
             cout << "\n⚠️  No data found!" << endl;
         }
     }
@@ -880,33 +883,32 @@ void AdminModule::displayReceipt(const string& patientId, double totalAmount) {
 }
 
 void AdminModule::displayPharmacyTable(sql::ResultSet* res) {
-    cout << "\n+-------------+----------------------+----------------------+----------+-------------+" << endl;
+    // Adjusted widths since Quantity column is removed
+    cout << "\n+-------------+----------------------+----------------------+-------------+" << endl;
     cout << "| " << left << setw(11) << "Pharmacy ID"
-         << "| " << left << setw(20) << "Medicine Name"
-         << "| " << left << setw(20) << "Category"
-         << "| " << right << setw(8) << "Quantity"
-         << "| " << right << setw(11) << "Unit Price" << " |" << endl;
-    cout << "+-------------+----------------------+----------------------+----------+-------------+" << endl;
-    
+        << "| " << left << setw(20) << "Medicine Name"
+        << "| " << left << setw(20) << "Category"
+        << "| " << right << setw(11) << "Unit Price" << " |" << endl;
+    cout << "+-------------+----------------------+----------------------+-------------+" << endl;
+
     while (res->next()) {
         string pharmacyId = string(res->getString("formatted_id"));
         string medicineName = string(res->getString("medicine_name"));
         string category = string(res->getString("category_of_meds"));
-        int quantity = res->getInt("quantity");
+        // Removed quantity retrieval
         double unitPrice = res->getDouble("unit_price");
-        
+
         // Truncate long names to fit column width
         if (medicineName.length() > 20) medicineName = medicineName.substr(0, 17) + "...";
         if (category.length() > 20) category = category.substr(0, 17) + "...";
-        
+
         cout << "| " << left << setw(11) << pharmacyId
-             << "| " << left << setw(20) << medicineName
-             << "| " << left << setw(20) << category
-             << "| " << right << setw(8) << quantity
-             << "| " << right << setw(9) << fixed << setprecision(2) << unitPrice << " |" << endl;
+            << "| " << left << setw(20) << medicineName
+            << "| " << left << setw(20) << category
+            << "| " << right << setw(9) << fixed << setprecision(2) << unitPrice << " |" << endl;
     }
-    
-    cout << "+-------------+----------------------+----------------------+----------+-------------+" << endl;
+
+    cout << "+-------------+----------------------+----------------------+-------------+" << endl;
 }
 
 void AdminModule::displayTableHeader(const string& title) {
