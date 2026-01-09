@@ -33,6 +33,10 @@ public:
     void generateFinancialReport();
     void generateLowStockReport();
     void generateExpiringItemsReport();
+
+    void generateMonthlyPrescriptionReport(); // Monthly breakdown
+    void generateYearlyPrescriptionReport();  // Yearly breakdown
+    void displayPrescriptionTrendChart();     // Graphical chart
     
     // Text-based Charts and Graphs
     void displayInventoryValueChart();
