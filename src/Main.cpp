@@ -14,32 +14,29 @@
 using namespace std;
 
 int main() {
-    // Set console to support UTF-8 characters
+    // Set console to support UTF-8 characters (for box drawing)
     SetConsoleOutputCP(65001);
-    
+
     Database db;
-    
+
     if (!db.connect()) {
         ColorUtils::setColor(LIGHT_CYAN);
         cout << "\n[ERROR] Failed to connect to database!" << endl;
         ColorUtils::setColor(WHITE);
-        cout << "Please ensure:" << endl;
-        cout << "1. XAMPP MySQL is running" << endl;
-        cout << "2. Database 'hospital_management_system' exists" << endl;
-        cout << "3. Run database_schema.sql to create tables" << endl;
-        ColorUtils::setColor(LIGHT_CYAN);
+        cout << "Please ensure XAMPP MySQL is running and database exists." << endl;
         cout << "\nPress Enter to exit...";
-        ColorUtils::resetColor();
         cin.get();
         return 1;
     }
 
+    // Initialize Modules
     Registration registration(&db);
     Login login(&db);
+
+    // Pointers for user-specific modules (created upon login)
     AdminModule* adminModule = nullptr;
     DoctorModule* doctorModule = nullptr;
     NurseModule* nurseModule = nullptr;
-    Reports reports(&db);
 
     int mainChoice = -1;
     bool loggedIn = false;
@@ -49,15 +46,19 @@ int main() {
             vector<string> mainMenuOptions = {
                 "Registration",
                 "Login",
-                "Exit"
+                "Exit Application"
             };
-            
-            int selected = MenuNavigator::showMenu(mainMenuOptions, "HOSPITAL MANAGEMENT SYSTEM", false);
-            
-            if (selected == -1) {
-                mainChoice = 2; // Exit
-            } else {
-                mainChoice = selected;
+
+            // UPDATED: Using Arrow Key Navigation
+            mainChoice = MenuNavigator::showMenu(mainMenuOptions, "HOSPITAL MANAGEMENT SYSTEM", false);
+
+            // Handle ESC key or Exit selection
+            if (mainChoice == -1 || mainChoice == 2) {
+                mainChoice = 2; // Ensure loop terminates
+                ColorUtils::setColor(LIGHT_CYAN);
+                cout << "\nThank you for using Hospital Management System!" << endl;
+                ColorUtils::resetColor();
+                break;
             }
 
             switch (mainChoice) {
@@ -66,70 +67,49 @@ int main() {
                 break;
             case 1: // Login
                 login.showLoginMenu();
-                if (!login.getCurrentUserId().empty()) {  // Check if formatted_id string is not empty
+                if (!login.getCurrentUserId().empty()) {
                     loggedIn = true;
                 }
                 break;
-            case 2: // Exit
-                ColorUtils::setColor(LIGHT_CYAN);
-                cout << "\nThank you for using Hospital Management System!" << endl;
-                ColorUtils::resetColor();
-                break;
-            }
-        } else {
-            // User is logged in - route to appropriate module based on role
-            string role = login.getCurrentRole();
-            string userId = login.getCurrentUserId();  // Now returns formatted_id string
-            
-            if (role == "Admin") {
-                if (!adminModule) {
-                    adminModule = new AdminModule(&db);
-                }
-                adminModule->showMenu();
-                
-                // After admin module returns, logout
-                login.logout();
-                loggedIn = false;
-                delete adminModule;
-                adminModule = nullptr;
-                
-            } else if (role == "Doctor") {
-                if (!doctorModule) {
-                    doctorModule = new DoctorModule(&db, userId);  // userId is now formatted_id string
-                }
-                doctorModule->showMenu();
-                
-                // After doctor module returns, logout
-                login.logout();
-                loggedIn = false;
-                delete doctorModule;
-                doctorModule = nullptr;
-                
-            } else if (role == "Nurse") {
-                if (!nurseModule) {
-                    nurseModule = new NurseModule(&db, userId);  // userId is now formatted_id string
-                }
-                nurseModule->showMenu();
-                
-                // After nurse module returns, logout
-                login.logout();
-                loggedIn = false;
-                delete nurseModule;
-                nurseModule = nullptr;
-            } else {
-                ColorUtils::setColor(LIGHT_CYAN);
-                cout << "\n[ERROR] Unknown role! Logging out..." << endl;
-                ColorUtils::resetColor();
-                login.logout();
-                loggedIn = false;
             }
         }
-    } while (mainChoice != 2); // Exit is now index 2
+        else {
+            // User is logged in - route to appropriate module
+            string role = login.getCurrentRole();
+            string userId = login.getCurrentUserId();
 
-    // Cleanup
-    if (adminModule) delete adminModule;
-    if (doctorModule) delete doctorModule;
-    if (nurseModule) delete nurseModule;
+            if (role == "Admin") {
+                if (!adminModule) adminModule = new AdminModule(&db);
+                adminModule->showMenu();
+
+                // Cleanup after logout
+                delete adminModule;
+                adminModule = nullptr;
+
+            }
+            else if (role == "Doctor") {
+                if (!doctorModule) doctorModule = new DoctorModule(&db, userId);
+                doctorModule->showMenu();
+
+                // Cleanup after logout
+                delete doctorModule;
+                doctorModule = nullptr;
+
+            }
+            else if (role == "Nurse") {
+                if (!nurseModule) nurseModule = new NurseModule(&db, userId);
+                nurseModule->showMenu();
+
+                // Cleanup after logout
+                delete nurseModule;
+                nurseModule = nullptr;
+            }
+
+            // Perform Logout logic
+            login.logout();
+            loggedIn = false;
+        }
+    } while (mainChoice != 2);
 
     db.disconnect();
     return 0;
