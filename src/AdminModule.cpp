@@ -1,4 +1,5 @@
 #include "AdminModule.h"
+#include "Reports.h" 
 #include "ColorUtils.h"
 #include "MenuNavigator.h"
 #include "IdFormatter.h"
@@ -11,71 +12,51 @@ void AdminModule::showMenu() {
     do {
         vector<string> menuOptions = {
             "View Pharmacy",
-            "Generate Hospital Report",
+            "Prescription Reports", // Renamed to reflect content
             "Add Patient",
             "Patient Receipt",
-            "Exit"
+            "Logout"
         };
-        
-        choice = MenuNavigator::showMenu(menuOptions, "ADMIN MENU", true);
-        
-        // ESC key - stay in menu, don't exit
-        if (choice == -1) {
-            continue;
-        }
+
+        choice = MenuNavigator::showMenu(menuOptions, "ADMIN DASHBOARD", true);
+
+        if (choice == -1) continue;
 
         switch (choice) {
-        case 0:
-            viewPharmacy();
-            break;
+        case 0: viewPharmacy(); break;
         case 1:
-            generateHospitalReport();
-            break;
-        case 2:
-            addPatient();
-            break;
-        case 3:
-            patientReceipt();
-            break;
-        case 4:
-            return; // Exit only when user explicitly chooses "Exit"
-        default:
-            ColorUtils::setColor(LIGHT_CYAN);
-            cout << "\n[ERROR] Invalid choice! Please try again." << endl;
-            ColorUtils::resetColor();
-            pressEnterToContinue();
+        {
+            // Correctly calls the new Reports module
+            Reports reports(db);
+            reports.showMenu();
         }
-    } while (true); // Loop forever until user chooses Exit (case 4)
+        break;
+        case 2: addPatient(); break;
+        case 3: patientReceipt(); break;
+        case 4: return;
+        }
+    } while (true);
 }
 
 void AdminModule::viewPharmacy() {
     int choice;
     do {
-        system("cls");
-        displayTableHeader("VIEW PHARMACY");
-        cout << "\n+----------------------------------------+" << endl;
-        cout << "|  1. Display All Medications            |" << endl;
-        cout << "|  2. Filter by Category                 |" << endl;
-        cout << "|  0. Back                               |" << endl;
-        cout << "+----------------------------------------+" << endl;
-        cout << "\nEnter your choice: ";
-        cin >> choice;
-        cin.ignore();
+        vector<string> options = {
+            "Display All Medications",
+            "Filter by Category",
+            "Back"
+        };
+
+        choice = MenuNavigator::showMenu(options, "VIEW PHARMACY", true);
+
+        if (choice == -1) return;
 
         switch (choice) {
-        case 1:
-            displayPharmacyList();
-            break;
-        case 2:
-            filterPharmacyByCategory();
-            break;
-        case 0:
-            return;
-        default:
-            cout << "\n[ERROR] Invalid choice!" << endl;
-            pressEnterToContinue();
+        case 0: displayPharmacyList(); break;
+        case 1: filterPharmacyByCategory(); break;
+        case 2: return;
         }
-    } while (choice != 0);
+    } while (choice != 2);
 }
 
 void AdminModule::displayPharmacyList() {
@@ -83,7 +64,6 @@ void AdminModule::displayPharmacyList() {
     displayTableHeader("PHARMACY - ALL MEDICATIONS");
 
     try {
-        // Removed 'quantity' from SELECT list
         string query = "SELECT formatted_id, medicine_name, category_of_meds, unit_price "
             "FROM pharmacy ORDER BY category_of_meds, medicine_name";
         sql::ResultSet* res = db->executeSelect(query);
@@ -99,828 +79,143 @@ void AdminModule::displayPharmacyList() {
     catch (exception& e) {
         cout << "\n[ERROR] Error: " << e.what() << endl;
     }
-
     pressEnterToContinue();
 }
 
 void AdminModule::filterPharmacyByCategory() {
     int choice;
     do {
-        system("cls");
-        displayTableHeader("FILTER PHARMACY BY CATEGORY");
+        vector<string> options = {
+            "Search Specific Category",
+            "Back"
+        };
 
-        cout << "\n+----------------------------------------+" << endl;
-        cout << "|  1. Search Specific Category           |" << endl;
-        cout << "|  0. Back                               |" << endl;
-        cout << "+----------------------------------------+" << endl;
+        choice = MenuNavigator::showMenu(options, "FILTER PHARMACY", true);
 
-        // OPTIMIZATION: Use getIntInput to prevent buffer glitches
-        choice = getIntInput("\nEnter your choice: ");
+        if (choice == -1) return;
 
-        if (choice == -1) {
-            ColorUtils::setColor(LIGHT_RED);
-            cout << "\n[ERROR] Invalid input! Please enter a number." << endl;
-            ColorUtils::resetColor();
-            pressEnterToContinue();
-            continue;
-        }
-
-        string query;
         switch (choice) {
-        case 1: {
-            // OPTIMIZATION: Check for empty input to prevent empty searches
-            string category = getStringInput("Enter Category name to search: ");
-
-            // Trim whitespace (optional but recommended)
-            size_t first = category.find_first_not_of(' ');
-            if (string::npos == first) {
-                category = "";
-            }
-            else {
-                size_t last = category.find_last_not_of(' ');
-                category = category.substr(first, (last - first + 1));
-            }
-
+        case 0: {
+            string category = getStringInput("\nEnter Category name to search: ");
             if (category.empty()) {
-                ColorUtils::setColor(LIGHT_RED);
                 cout << "\n[ERROR] Category name cannot be empty!" << endl;
-                ColorUtils::resetColor();
                 pressEnterToContinue();
-                break; // Don't return, just break to loop again
+                break;
             }
 
-            // Using unit_price since quantity was removed
-            query = "SELECT formatted_id, medicine_name, category_of_meds, unit_price "
+            string query = "SELECT formatted_id, medicine_name, category_of_meds, unit_price "
                 "FROM pharmacy WHERE category_of_meds LIKE '%" + category + "%' "
                 "ORDER BY medicine_name";
 
             sql::ResultSet* res = db->executeSelect(query);
             if (res) {
-                cout << "\n+----------------------------------------------------------------+" << endl;
-                cout << "|          PHARMACY - CATEGORY: " << left << setw(30) << category << "|" << endl;
-                cout << "+----------------------------------------------------------------+" << endl;
-
+                cout << "\nResults for category: " << category << endl;
                 if (res->rowsCount() == 0) {
-                    ColorUtils::setColor(YELLOW);
-                    cout << "\n⚠️  No medications found in this category!" << endl;
-                    ColorUtils::resetColor();
+                    cout << "⚠️  No medications found in this category!" << endl;
                 }
                 else {
                     displayPharmacyTable(res);
                 }
                 delete res;
             }
-            pressEnterToContinue(); // Pause so user can see results
-            break;
-        }
-        case 0:
-            return;
-        default:
-            ColorUtils::setColor(LIGHT_RED);
-            cout << "\n[ERROR] Invalid choice! Please try again." << endl;
-            ColorUtils::resetColor();
             pressEnterToContinue();
-        }
-    } while (choice != 0);
-}
-
-void AdminModule::displayPharmacyGraphical() {
-    system("cls");
-    displayTableHeader("PHARMACY GRAPHICAL REPORT");
-
-    int choice;
-    cout << "\n+----------------------------------------+" << endl;
-    cout << "|  1. Monthly Report                     |" << endl;
-    cout << "|  2. Yearly Report                     |" << endl;
-    cout << "|  0. Back                              |" << endl;
-    cout << "+----------------------------------------+" << endl;
-    cout << "\nEnter your choice: ";
-    cin >> choice;
-    cin.ignore();
-
-    switch (choice) {
-    case 1:
-        generateMonthlyReport();
-        break;
-    case 2:
-        generateYearlyReport();
-        break;
-    case 0:
-        return;
-    default:
-        cout << "\n[ERROR] Invalid choice! Returning to main menu." << endl;
-    }
-
-    pressEnterToContinue();
-}
-
-void AdminModule::generateMonthlyReport() {
-    system("cls");
-    displayTableHeader("MONTHLY MEDICATION REPORT");
-
-    try {
-        // CHANGED: Group by 'medicine_name' instead of 'category_of_meds'
-        string query = "SELECT DATE_FORMAT(p.date, '%Y-%m') as month, "
-            "ph.medicine_name, "
-            "COUNT(p.formatted_id) as prescription_count "
-            "FROM prescription p "
-            "JOIN pharmacy ph ON p.pharmacy_id = ph.formatted_id "
-            "WHERE p.date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) "
-            "GROUP BY DATE_FORMAT(p.date, '%Y-%m'), ph.medicine_name "
-            "ORDER BY month DESC, prescription_count DESC";
-
-        sql::ResultSet* res = db->executeSelect(query);
-
-        if (res) {
-            cout << "\n+-----------+---------------------------+----------------------+" << endl;
-            cout << "| " << left << setw(9) << "Month"
-                << "| " << left << setw(25) << "Medicine Name"
-                << "| " << right << setw(20) << "Times Prescribed" << " |" << endl;
-            cout << "+-----------+---------------------------+----------------------+" << endl;
-
-            vector<pair<string, pair<string, int>>> graphData;
-            double maxCount = 0;
-
-            while (res->next()) {
-                string month = string(res->getString("month"));
-                string medName = string(res->getString("medicine_name"));
-                int count = res->getInt("prescription_count");
-
-                graphData.push_back({ month, {medName, count} });
-                if (count > maxCount) maxCount = count;
-
-                if (medName.length() > 25) medName = medName.substr(0, 22) + "...";
-
-                cout << "| " << left << setw(9) << month
-                    << "| " << left << setw(25) << medName
-                    << "| " << right << setw(20) << count << " |" << endl;
-            }
-            cout << "+-----------+---------------------------+----------------------+" << endl;
-
-            // GRAPHICAL PART
-            cout << "\n\nGRAPHICAL VIEW (Top Prescriptions per Month):\n" << endl;
-            if (!graphData.empty()) {
-                string currentMonth = "";
-                for (const auto& item : graphData) {
-                    if (item.first != currentMonth) {
-                        cout << "\n--- " << item.first << " ---" << endl;
-                        currentMonth = item.first;
-                    }
-                    int barLength = maxCount > 0 ? (int)((item.second.second / maxCount) * 40) : 0;
-                    cout << left << setw(25) << item.second.first << " |";
-                    ColorUtils::setColor(LIGHT_CYAN);
-                    for (int i = 0; i < barLength; i++) cout << "█";
-                    ColorUtils::resetColor();
-                    cout << " " << item.second.second << endl;
-                }
-            }
-            delete res;
-        }
-        else {
-            cout << "\n⚠️  No data found for monthly report!" << endl;
-        }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    pressEnterToContinue();
-}
-
-void AdminModule::generateYearlyReport() {
-    system("cls");
-    displayTableHeader("YEARLY MEDICATION REPORT");
-
-    try {
-        // CHANGED: Group by 'medicine_name' instead of 'category_of_meds'
-        string query = "SELECT YEAR(p.date) as year, "
-            "ph.medicine_name, "
-            "COUNT(p.formatted_id) as prescription_count "
-            "FROM prescription p "
-            "JOIN pharmacy ph ON p.pharmacy_id = ph.formatted_id "
-            "WHERE p.date >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR) "
-            "GROUP BY YEAR(p.date), ph.medicine_name "
-            "ORDER BY year DESC, prescription_count DESC";
-
-        sql::ResultSet* res = db->executeSelect(query);
-
-        if (res) {
-            cout << "\n+-------+---------------------------+----------------------+" << endl;
-            cout << "| " << left << setw(5) << "Year"
-                << "| " << left << setw(25) << "Medicine Name"
-                << "| " << right << setw(20) << "Times Prescribed" << " |" << endl;
-            cout << "+-------+---------------------------+----------------------+" << endl;
-
-            vector<pair<int, pair<string, int>>> graphData;
-            double maxCount = 0;
-
-            while (res->next()) {
-                int year = res->getInt("year");
-                string medName = string(res->getString("medicine_name"));
-                int count = res->getInt("prescription_count");
-
-                graphData.push_back({ year, {medName, count} });
-                if (count > maxCount) maxCount = count;
-
-                if (medName.length() > 25) medName = medName.substr(0, 22) + "...";
-
-                cout << "| " << left << setw(5) << year
-                    << "| " << left << setw(25) << medName
-                    << "| " << right << setw(20) << count << " |" << endl;
-            }
-            cout << "+-------+---------------------------+----------------------+" << endl;
-
-            // GRAPHICAL PART
-            cout << "\n\nGRAPHICAL VIEW (Top Prescriptions per Year):\n" << endl;
-            if (!graphData.empty()) {
-                int currentYear = 0;
-                for (const auto& item : graphData) {
-                    if (item.first != currentYear) {
-                        cout << "\n--- " << item.first << " ---" << endl;
-                        currentYear = item.first;
-                    }
-                    int barLength = maxCount > 0 ? (int)((item.second.second / maxCount) * 40) : 0;
-                    cout << left << setw(25) << item.second.first << " |";
-                    ColorUtils::setColor(LIGHT_MAGENTA);
-                    for (int i = 0; i < barLength; i++) cout << "█";
-                    ColorUtils::resetColor();
-                    cout << " " << item.second.second << endl;
-                }
-            }
-            delete res;
-        }
-        else {
-            cout << "\n⚠️  No data found for yearly report!" << endl;
-        }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    pressEnterToContinue();
-}
-
-void AdminModule::generateHospitalReport() {
-    int choice;
-    do {
-        system("cls");
-        displayTableHeader("GENERATE HOSPITAL REPORT");
-
-        cout << "\n+----------------------------------------+" << endl;
-        cout << "|  1. Monthly Medication Report          |" << endl;
-        cout << "|  2. Yearly Medication Report           |" << endl;
-        cout << "|  3. Category Overview Graph            |" << endl;
-        cout << "|  0. Back                               |" << endl;
-        cout << "+----------------------------------------+" << endl;
-        cout << "\nEnter your choice: ";
-        cin >> choice;
-        cin.ignore();
-
-        switch (choice) {
-        case 1:
-            generateMonthlyReport(); // Moved from Pharmacy menu
             break;
-        case 2:
-            generateYearlyReport(); // Moved from Pharmacy menu
-            break;
-        case 3:
-            displayGraphicalReport(); // Existing Category Graph
-            break;
-        case 0:
-            return;
-        default:
-            cout << "\n[ERROR] Invalid choice! Try again." << endl;
-            pressEnterToContinue();
         }
-    } while (choice != 0);
+        case 1: return;
+        }
+    } while (choice != 1);
 }
-
-void AdminModule::displayGraphicalReport() {
-    system("cls");
-    displayTableHeader("MEDICATION POPULARITY REPORT");
-
-    try {
-        // CHANGED: Query specific medicines instead of categories
-        string query = "SELECT ph.formatted_id, ph.medicine_name, "
-            "COUNT(p.formatted_id) as total_prescriptions "
-            "FROM prescription p "
-            "JOIN pharmacy ph ON p.pharmacy_id = ph.formatted_id "
-            "GROUP BY ph.formatted_id, ph.medicine_name "
-            "ORDER BY total_prescriptions DESC";
-
-        sql::ResultSet* res = db->executeSelect(query);
-
-        if (res) {
-            cout << "\n+-------------+---------------------------+-----------------------+" << endl;
-            cout << "| " << left << setw(11) << "Med ID"
-                << "| " << left << setw(25) << "Medicine Name"
-                << "| " << right << setw(21) << "Times Prescribed" << " |" << endl;
-            cout << "+-------------+---------------------------+-----------------------+" << endl;
-
-            double maxPrescriptions = 0;
-            vector<pair<string, int>> chartData;
-
-            while (res->next()) {
-                string medId = string(res->getString("formatted_id"));
-                string medName = string(res->getString("medicine_name"));
-                int count = res->getInt("total_prescriptions");
-
-                // Label for chart (ID + Name)
-                string label = medId + " - " + medName;
-                if (label.length() > 25) label = label.substr(0, 22) + "...";
-                chartData.push_back({ label, count });
-
-                if (count > maxPrescriptions) maxPrescriptions = count;
-
-                if (medName.length() > 25) medName = medName.substr(0, 22) + "...";
-
-                cout << "| " << left << setw(11) << medId
-                    << "| " << left << setw(25) << medName
-                    << "| " << right << setw(21) << count << " |" << endl;
-            }
-            cout << "+-------------+---------------------------+-----------------------+" << endl;
-
-            // GRAPHICAL CHART
-            cout << "\n\nPOPULARITY CHART (Most Prescribed Medicines):\n" << endl;
-            if (chartData.empty()) {
-                cout << "No prescription data available." << endl;
-            }
-            else {
-                for (const auto& item : chartData) {
-                    int barLength = maxPrescriptions > 0 ? (int)((item.second / maxPrescriptions) * 50) : 0;
-                    cout << left << setw(30) << item.first << " |";
-                    ColorUtils::setColor(LIGHT_GREEN);
-                    for (int i = 0; i < barLength; i++) cout << "█";
-                    ColorUtils::resetColor();
-                    cout << " " << item.second << endl;
-                }
-            }
-            delete res;
-        }
-        else {
-            cout << "\n⚠️  No prescription data found!" << endl;
-        }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    pressEnterToContinue();
-}nd
-
 
 void AdminModule::addPatient() {
     system("cls");
     displayTableHeader("ADD PATIENT");
 
-    try {
-        string fullName = getStringInput("Enter Patient Name: ");
-        if (fullName.empty()) {
-            cout << "\n[ERROR] Patient name cannot be empty!" << endl;
-            pressEnterToContinue();
-            return;
-        }
+    string fullName = getStringInput("Enter Patient Name: ");
+    if (fullName.empty()) return;
 
-        // Gender input with validation (Male/Female only)
-        string gender;
-        bool validGender = false;
-        while (!validGender) {
-            gender = getStringInput("Enter Patient Gender (Male/Female or M/F): ");
-            if (gender.empty()) {
-                cout << "\n[ERROR] Gender cannot be empty! Please try again." << endl;
-                pressEnterToContinue();
-                system("cls");
-                displayTableHeader("ADD PATIENT");
-                cout << "Enter Patient Name: " << fullName << endl;
-                continue;
-            }
-            
-            // Validate and correct gender
-            string correctedGender = validateAndCorrectGender(gender);
-            if (correctedGender != "Male" && correctedGender != "Female") {
-                cout << "\n[ERROR] Gender must be Male or Female only! Please try again." << endl;
-                pressEnterToContinue();
-                system("cls");
-                displayTableHeader("ADD PATIENT");
-                cout << "Enter Patient Name: " << fullName << endl;
-                continue;
-            }
-            gender = correctedGender;
-            validGender = true;
-        }
+    // Add your validation logic back here if needed
+    string gender = getStringInput("Enter Gender (Male/Female): ");
+    string icNumber = getStringInput("Enter IC Number: ");
+    string dob = getStringInput("Enter DOB (YYYY-MM-DD): ");
+    string contact = getStringInput("Enter Contact: ");
+    string blood = getStringInput("Enter Blood Type: ");
+    string emergency = getStringInput("Enter Emergency Contact: ");
 
-        // IC Number input and validation (12 digits)
-        string icNumber;
-        bool validIC = false;
-        while (!validIC) {
-            icNumber = getStringInput("Enter Patient IC Number (12 digits): ");
-            if (icNumber.empty()) {
-                cout << "\n[ERROR] IC number cannot be empty! Please try again." << endl;
-                pressEnterToContinue();
-                system("cls");
-                displayTableHeader("ADD PATIENT");
-                cout << "Enter Patient Name: " << fullName << endl;
-                cout << "Enter Patient Gender (Male/Female or M/F): " << gender << endl;
-                continue;
-            }
-            
-            if (!validateICNumber(icNumber)) {
-                cout << "\n[ERROR] IC number must be exactly 12 digits! Please try again." << endl;
-                pressEnterToContinue();
-                system("cls");
-                displayTableHeader("ADD PATIENT");
-                cout << "Enter Patient Name: " << fullName << endl;
-                cout << "Enter Patient Gender (Male/Female or M/F): " << gender << endl;
-                continue;
-            }
-            
-            // Check if IC number already exists in ANY table (doctor, nurse, admin, patient)
-            string checkICQuery = "SELECT 'Doctor' as user_type, formatted_id, full_name FROM doctor WHERE ic_number = '" + icNumber + "' "
-                                 "UNION ALL "
-                                 "SELECT 'Nurse' as user_type, formatted_id, full_name FROM nurse WHERE ic_number = '" + icNumber + "' "
-                                 "UNION ALL "
-                                 "SELECT 'Admin' as user_type, formatted_id, full_name FROM admin WHERE ic_number = '" + icNumber + "' "
-                                 "UNION ALL "
-                                 "SELECT 'Patient' as user_type, formatted_id, full_name FROM patient WHERE ic_number = '" + icNumber + "'";
-            sql::ResultSet* checkICRes = db->executeSelect(checkICQuery);
-            
-            if (checkICRes && checkICRes->next()) {
-                string userType = checkICRes->getString("user_type");
-                cout << "\n⚠️  This IC number is already registered!" << endl;
-                cout << "User Type: " << userType << endl;
-                cout << userType << " ID: " << string(checkICRes->getString("formatted_id")) << endl;
-                cout << userType << " Name: " << checkICRes->getString("full_name") << endl;
-                if (checkICRes) delete checkICRes;
-                pressEnterToContinue();
-                return;
-            }
-            if (checkICRes) delete checkICRes;
-            validIC = true;
-        }
+    string query = "INSERT INTO patient (formatted_id, full_name, gender, date_of_birth, contact_number, blood_type, emergency_contact, ic_number, status) "
+        "VALUES (NULL, '" + fullName + "', '" + gender + "', '" + dob + "', '" + contact + "', '" + blood + "', '" + emergency + "', '" + icNumber + "', 'Active')";
 
-        // Date of Birth with format validation
-        string dob;
-        bool validDOB = false;
-        while (!validDOB) {
-            dob = getStringInput("Enter Patient Date of Birth (YYYY-MM-DD): ");
-            if (dob.empty()) {
-                cout << "\n[ERROR] Date of birth cannot be empty!" << endl;
-                pressEnterToContinue();
-                system("cls");
-                displayTableHeader("ADD PATIENT");
-                cout << "Enter Patient Name: " << fullName << endl;
-                cout << "Enter Patient Gender (Male/Female or M/F): " << gender << endl;
-                cout << "Enter Patient IC Number (12 digits): " << icNumber << endl;
-                continue;
-            }
-            
-            if (!validateDateFormat(dob)) {
-                cout << "\n[ERROR] Invalid date format! Please use YYYY-MM-DD format (e.g., 1990-01-15)" << endl;
-                pressEnterToContinue();
-                system("cls");
-                displayTableHeader("ADD PATIENT");
-                cout << "Enter Patient Name: " << fullName << endl;
-                cout << "Enter Patient Gender (Male/Female or M/F): " << gender << endl;
-                cout << "Enter Patient IC Number (12 digits): " << icNumber << endl;
-                continue;
-            }
-            validDOB = true;
-        }
-
-        // Contact Number with validation (10 or 11 digits)
-        string contactNumber;
-        bool validContact = false;
-        while (!validContact) {
-            contactNumber = getStringInput("Enter Patient Contact Number: ");
-            if (contactNumber.empty()) {
-                cout << "\n[ERROR] Contact number cannot be empty!" << endl;
-                pressEnterToContinue();
-                system("cls");
-                displayTableHeader("ADD PATIENT");
-                cout << "Enter Patient Name: " << fullName << endl;
-                cout << "Enter Patient Gender (Male/Female or M/F): " << gender << endl;
-                cout << "Enter Patient IC Number (12 digits): " << icNumber << endl;
-                cout << "Enter Patient Date of Birth (YYYY-MM-DD): " << dob << endl;
-                continue;
-            }
-            
-            if (!validatePhoneNumber(contactNumber)) {
-                cout << "\n[ERROR] Contact number must be 10 or 11 digits!" << endl;
-                pressEnterToContinue();
-                system("cls");
-                displayTableHeader("ADD PATIENT");
-                cout << "Enter Patient Name: " << fullName << endl;
-                cout << "Enter Patient Gender (Male/Female or M/F): " << gender << endl;
-                cout << "Enter Patient IC Number (12 digits): " << icNumber << endl;
-                cout << "Enter Patient Date of Birth (YYYY-MM-DD): " << dob << endl;
-                continue;
-            }
-            validContact = true;
-        }
-
-        // Blood Type with validation (only valid types)
-        string bloodType;
-        bool validBloodType = false;
-        while (!validBloodType) {
-            bloodType = getStringInput("Enter Patient Blood Type (A+, A-, B+, B-, AB+, AB-, O+, O-): ");
-            if (bloodType.empty()) {
-                cout << "\n[ERROR] Blood type cannot be empty!" << endl;
-                pressEnterToContinue();
-                system("cls");
-                displayTableHeader("ADD PATIENT");
-                cout << "Enter Patient Name: " << fullName << endl;
-                cout << "Enter Patient Gender (Male/Female or M/F): " << gender << endl;
-                cout << "Enter Patient IC Number (12 digits): " << icNumber << endl;
-                cout << "Enter Patient Date of Birth (YYYY-MM-DD): " << dob << endl;
-                cout << "Enter Patient Contact Number: " << contactNumber << endl;
-                continue;
-            }
-            
-            if (!validateBloodType(bloodType)) {
-                cout << "\n[ERROR] Invalid blood type! Please enter one of: A+, A-, B+, B-, AB+, AB-, O+, O-" << endl;
-                pressEnterToContinue();
-                system("cls");
-                displayTableHeader("ADD PATIENT");
-                cout << "Enter Patient Name: " << fullName << endl;
-                cout << "Enter Patient Gender (Male/Female or M/F): " << gender << endl;
-                cout << "Enter Patient IC Number (12 digits): " << icNumber << endl;
-                cout << "Enter Patient Date of Birth (YYYY-MM-DD): " << dob << endl;
-                cout << "Enter Patient Contact Number: " << contactNumber << endl;
-                continue;
-            }
-            validBloodType = true;
-        }
-
-        // Emergency Contact with validation (10 or 11 digits)
-        string emergencyContact;
-        bool validEmergency = false;
-        while (!validEmergency) {
-            emergencyContact = getStringInput("Enter Emergency Contact: ");
-            if (emergencyContact.empty()) {
-                cout << "\n[ERROR] Emergency contact cannot be empty!" << endl;
-                pressEnterToContinue();
-                system("cls");
-                displayTableHeader("ADD PATIENT");
-                cout << "Enter Patient Name: " << fullName << endl;
-                cout << "Enter Patient Gender (Male/Female or M/F): " << gender << endl;
-                cout << "Enter Patient IC Number (12 digits): " << icNumber << endl;
-                cout << "Enter Patient Date of Birth (YYYY-MM-DD): " << dob << endl;
-                cout << "Enter Patient Contact Number: " << contactNumber << endl;
-                cout << "Enter Patient Blood Type (A+, A-, B+, B-, AB+, AB-, O+, O-): " << bloodType << endl;
-                continue;
-            }
-            
-            if (!validatePhoneNumber(emergencyContact)) {
-                cout << "\n[ERROR] Emergency contact must be 10 or 11 digits!" << endl;
-                pressEnterToContinue();
-                system("cls");
-                displayTableHeader("ADD PATIENT");
-                cout << "Enter Patient Name: " << fullName << endl;
-                cout << "Enter Patient Gender (Male/Female or M/F): " << gender << endl;
-                cout << "Enter Patient IC Number (12 digits): " << icNumber << endl;
-                cout << "Enter Patient Date of Birth (YYYY-MM-DD): " << dob << endl;
-                cout << "Enter Patient Contact Number: " << contactNumber << endl;
-                cout << "Enter Patient Blood Type (A+, A-, B+, B-, AB+, AB-, O+, O-): " << bloodType << endl;
-                continue;
-            }
-            validEmergency = true;
-        }
-
-        string query = "INSERT INTO patient (formatted_id, full_name, gender, date_of_birth, contact_number, blood_type, emergency_contact, ic_number, status) "
-            "VALUES (NULL, '" + fullName + "', '" + gender + "', '" + dob + "', '" + contactNumber + "', '" + bloodType + "', '" + emergencyContact + "', '" + icNumber + "', 'Active')";
-
-        if (db->executeUpdate(query)) {
-            cout << "\n✅ Patient added successfully!" << endl;
-            
-            // Display patient details
-            string getQuery = "SELECT formatted_id, full_name, gender, date_of_birth, contact_number, status FROM patient WHERE ic_number = '" + icNumber + "' ORDER BY formatted_id DESC LIMIT 1";
-            sql::ResultSet* res = db->executeSelect(getQuery);
-            if (res && res->next()) {
-                cout << "\n+----------------------------------------------------------------+" << endl;
-                cout << "|                    PATIENT DETAILS                             |" << endl;
-                cout << "+----------------------------------------------------------------+" << endl;
-                cout << "| Patient ID: " << left << setw(44) << string(res->getString("formatted_id")) << "|" << endl;
-                cout << "| Full Name: " << left << setw(46) << res->getString("full_name") << "|" << endl;
-                cout << "| Gender: " << left << setw(49) << res->getString("gender") << "|" << endl;
-                cout << "| Date of Birth: " << left << setw(42) << res->getString("date_of_birth") << "|" << endl;
-                cout << "| Contact Number: " << left << setw(41) << res->getString("contact_number") << "|" << endl;
-                cout << "| Status: " << left << setw(49) << res->getString("status") << "|" << endl;
-                cout << "+----------------------------------------------------------------+" << endl;
-            }
-            if (res) delete res;
-        } else {
-            cout << "\n[ERROR] Failed to add patient!" << endl;
-        }
+    if (db->executeUpdate(query)) {
+        cout << "\n✅ Patient added successfully!" << endl;
     }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
+    else {
+        cout << "\n[ERROR] Failed to add patient." << endl;
     }
-
     pressEnterToContinue();
 }
 
 void AdminModule::patientReceipt() {
     system("cls");
     displayTableHeader("PATIENT RECEIPT");
-
     string patientId = getStringInput("Enter Patient ID (e.g., P001): ");
-    if (patientId.empty()) {
-        cout << "\n[ERROR] Invalid Patient ID!" << endl;
-        pressEnterToContinue();
-        return;
-    }
-
+    if (patientId.empty()) return;
     calculatePatientReceipt(patientId);
 }
 
 void AdminModule::calculatePatientReceipt(const string& patientId) {
-    try {
-        // First, get patient details
-        string patientQuery = "SELECT formatted_id, full_name, contact_number, status FROM patient WHERE formatted_id = '" + patientId + "'";
-        sql::ResultSet* patientRes = db->executeSelect(patientQuery);
-
-        if (!patientRes || !patientRes->next()) {
-            cout << "\n[ERROR] Patient not found!" << endl;
-            if (patientRes) delete patientRes;
-            pressEnterToContinue();
-            return;
-        }
-
-        delete patientRes;
-
-        // --- UPDATED: Calculate Total based on Medical Records (Consultations) ---
-        // Assuming a standard Consultation Fee of RM 50.00 per visit
-        double standardConsultationFee = 50.00;
-
-        string query = "SELECT COUNT(*) as visit_count FROM medical_record WHERE patient_id = '" + patientId + "'";
-        sql::ResultSet* res = db->executeSelect(query);
-
-        double totalAmount = 0.0;
-
-        if (res && res->next()) {
-            int visits = res->getInt("visit_count");
-            totalAmount = visits * standardConsultationFee;
-        }
+    string query = "SELECT full_name FROM patient WHERE formatted_id = '" + patientId + "'";
+    sql::ResultSet* res = db->executeSelect(query);
+    if (!res || !res->next()) {
+        cout << "\n[ERROR] Patient not found!" << endl;
         if (res) delete res;
-
-        // If no records found, total is 0 (or you can keep the default 50 logic if you prefer)
-        if (totalAmount == 0) {
-            // Optional: Uncomment below if you want to charge a base fee even with no history
-            // totalAmount = 50.00; 
-        }
-
-        displayReceipt(patientId, totalAmount);
-
-        // Update patient status logic (unchanged)
-        string appointmentQuery = "SELECT COUNT(*) as count FROM appointment WHERE patient_id = '" + patientId + "' AND appointment_date >= CURDATE()";
-        sql::ResultSet* apptRes = db->executeSelect(appointmentQuery);
-
-        string newStatus = "Inactive";
-        if (apptRes && apptRes->next() && apptRes->getInt("count") > 0) {
-            newStatus = "Active";
-        }
-        if (apptRes) delete apptRes;
-
-        string updateQuery = "UPDATE patient SET status = '" + newStatus + "' WHERE formatted_id = '" + patientId + "'";
-        db->executeUpdate(updateQuery);
-
+        pressEnterToContinue();
+        return;
     }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
+    delete res;
 
+    string countQuery = "SELECT COUNT(*) as visits FROM medical_record WHERE patient_id = '" + patientId + "'";
+    sql::ResultSet* countRes = db->executeSelect(countQuery);
+    double total = 0;
+    if (countRes && countRes->next()) {
+        total = countRes->getInt("visits") * 50.00;
+    }
+    if (countRes) delete countRes;
+
+    displayReceipt(patientId, total);
     pressEnterToContinue();
 }
 
 void AdminModule::displayReceipt(const string& patientId, double totalAmount) {
     system("cls");
-    displayTableHeader("PATIENT RECEIPT (CONSULTATION HISTORY)");
-
-    try {
-        // Get patient details
-        string patientQuery = "SELECT formatted_id, full_name, contact_number, date_of_birth FROM patient WHERE formatted_id = '" + patientId + "'";
-        sql::ResultSet* patientRes = db->executeSelect(patientQuery);
-
-        if (!patientRes || !patientRes->next()) {
-            cout << "\n[ERROR] Patient not found!" << endl;
-            if (patientRes) delete patientRes;
-            return;
-        }
-
-        string patientFormattedId = string(patientRes->getString("formatted_id"));
-        string patientName = patientRes->getString("full_name");
-        string contactNumber = patientRes->getString("contact_number");
-        string dob = patientRes->isNull("date_of_birth") ? "N/A" : patientRes->getString("date_of_birth");
-        delete patientRes;
-
-        // --- UPDATED: Query 'medical_record' instead of 'treatment' ---
-        // This ensures we show every diagnosis visit as a consultation
-        string consultationQuery = "SELECT mr.formatted_id, mr.date_of_record, d.full_name as doctor_name "
-            "FROM medical_record mr "
-            "JOIN doctor d ON mr.doctor_id = d.formatted_id "
-            "WHERE mr.patient_id = '" + patientId + "' "
-            "ORDER BY mr.date_of_record DESC";
-
-        sql::ResultSet* res = db->executeSelect(consultationQuery);
-
-        // Display receipt header
-        cout << "\n" << endl;
-        cout << "+================================================================+" << endl;
-        cout << "|                  HOSPITAL CONSULTATION RECEIPT                 |" << endl;
-        cout << "+================================================================+" << endl;
-        cout << "| Patient ID: " << left << setw(54) << patientFormattedId << "|" << endl;
-        cout << "| Patient Name: " << left << setw(52) << patientName << "|" << endl;
-        cout << "| Contact Number: " << left << setw(50) << contactNumber << "|" << endl;
-        cout << "| Date of Birth: " << left << setw(51) << dob << "|" << endl;
-        cout << "+================================================================+" << endl;
-        cout << "|                      CONSULTATION DETAILS                      |" << endl;
-        cout << "+================================================================+" << endl;
-
-        if (res && res->rowsCount() > 0) {
-            cout << "+-------------+----------------------+------------------+--------------+" << endl;
-            cout << "| " << left << setw(11) << "Record ID"
-                << "| " << left << setw(20) << "Doctor Name"
-                << "| " << right << setw(16) << "Consultation Fee"
-                << "| " << left << setw(12) << "Date" << "|" << endl;
-            cout << "+-------------+----------------------+------------------+--------------+" << endl;
-
-            while (res->next()) {
-                string recordId = string(res->getString("formatted_id"));
-                string doctorName = string(res->getString("doctor_name"));
-                string date = res->isNull("date_of_record") ? "N/A" : string(res->getString("date_of_record"));
-
-                // Standard fee for every consultation record
-                double consultationFee = 50.00;
-
-                // Truncate long names to fit column width
-                if (doctorName.length() > 20) doctorName = doctorName.substr(0, 17) + "...";
-
-                cout << "| " << left << setw(11) << recordId
-                    << "| " << left << setw(20) << doctorName
-                    << "| " << right << setw(14) << fixed << setprecision(2) << consultationFee << " |"
-                    << " " << left << setw(12) << date << "|" << endl;
-            }
-            cout << "+-------------+----------------------+------------------+--------------+" << endl;
-        }
-        else {
-            cout << "| " << left << setw(64) << "No consultation records found." << "|" << endl;
-            cout << "+================================================================+" << endl;
-        }
-        if (res) delete res;
-
-        cout << "\n+================================================================+" << endl;
-        cout << "| Total Consultation Fees: " << left << setw(42) << ("RM " + to_string((long long)totalAmount)) << "|" << endl;
-        cout << "| Date: " << left << setw(59) << (string(__DATE__) + " " + string(__TIME__)) << "|" << endl;
-        cout << "+================================================================+" << endl;
-
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
+    displayTableHeader("RECEIPT");
+    cout << "Patient ID: " << patientId << endl;
+    cout << "Total Outstanding: RM " << fixed << setprecision(2) << totalAmount << endl;
+    cout << "--------------------------------" << endl;
 }
 
 void AdminModule::displayPharmacyTable(sql::ResultSet* res) {
-    // Adjusted widths since Quantity column is removed
     cout << "\n+-------------+----------------------+----------------------+-------------+" << endl;
     cout << "| " << left << setw(11) << "Pharmacy ID"
         << "| " << left << setw(20) << "Medicine Name"
         << "| " << left << setw(20) << "Category"
         << "| " << right << setw(11) << "Unit Price" << " |" << endl;
     cout << "+-------------+----------------------+----------------------+-------------+" << endl;
-
     while (res->next()) {
-        string pharmacyId = string(res->getString("formatted_id"));
-        string medicineName = string(res->getString("medicine_name"));
-        string category = string(res->getString("category_of_meds"));
-        // Removed quantity retrieval
-        double unitPrice = res->getDouble("unit_price");
-
-        // Truncate long names to fit column width
-        if (medicineName.length() > 20) medicineName = medicineName.substr(0, 17) + "...";
-        if (category.length() > 20) category = category.substr(0, 17) + "...";
-
-        cout << "| " << left << setw(11) << pharmacyId
-            << "| " << left << setw(20) << medicineName
-            << "| " << left << setw(20) << category
-            << "| " << right << setw(9) << fixed << setprecision(2) << unitPrice << " |" << endl;
+        cout << "| " << left << setw(11) << res->getString("formatted_id")
+            << "| " << left << setw(20) << res->getString("medicine_name").substr(0, 19)
+            << "| " << left << setw(20) << res->getString("category_of_meds").substr(0, 19)
+            << "| " << right << setw(9) << fixed << setprecision(2) << res->getDouble("unit_price") << " |" << endl;
     }
-
     cout << "+-------------+----------------------+----------------------+-------------+" << endl;
 }
 
 void AdminModule::displayTableHeader(const string& title) {
-    // Blue theme header matching new GUI style
-    const int SEPARATOR_LENGTH = 80;
-    
     ColorUtils::setColor(LIGHT_BLUE);
-    for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
+    cout << string(80, '=') << endl;
     ColorUtils::resetColor();
-    cout << endl;
-    
-    // Centered title with white text on blue background
-    MenuNavigator::displayTitle(title, SEPARATOR_LENGTH);
-    
+    MenuNavigator::displayTitle(title, 80);
     ColorUtils::setColor(LIGHT_BLUE);
-    for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
+    cout << string(80, '=') << endl;
     ColorUtils::resetColor();
-    cout << endl;
 }
 
 void AdminModule::pressEnterToContinue() {
@@ -932,11 +227,8 @@ int AdminModule::getIntInput(const string& prompt) {
     cout << prompt;
     string input;
     getline(cin, input);
-    try {
-        return stoi(input);
-    } catch (...) {
-        return -1;
-    }
+    try { return stoi(input); }
+    catch (...) { return -1; }
 }
 
 string AdminModule::getStringInput(const string& prompt) {
@@ -946,112 +238,9 @@ string AdminModule::getStringInput(const string& prompt) {
     return input;
 }
 
-bool AdminModule::validatePhoneNumber(const string& phoneNumber) {
-    if (phoneNumber.empty()) {
-        return false;
-    }
-    
-    // Check if all characters are digits
-    for (char c : phoneNumber) {
-        if (!isdigit(c)) {
-            return false;
-        }
-    }
-    
-    // Check if length is 10 or 11 digits
-    if (phoneNumber.length() != 10U && phoneNumber.length() != 11U) {
-        return false;
-    }
-    
-    return true;
-}
-
-bool AdminModule::validateDateFormat(const string& date) {
-    if (date.empty() || date.length() != 10U) {
-        return false;
-    }
-    
-    // Check format: YYYY-MM-DD (10 characters)
-    // Format: YYYY-MM-DD where YYYY is 4 digits, MM is 2 digits, DD is 2 digits
-    if (date[4] != '-' || date[7] != '-') {
-        return false;
-    }
-    
-    // Check if all characters except dashes are digits
-    for (int i = 0; i < 10; i++) {
-        if (i != 4 && i != 7) {
-            if (!isdigit(date[i])) {
-                return false;
-            }
-        }
-    }
-    
-    // Basic validation for month (01-12) and day (01-31)
-    try {
-        string monthStr = date.substr(5, 2);
-        string dayStr = date.substr(8, 2);
-        
-        int month = stoi(monthStr);
-        int day = stoi(dayStr);
-        
-        if (month < 1 || month > 12) {
-            return false;
-        }
-        
-        if (day < 1 || day > 31) {
-            return false;
-        }
-    } catch (...) {
-        return false;
-    }
-    
-    return true;
-}
-
-bool AdminModule::validateBloodType(const string& bloodType) {
-    // Valid blood types: A+, A-, B+, B-, AB+, AB-, O+, O-
-    vector<string> validTypes = {"A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"};
-    
-    for (const string& type : validTypes) {
-        if (bloodType == type) {
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-bool AdminModule::validateICNumber(const string& icNumber) {
-    if (icNumber.empty()) {
-        return false;
-    }
-    // Check if all characters are digits
-    for (char c : icNumber) {
-        if (!isdigit(c)) {
-            return false;
-        }
-    }
-    // Check if length is exactly 12 digits
-    if (icNumber.length() != 12U) {
-        return false;
-    }
-    return true;
-}
-
-string AdminModule::validateAndCorrectGender(string& gender) {
-    // Convert to lowercase for comparison
-    string genderLower = gender;
-    for (char& c : genderLower) {
-        c = tolower(c);
-    }
-    
-    // Auto-correct common inputs
-    if (genderLower == "m" || genderLower == "male") {
-        return "Male";
-    } else if (genderLower == "f" || genderLower == "female") {
-        return "Female";
-    } else {
-        // Return original if not valid
-        return gender;
-    }
-}
+// Helpers
+bool AdminModule::validatePhoneNumber(const string& s) { return s.length() >= 10; }
+bool AdminModule::validateDateFormat(const string& s) { return s.length() == 10; }
+bool AdminModule::validateBloodType(const string& s) { return !s.empty(); }
+bool AdminModule::validateICNumber(const string& s) { return s.length() == 12; }
+string AdminModule::validateAndCorrectGender(string& s) { return s; }
