@@ -2,8 +2,75 @@
 #include "ColorUtils.h"
 #include "MenuNavigator.h"
 #include "IdFormatter.h"
+#include <conio.h> // Required for _getch()
+#include <cctype>
+#include <algorithm>
 
 Registration::Registration(Database* database) : db(database) {}
+
+// Helper for masking password
+string Registration::getMaskedInput() {
+    string password;
+    char ch;
+    while (true) {
+        ch = _getch();
+        if (ch == 13) { // Enter
+            cout << endl;
+            break;
+        }
+        else if (ch == 8) { // Backspace
+            if (!password.empty()) {
+                password.pop_back();
+                cout << "\b \b";
+            }
+        }
+        else {
+            password += ch;
+            cout << '*';
+        }
+    }
+    return password;
+}
+
+// Complexity check
+bool Registration::validatePasswordComplexity(const string& password) {
+    if (password.length() < 8) return false;
+
+    bool hasUpper = false;
+    bool hasLower = false;
+    bool hasSpecial = false;
+
+    for (char c : password) {
+        if (isupper(c)) hasUpper = true;
+        else if (islower(c)) hasLower = true;
+        else if (!isalnum(c)) hasSpecial = true;
+    }
+
+    return hasUpper && hasLower && hasSpecial;
+}
+
+// --- HELPER FUNCTIONS FOR REDRAWING CONTEXT ---
+void printContext(const string& title, const string& name, const string& gender = "", const string& ic = "", const string& contact = "", const string& extraLabel = "", const string& extraVal = "") {
+    system("cls");
+    // Simple header
+    const int SEPARATOR_LENGTH = 80;
+    ColorUtils::setColor(LIGHT_BLUE);
+    for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
+    ColorUtils::resetColor();
+    cout << endl;
+    MenuNavigator::displayTitle(title, SEPARATOR_LENGTH);
+    ColorUtils::setColor(LIGHT_BLUE);
+    for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
+    ColorUtils::resetColor();
+    cout << endl;
+    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
+
+    if (!name.empty()) cout << "Enter Full Name: " << name << endl;
+    if (!gender.empty()) cout << "Enter Gender (Male/Female): " << gender << endl;
+    if (!ic.empty()) cout << "Enter IC Number (12 digits): " << ic << endl;
+    if (!extraLabel.empty() && !extraVal.empty()) cout << extraLabel << ": " << extraVal << endl; // For Specialization or Email
+    if (!contact.empty()) cout << "Enter Contact Number: " << contact << endl;
+}
 
 void Registration::showPreRegistrationMenu() {
     int choice;
@@ -14,25 +81,18 @@ void Registration::showPreRegistrationMenu() {
             "Admin",
             "Back to Main Menu"
         };
-        
+
         choice = MenuNavigator::showMenu(menuOptions, "PRE-REGISTRATION", true);
-        
+
         if (choice == -1) {
-            return; // ESC pressed
+            return;
         }
 
         switch (choice) {
-        case 0:
-            registerDoctor();
-            break;
-        case 1:
-            registerNurse();
-            break;
-        case 2:
-            registerAdmin();
-            break;
-        case 3:
-            return;
+        case 0: registerDoctor(); break;
+        case 1: registerNurse(); break;
+        case 2: registerAdmin(); break;
+        case 3: return;
         default:
             ColorUtils::setColor(LIGHT_CYAN);
             cout << "\n[ERROR] Invalid choice! Please try again." << endl;
@@ -46,290 +106,142 @@ void Registration::registerDoctor() {
     string fullName, gender, specialization, contactNumber, password1, password2, username, icNumber;
     bool registrationComplete = false;
 
+    // Helper lambda to easily redraw screen
+    auto redraw = [&]() {
+        printContext("DOCTOR REGISTRATION", fullName, gender, icNumber, contactNumber, "Enter Specialization", specialization);
+        };
+
     while (!registrationComplete) {
         system("cls");
         displayTableHeader("DOCTOR REGISTRATION");
         cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
 
         try {
-            bool validInput = false;
-            
             // Full Name
-            while (!validInput) {
-                cout << "\nEnter Full Name: ";
+            while (true) {
+                cout << "Enter Full Name: ";
                 getline(cin, fullName);
-                if (fullName == "0") {
-                    return; // User wants to cancel
-                }
-                if (!validateFullName(fullName)) {
-                    if (fullName.empty()) {
-                        cout << "\n[ERROR] Full name cannot be empty! Please try again." << endl;
-                    } else {
-                        cout << "\n[ERROR] Full name must contain only letters, spaces, and hyphens! Please try again." << endl;
-                    }
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("DOCTOR REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                } else {
-                    validInput = true;
-                }
+                if (fullName == "0") return;
+                if (validateFullName(fullName)) break;
+
+                cout << "\n[ERROR] Invalid name format. Use letters only." << endl;
+                pressEnterToContinue();
+                system("cls");
+                displayTableHeader("DOCTOR REGISTRATION");
+                cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
             }
 
-            validInput = false;
             // Gender
-            while (!validInput) {
-                cout << "Enter Gender (Male/Female or M/F): ";
+            while (true) {
+                cout << "Enter Gender (Male/Female): ";
                 getline(cin, gender);
-                if (gender == "0") {
-                    return;
+                if (gender == "0") return;
+                string corrected = validateAndCorrectGender(gender);
+                if (corrected == "Male" || corrected == "Female") {
+                    gender = corrected;
+                    break;
                 }
-                if (gender.empty()) {
-                    cout << "\n[ERROR] Gender cannot be empty! Please try again." << endl;
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("DOCTOR REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                } else {
-                    string correctedGender = validateAndCorrectGender(gender);
-                    if (correctedGender != "Male" && correctedGender != "Female") {
-                        cout << "\n[ERROR] Gender must be Male or Female only! Please try again." << endl;
-                        pressEnterToContinue();
-                        system("cls");
-                        displayTableHeader("DOCTOR REGISTRATION");
-                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                        cout << "\nEnter Full Name: " << fullName << endl;
-                    } else {
-                        gender = correctedGender; // Use corrected gender
-                        validInput = true;
-                    }
-                }
+
+                cout << "\n[ERROR] Invalid gender. Enter 'Male', 'Female', 'M', or 'F'." << endl;
+                pressEnterToContinue();
+                printContext("DOCTOR REGISTRATION", fullName);
             }
 
-            validInput = false;
             // IC Number
-            while (!validInput) {
+            while (true) {
                 cout << "Enter IC Number (12 digits): ";
                 getline(cin, icNumber);
-                if (icNumber == "0") {
-                    return;
-                }
-                if (!validateICNumber(icNumber)) {
-                    if (icNumber.empty()) {
-                        cout << "\n[ERROR] IC number cannot be empty! Please try again." << endl;
-                    } else {
-                        cout << "\n[ERROR] IC number must be exactly 12 digits! Please try again." << endl;
-                    }
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("DOCTOR REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                    cout << "Enter Gender: " << gender << endl;
-                } else {
-                    // Check if IC number already exists in ANY table (doctor, nurse, admin, patient)
-                    string checkICQuery = "SELECT 'Doctor' as user_type, formatted_id, full_name FROM doctor WHERE ic_number = '" + icNumber + "' "
-                                         "UNION ALL "
-                                         "SELECT 'Nurse' as user_type, formatted_id, full_name FROM nurse WHERE ic_number = '" + icNumber + "' "
-                                         "UNION ALL "
-                                         "SELECT 'Admin' as user_type, formatted_id, full_name FROM admin WHERE ic_number = '" + icNumber + "' "
-                                         "UNION ALL "
-                                         "SELECT 'Patient' as user_type, formatted_id, full_name FROM patient WHERE ic_number = '" + icNumber + "'";
-                    sql::ResultSet* checkICRes = db->executeSelect(checkICQuery);
-                    if (checkICRes && checkICRes->next()) {
-                        string userType = checkICRes->getString("user_type");
-                        cout << "\n⚠️  This IC number is already registered!" << endl;
-                        cout << "User Type: " << userType << endl;
-                        cout << userType << " ID: " << string(checkICRes->getString("formatted_id")) << endl;
-                        cout << userType << " Name: " << checkICRes->getString("full_name") << endl;
-                        if (checkICRes) delete checkICRes;
-                        pressEnterToContinue();
-                        return;
-                    }
-                    if (checkICRes) delete checkICRes;
-                    validInput = true;
-                }
+                if (icNumber == "0") return;
+                if (validateICNumber(icNumber)) break;
+
+                cout << "\n[ERROR] Invalid IC Number. Must be exactly 12 numeric digits." << endl;
+                pressEnterToContinue();
+                printContext("DOCTOR REGISTRATION", fullName, gender);
             }
 
-            validInput = false;
             // Specialization
-            while (!validInput) {
+            while (true) {
                 cout << "Enter Specialization: ";
                 getline(cin, specialization);
-                if (specialization == "0") {
-                    return;
-                }
-                if (specialization.empty()) {
-                    cout << "\n[ERROR] Specialization cannot be empty! Please try again." << endl;
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("DOCTOR REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                    cout << "Enter Gender: " << gender << endl;
-                    cout << "Enter IC Number: " << icNumber << endl;
-                } else {
-                    validInput = true;
-                }
+                if (specialization == "0") return;
+                if (!specialization.empty()) break;
+
+                cout << "\n[ERROR] Cannot be empty." << endl;
+                pressEnterToContinue();
+                printContext("DOCTOR REGISTRATION", fullName, gender, icNumber);
             }
 
-            validInput = false;
-            // Contact Number
-            while (!validInput) {
+            // Contact
+            while (true) {
                 cout << "Enter Contact Number: ";
                 getline(cin, contactNumber);
-                if (contactNumber == "0") {
-                    return;
-                }
-                if (!validateContactNumber(contactNumber)) {
-                    if (contactNumber.empty()) {
-                        cout << "\n[ERROR] Contact number cannot be empty! Please try again." << endl;
-                    } else {
-                        cout << "\n[ERROR] Contact number must be 10 or 11 digits! Please try again." << endl;
-                    }
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("DOCTOR REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                    cout << "Enter Gender: " << gender << endl;
-                    cout << "Enter IC Number: " << icNumber << endl;
-                    cout << "Enter Specialization: " << specialization << endl;
-                } else {
-                    validInput = true;
-                }
+                if (contactNumber == "0") return;
+                if (validateContactNumber(contactNumber)) break;
+
+                cout << "\n[ERROR] Invalid contact number. Must be 10-11 digits." << endl;
+                pressEnterToContinue();
+                printContext("DOCTOR REGISTRATION", fullName, gender, icNumber, "", "Enter Specialization", specialization);
             }
 
-            validInput = false;
             // Username
-            while (!validInput) {
+            while (true) {
                 cout << "Create Username: ";
                 getline(cin, username);
-                if (username == "0") {
-                    return;
-                }
-                if (username.empty()) {
-                    cout << "\n[ERROR] Username cannot be empty! Please try again." << endl;
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("DOCTOR REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                    cout << "Enter Gender: " << gender << endl;
-                    cout << "Enter Specialization: " << specialization << endl;
-                    cout << "Enter Contact Number: " << contactNumber << endl;
-                } else {
-                    // Check if username exists in login table
-                    string checkQuery = "SELECT COUNT(*) as count FROM login WHERE username = '" + username + "'";
-                    sql::ResultSet* checkRes = db->executeSelect(checkQuery);
-                    if (checkRes && checkRes->next() && checkRes->getInt("count") > 0) {
-                        cout << "\n[ERROR] Username already exists! Please choose another." << endl;
-                        if (checkRes) delete checkRes;
-                        pressEnterToContinue();
-                        system("cls");
-                        displayTableHeader("DOCTOR REGISTRATION");
-                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                        cout << "\nEnter Full Name: " << fullName << endl;
-                        cout << "Enter Gender: " << gender << endl;
-                        cout << "Enter IC Number: " << icNumber << endl;
-                        cout << "Enter Specialization: " << specialization << endl;
-                        cout << "Enter Contact Number: " << contactNumber << endl;
-                    } else {
-                        if (checkRes) delete checkRes;
-                        validInput = true;
-                    }
-                }
+                if (username == "0") return;
+                if (!username.empty()) break;
+
+                cout << "\n[ERROR] Username cannot be empty." << endl;
+                pressEnterToContinue();
+                redraw();
+                if (!contactNumber.empty()) cout << "Enter Contact Number: " << contactNumber << endl;
             }
 
-            validInput = false;
             // Password
-            while (!validInput) {
+            while (true) {
                 cout << "Create Password: ";
-                getline(cin, password1);
-                if (password1 == "0") {
-                    return;
-                }
-                if (password1.empty()) {
-                    cout << "\n[ERROR] Password cannot be empty! Please try again." << endl;
+                password1 = getMaskedInput();
+                if (password1 == "0") return;
+
+                if (!validatePasswordComplexity(password1)) {
+                    cout << "\n[ERROR] Password too weak!" << endl;
+                    cout << "Requirements: At least 8 chars, 1 Uppercase, 1 Lowercase, 1 Special char." << endl;
                     pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("DOCTOR REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                    cout << "Enter Gender: " << gender << endl;
-                    cout << "Enter IC Number: " << icNumber << endl;
-                    cout << "Enter Specialization: " << specialization << endl;
+                    redraw();
                     cout << "Enter Contact Number: " << contactNumber << endl;
                     cout << "Create Username: " << username << endl;
-                } else {
-                    cout << "Re-enter Password: ";
-                    getline(cin, password2);
-                    if (password2 == "0") {
-                        return;
-                    }
-
-                    if (!validatePassword(password1, password2)) {
-                        cout << "\n[ERROR] Passwords do not match! Please try again." << endl;
-                        pressEnterToContinue();
-                        system("cls");
-                        displayTableHeader("DOCTOR REGISTRATION");
-                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                        cout << "\nEnter Full Name: " << fullName << endl;
-                        cout << "Enter Gender: " << gender << endl;
-                        cout << "Enter IC Number: " << icNumber << endl;
-                        cout << "Enter Specialization: " << specialization << endl;
-                        cout << "Enter Contact Number: " << contactNumber << endl;
-                        cout << "Create Username: " << username << endl;
-                    } else {
-                        validInput = true;
-                    }
+                    continue;
                 }
+
+                cout << "Re-enter Password: ";
+                password2 = getMaskedInput();
+
+                if (validatePassword(password1, password2)) break;
+
+                cout << "\n[ERROR] Passwords do not match!" << endl;
+                pressEnterToContinue();
+                redraw();
+                cout << "Enter Contact Number: " << contactNumber << endl;
+                cout << "Create Username: " << username << endl;
             }
 
-            // Insert into doctor table (formatted_id is auto-generated by trigger)
+            // Insert into doctor table
             string query = "INSERT INTO doctor (formatted_id, full_name, gender, specialization, contact_number, ic_number, availability, status, role) "
                 "VALUES (NULL, '" + fullName + "', '" + gender + "', '" + specialization + "', '" + contactNumber + "', '" + icNumber + "', 'Available', 'Active', 'Doctor')";
 
             if (db->executeUpdate(query)) {
-                // Get the formatted_id that was just inserted
                 string getIdQuery = "SELECT formatted_id FROM doctor WHERE full_name = '" + fullName + "' AND contact_number = '" + contactNumber + "' ORDER BY formatted_id DESC LIMIT 1";
                 sql::ResultSet* idRes = db->executeSelect(getIdQuery);
                 string doctorId = "";
-                if (idRes && idRes->next()) {
-                    doctorId = string(idRes->getString("formatted_id"));
-                }
+                if (idRes && idRes->next()) doctorId = idRes->getString("formatted_id");
                 if (idRes) delete idRes;
 
                 if (!doctorId.empty()) {
-                    // Insert into login table
-                    string loginQuery = "INSERT INTO login (formatted_id, username, password, role, doctor_id) "
-                        "VALUES (NULL, '" + username + "', '" + password1 + "', 'Doctor', '" + doctorId + "')";
-
+                    string loginQuery = "INSERT INTO login (formatted_id, username, password, role, doctor_id) VALUES (NULL, '" + username + "', '" + password1 + "', 'Doctor', '" + doctorId + "')";
                     if (db->executeUpdate(loginQuery)) {
                         cout << "\n✅ Doctor registered successfully!" << endl;
-                        
-                        // Display registered doctor in table format
-                        cout << "\n+----------------------------------------------------------------+" << endl;
-                        cout << "|                    REGISTERED DOCTOR DETAILS                  |" << endl;
-                        cout << "+----------------------------------------------------------------+" << endl;
-                        cout << "| Username: " << left << setw(47) << username << "|" << endl;
-                        cout << "| Full Name: " << left << setw(46) << fullName << "|" << endl;
-                        cout << "| Specialization: " << left << setw(41) << specialization << "|" << endl;
-                        cout << "| Contact Number: " << left << setw(41) << contactNumber << "|" << endl;
-                        cout << "+----------------------------------------------------------------+" << endl;
-                        registrationComplete = true;
-                    } else {
-                        cout << "\n⚠️  Doctor created but login failed! Please contact admin." << endl;
                         registrationComplete = true;
                     }
-                } else {
-                    cout << "\n[ERROR] Failed to retrieve doctor ID!" << endl;
-                    pressEnterToContinue();
                 }
-            } else {
-                cout << "\n[ERROR] Failed to register doctor!" << endl;
-                pressEnterToContinue();
             }
         }
         catch (exception& e) {
@@ -337,7 +249,6 @@ void Registration::registerDoctor() {
             pressEnterToContinue();
         }
     }
-
     pressEnterToContinue();
 }
 
@@ -345,261 +256,123 @@ void Registration::registerNurse() {
     string fullName, gender, contactNumber, password1, password2, username, icNumber;
     bool registrationComplete = false;
 
+    auto redraw = [&]() {
+        printContext("NURSE REGISTRATION", fullName, gender, icNumber, contactNumber);
+        };
+
     while (!registrationComplete) {
         system("cls");
         displayTableHeader("NURSE REGISTRATION");
         cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
 
         try {
-            bool validInput = false;
-            
             // Full Name
-            while (!validInput) {
-                cout << "\nEnter Full Name: ";
+            while (true) {
+                cout << "Enter Full Name: ";
                 getline(cin, fullName);
-                if (fullName == "0") {
-                    return; // User wants to cancel
-                }
-                if (!validateFullName(fullName)) {
-                    if (fullName.empty()) {
-                        cout << "\n[ERROR] Full name cannot be empty! Please try again." << endl;
-                    } else {
-                        cout << "\n[ERROR] Full name must contain only letters, spaces, and hyphens! Please try again." << endl;
-                    }
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("NURSE REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                } else {
-                    validInput = true;
-                }
+                if (fullName == "0") return;
+                if (validateFullName(fullName)) break;
+
+                cout << "\n[ERROR] Invalid name format. Use letters only." << endl;
+                pressEnterToContinue();
+                system("cls");
+                displayTableHeader("NURSE REGISTRATION");
+                cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
             }
 
-            validInput = false;
             // Gender
-            while (!validInput) {
-                cout << "Enter Gender (Male/Female or M/F): ";
+            while (true) {
+                cout << "Enter Gender (Male/Female): ";
                 getline(cin, gender);
-                if (gender == "0") {
-                    return;
+                if (gender == "0") return;
+                string corrected = validateAndCorrectGender(gender);
+                if (corrected == "Male" || corrected == "Female") {
+                    gender = corrected;
+                    break;
                 }
-                if (gender.empty()) {
-                    cout << "\n[ERROR] Gender cannot be empty! Please try again." << endl;
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("NURSE REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                } else {
-                    string correctedGender = validateAndCorrectGender(gender);
-                    if (correctedGender != "Male" && correctedGender != "Female") {
-                        cout << "\n[ERROR] Gender must be Male or Female only! Please try again." << endl;
-                        pressEnterToContinue();
-                        system("cls");
-                        displayTableHeader("NURSE REGISTRATION");
-                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                        cout << "\nEnter Full Name: " << fullName << endl;
-                    } else {
-                        gender = correctedGender; // Use corrected gender
-                        validInput = true;
-                    }
-                }
+
+                cout << "\n[ERROR] Invalid gender. Enter 'Male', 'Female', 'M', or 'F'." << endl;
+                pressEnterToContinue();
+                printContext("NURSE REGISTRATION", fullName);
             }
 
-            validInput = false;
             // IC Number
-            while (!validInput) {
+            while (true) {
                 cout << "Enter IC Number (12 digits): ";
                 getline(cin, icNumber);
-                if (icNumber == "0") {
-                    return;
-                }
-                if (!validateICNumber(icNumber)) {
-                    if (icNumber.empty()) {
-                        cout << "\n[ERROR] IC number cannot be empty! Please try again." << endl;
-                    } else {
-                        cout << "\n[ERROR] IC number must be exactly 12 digits! Please try again." << endl;
-                    }
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("NURSE REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                    cout << "Enter Gender: " << gender << endl;
-                } else {
-                    // Check if IC number already exists in ANY table (doctor, nurse, admin, patient)
-                    string checkICQuery = "SELECT 'Doctor' as user_type, formatted_id, full_name FROM doctor WHERE ic_number = '" + icNumber + "' "
-                                         "UNION ALL "
-                                         "SELECT 'Nurse' as user_type, formatted_id, full_name FROM nurse WHERE ic_number = '" + icNumber + "' "
-                                         "UNION ALL "
-                                         "SELECT 'Admin' as user_type, formatted_id, full_name FROM admin WHERE ic_number = '" + icNumber + "' "
-                                         "UNION ALL "
-                                         "SELECT 'Patient' as user_type, formatted_id, full_name FROM patient WHERE ic_number = '" + icNumber + "'";
-                    sql::ResultSet* checkICRes = db->executeSelect(checkICQuery);
-                    if (checkICRes && checkICRes->next()) {
-                        string userType = checkICRes->getString("user_type");
-                        cout << "\n⚠️  This IC number is already registered!" << endl;
-                        cout << "User Type: " << userType << endl;
-                        cout << userType << " ID: " << string(checkICRes->getString("formatted_id")) << endl;
-                        cout << userType << " Name: " << checkICRes->getString("full_name") << endl;
-                        if (checkICRes) delete checkICRes;
-                        pressEnterToContinue();
-                        return;
-                    }
-                    if (checkICRes) delete checkICRes;
-                    validInput = true;
-                }
+                if (icNumber == "0") return;
+                if (validateICNumber(icNumber)) break;
+
+                cout << "\n[ERROR] Invalid IC Number. Must be exactly 12 numeric digits." << endl;
+                pressEnterToContinue();
+                printContext("NURSE REGISTRATION", fullName, gender);
             }
 
-            validInput = false;
-            // Contact Number
-            while (!validInput) {
+            // Contact
+            while (true) {
                 cout << "Enter Contact Number: ";
                 getline(cin, contactNumber);
-                if (contactNumber == "0") {
-                    return;
-                }
-                if (!validateContactNumber(contactNumber)) {
-                    if (contactNumber.empty()) {
-                        cout << "\n[ERROR] Contact number cannot be empty! Please try again." << endl;
-                    } else {
-                        cout << "\n[ERROR] Contact number must be 10 or 11 digits! Please try again." << endl;
-                    }
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("NURSE REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                    cout << "Enter Gender: " << gender << endl;
-                    cout << "Enter IC Number: " << icNumber << endl;
-                } else {
-                    validInput = true;
-                }
+                if (contactNumber == "0") return;
+                if (validateContactNumber(contactNumber)) break;
+
+                cout << "\n[ERROR] Invalid contact number. Must be 10-11 digits." << endl;
+                pressEnterToContinue();
+                printContext("NURSE REGISTRATION", fullName, gender, icNumber);
             }
 
-            validInput = false;
             // Username
-            while (!validInput) {
+            while (true) {
                 cout << "Create Username: ";
                 getline(cin, username);
-                if (username == "0") {
-                    return;
-                }
-                if (username.empty()) {
-                    cout << "\n[ERROR] Username cannot be empty! Please try again." << endl;
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("NURSE REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                    cout << "Enter Gender: " << gender << endl;
-                    cout << "Enter Contact Number: " << contactNumber << endl;
-                } else {
-                    // Check if username exists
-                    string checkQuery = "SELECT COUNT(*) as count FROM login WHERE username = '" + username + "'";
-                    sql::ResultSet* checkRes = db->executeSelect(checkQuery);
-                    if (checkRes && checkRes->next() && checkRes->getInt("count") > 0) {
-                        cout << "\n[ERROR] Username already exists! Please choose another." << endl;
-                        if (checkRes) delete checkRes;
-                        pressEnterToContinue();
-                        system("cls");
-                        displayTableHeader("NURSE REGISTRATION");
-                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                        cout << "\nEnter Full Name: " << fullName << endl;
-                        cout << "Enter Gender: " << gender << endl;
-                        cout << "Enter IC Number: " << icNumber << endl;
-                        cout << "Enter Contact Number: " << contactNumber << endl;
-                    } else {
-                        if (checkRes) delete checkRes;
-                        validInput = true;
-                    }
-                }
+                if (username == "0") return;
+                if (!username.empty()) break;
+
+                cout << "\n[ERROR] Username cannot be empty." << endl;
+                pressEnterToContinue();
+                redraw();
             }
 
-            validInput = false;
             // Password
-            while (!validInput) {
+            while (true) {
                 cout << "Create Password: ";
-                getline(cin, password1);
-                if (password1 == "0") {
-                    return;
-                }
-                if (password1.empty()) {
-                    cout << "\n[ERROR] Password cannot be empty! Please try again." << endl;
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("NURSE REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                    cout << "Enter Gender: " << gender << endl;
-                    cout << "Enter IC Number: " << icNumber << endl;
-                    cout << "Enter Contact Number: " << contactNumber << endl;
-                    cout << "Create Username: " << username << endl;
-                } else {
-                    cout << "Re-enter Password: ";
-                    getline(cin, password2);
-                    if (password2 == "0") {
-                        return;
-                    }
+                password1 = getMaskedInput();
+                if (password1 == "0") return;
 
-                    if (!validatePassword(password1, password2)) {
-                        cout << "\n[ERROR] Passwords do not match! Please try again." << endl;
-                        pressEnterToContinue();
-                        system("cls");
-                        displayTableHeader("NURSE REGISTRATION");
-                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                        cout << "\nEnter Full Name: " << fullName << endl;
-                        cout << "Enter Gender: " << gender << endl;
-                        cout << "Enter IC Number: " << icNumber << endl;
-                        cout << "Enter Contact Number: " << contactNumber << endl;
-                        cout << "Create Username: " << username << endl;
-                    } else {
-                        validInput = true;
-                    }
+                if (!validatePasswordComplexity(password1)) {
+                    cout << "\n[ERROR] Password too weak!" << endl;
+                    cout << "Requirements: At least 8 chars, 1 Uppercase, 1 Lowercase, 1 Special char." << endl;
+                    pressEnterToContinue();
+                    redraw();
+                    cout << "Create Username: " << username << endl;
+                    continue;
                 }
+
+                cout << "Re-enter Password: ";
+                password2 = getMaskedInput();
+
+                if (validatePassword(password1, password2)) break;
+
+                cout << "\n[ERROR] Passwords do not match!" << endl;
+                pressEnterToContinue();
+                redraw();
+                cout << "Create Username: " << username << endl;
             }
 
-            // Insert into nurse table (formatted_id is auto-generated by trigger)
-            string query = "INSERT INTO nurse (formatted_id, full_name, gender, contact_number, ic_number, status, role) "
-                "VALUES (NULL, '" + fullName + "', '" + gender + "', '" + contactNumber + "', '" + icNumber + "', 'Active', 'Nurse')";
+            string query = "INSERT INTO nurse (formatted_id, full_name, gender, contact_number, ic_number, status, role) VALUES (NULL, '" + fullName + "', '" + gender + "', '" + contactNumber + "', '" + icNumber + "', 'Active', 'Nurse')";
 
             if (db->executeUpdate(query)) {
-                // Get the formatted_id
-                string getIdQuery = "SELECT formatted_id FROM nurse WHERE full_name = '" + fullName + "' AND contact_number = '" + contactNumber + "' ORDER BY formatted_id DESC LIMIT 1";
+                string getIdQuery = "SELECT formatted_id FROM nurse WHERE ic_number = '" + icNumber + "' ORDER BY formatted_id DESC LIMIT 1";
                 sql::ResultSet* idRes = db->executeSelect(getIdQuery);
                 string nurseId = "";
-                if (idRes && idRes->next()) {
-                    nurseId = string(idRes->getString("formatted_id"));
-                }
+                if (idRes && idRes->next()) nurseId = idRes->getString("formatted_id");
                 if (idRes) delete idRes;
 
                 if (!nurseId.empty()) {
-                    // Insert into login table
-                    string loginQuery = "INSERT INTO login (formatted_id, username, password, role, nurse_id) "
-                        "VALUES (NULL, '" + username + "', '" + password1 + "', 'Nurse', '" + nurseId + "')";
-
-                    if (db->executeUpdate(loginQuery)) {
-                        cout << "\n✅ Nurse registered successfully!" << endl;
-                        
-                        cout << "\n+----------------------------------------------------------------+" << endl;
-                        cout << "|                    REGISTERED NURSE DETAILS                   |" << endl;
-                        cout << "+----------------------------------------------------------------+" << endl;
-                        cout << "| Username: " << left << setw(47) << username << "|" << endl;
-                        cout << "| Full Name: " << left << setw(46) << fullName << "|" << endl;
-                        cout << "| Contact Number: " << left << setw(41) << contactNumber << "|" << endl;
-                        cout << "+----------------------------------------------------------------+" << endl;
-                        registrationComplete = true;
-                    } else {
-                        cout << "\n⚠️  Nurse created but login failed! Please contact admin." << endl;
-                        registrationComplete = true;
-                    }
-                } else {
-                    cout << "\n[ERROR] Failed to retrieve nurse ID!" << endl;
-                    pressEnterToContinue();
+                    string loginQuery = "INSERT INTO login (formatted_id, username, password, role, nurse_id) VALUES (NULL, '" + username + "', '" + password1 + "', 'Nurse', '" + nurseId + "')";
+                    db->executeUpdate(loginQuery);
+                    cout << "\n✅ Nurse registered successfully!" << endl;
+                    registrationComplete = true;
                 }
-            } else {
-                cout << "\n[ERROR] Failed to register nurse!" << endl;
-                pressEnterToContinue();
             }
         }
         catch (exception& e) {
@@ -607,7 +380,6 @@ void Registration::registerNurse() {
             pressEnterToContinue();
         }
     }
-
     pressEnterToContinue();
 }
 
@@ -615,250 +387,119 @@ void Registration::registerAdmin() {
     string fullName, email, contactNumber, password1, password2, username, icNumber;
     bool registrationComplete = false;
 
+    auto redraw = [&]() {
+        printContext("ADMIN REGISTRATION", fullName, "", icNumber, contactNumber, "Enter Email", email);
+        };
+
     while (!registrationComplete) {
         system("cls");
         displayTableHeader("ADMIN REGISTRATION");
         cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
 
         try {
-            bool validInput = false;
-            
             // Full Name
-            while (!validInput) {
-                cout << "\nEnter Full Name: ";
+            while (true) {
+                cout << "Enter Full Name: ";
                 getline(cin, fullName);
-                if (fullName == "0") {
-                    return; // User wants to cancel
-                }
-                if (!validateFullName(fullName)) {
-                    if (fullName.empty()) {
-                        cout << "\n[ERROR] Full name cannot be empty! Please try again." << endl;
-                    } else {
-                        cout << "\n[ERROR] Full name must contain only letters, spaces, and hyphens! Please try again." << endl;
-                    }
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("ADMIN REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                } else {
-                    validInput = true;
-                }
+                if (fullName == "0") return;
+                if (validateFullName(fullName)) break;
+
+                cout << "\n[ERROR] Invalid name format. Use letters only." << endl;
+                pressEnterToContinue();
+                system("cls");
+                displayTableHeader("ADMIN REGISTRATION");
+                cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
             }
 
-            validInput = false;
-            // Email
-            while (!validInput) {
+            // Email (Unique to Admin)
+            while (true) {
                 cout << "Enter Email: ";
                 getline(cin, email);
-                if (email == "0") {
-                    return;
-                }
-                if (email.empty() || email.find('@') == string::npos || email.find(".com") == string::npos) {
-                    cout << "\n[ERROR] Invalid email format! Email must contain '@' and '.com'. Please try again." << endl;
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("ADMIN REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                } else {
-                    validInput = true;
-                }
+                if (email == "0") return;
+                if (!email.empty()) break; // Basic check
+
+                cout << "\n[ERROR] Email cannot be empty." << endl;
+                pressEnterToContinue();
+                printContext("ADMIN REGISTRATION", fullName);
             }
 
-            validInput = false;
             // IC Number
-            while (!validInput) {
+            while (true) {
                 cout << "Enter IC Number (12 digits): ";
                 getline(cin, icNumber);
-                if (icNumber == "0") {
-                    return;
-                }
-                if (!validateICNumber(icNumber)) {
-                    if (icNumber.empty()) {
-                        cout << "\n[ERROR] IC number cannot be empty! Please try again." << endl;
-                    } else {
-                        cout << "\n[ERROR] IC number must be exactly 12 digits! Please try again." << endl;
-                    }
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("ADMIN REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                    cout << "Enter Email: " << email << endl;
-                } else {
-                    // Check if IC number already exists in ANY table (doctor, nurse, admin, patient)
-                    string checkICQuery = "SELECT 'Doctor' as user_type, formatted_id, full_name FROM doctor WHERE ic_number = '" + icNumber + "' "
-                                         "UNION ALL "
-                                         "SELECT 'Nurse' as user_type, formatted_id, full_name FROM nurse WHERE ic_number = '" + icNumber + "' "
-                                         "UNION ALL "
-                                         "SELECT 'Admin' as user_type, formatted_id, full_name FROM admin WHERE ic_number = '" + icNumber + "' "
-                                         "UNION ALL "
-                                         "SELECT 'Patient' as user_type, formatted_id, full_name FROM patient WHERE ic_number = '" + icNumber + "'";
-                    sql::ResultSet* checkICRes = db->executeSelect(checkICQuery);
-                    if (checkICRes && checkICRes->next()) {
-                        string userType = checkICRes->getString("user_type");
-                        cout << "\n⚠️  This IC number is already registered!" << endl;
-                        cout << "User Type: " << userType << endl;
-                        cout << userType << " ID: " << string(checkICRes->getString("formatted_id")) << endl;
-                        cout << userType << " Name: " << checkICRes->getString("full_name") << endl;
-                        if (checkICRes) delete checkICRes;
-                        pressEnterToContinue();
-                        return;
-                    }
-                    if (checkICRes) delete checkICRes;
-                    validInput = true;
-                }
+                if (icNumber == "0") return;
+                if (validateICNumber(icNumber)) break;
+
+                cout << "\n[ERROR] Invalid IC Number. Must be exactly 12 numeric digits." << endl;
+                pressEnterToContinue();
+                printContext("ADMIN REGISTRATION", fullName, "", "", "", "Enter Email", email);
             }
 
-            validInput = false;
-            // Contact Number
-            while (!validInput) {
+            // Contact
+            while (true) {
                 cout << "Enter Contact Number: ";
                 getline(cin, contactNumber);
-                if (contactNumber == "0") {
-                    return;
-                }
-                if (!validateContactNumber(contactNumber)) {
-                    if (contactNumber.empty()) {
-                        cout << "\n[ERROR] Contact number cannot be empty! Please try again." << endl;
-                    } else {
-                        cout << "\n[ERROR] Contact number must be 10 or 11 digits! Please try again." << endl;
-                    }
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("ADMIN REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                    cout << "Enter Email: " << email << endl;
-                    cout << "Enter IC Number: " << icNumber << endl;
-                } else {
-                    validInput = true;
-                }
+                if (contactNumber == "0") return;
+                if (validateContactNumber(contactNumber)) break;
+
+                cout << "\n[ERROR] Invalid contact number. Must be 10-11 digits." << endl;
+                pressEnterToContinue();
+                printContext("ADMIN REGISTRATION", fullName, "", icNumber, "", "Enter Email", email);
             }
 
-            validInput = false;
             // Username
-            while (!validInput) {
+            while (true) {
                 cout << "Create Username: ";
                 getline(cin, username);
-                if (username == "0") {
-                    return;
-                }
-                if (username.empty()) {
-                    cout << "\n[ERROR] Username cannot be empty! Please try again." << endl;
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("ADMIN REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                    cout << "Enter Email: " << email << endl;
-                    cout << "Enter Contact Number: " << contactNumber << endl;
-                } else {
-                    // Check if username exists
-                    string checkQuery = "SELECT COUNT(*) as count FROM login WHERE username = '" + username + "'";
-                    sql::ResultSet* checkRes = db->executeSelect(checkQuery);
-                    if (checkRes && checkRes->next() && checkRes->getInt("count") > 0) {
-                        cout << "\n[ERROR] Username already exists! Please choose another." << endl;
-                        if (checkRes) delete checkRes;
-                        pressEnterToContinue();
-                        system("cls");
-                        displayTableHeader("ADMIN REGISTRATION");
-                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                        cout << "\nEnter Full Name: " << fullName << endl;
-                        cout << "Enter Email: " << email << endl;
-                        cout << "Enter IC Number: " << icNumber << endl;
-                        cout << "Enter Contact Number: " << contactNumber << endl;
-                    } else {
-                        if (checkRes) delete checkRes;
-                        validInput = true;
-                    }
-                }
+                if (username == "0") return;
+                if (!username.empty()) break;
+
+                cout << "\n[ERROR] Username cannot be empty." << endl;
+                pressEnterToContinue();
+                redraw();
             }
 
-            validInput = false;
             // Password
-            while (!validInput) {
+            while (true) {
                 cout << "Create Password: ";
-                getline(cin, password1);
-                if (password1 == "0") {
-                    return;
-                }
-                if (password1.empty()) {
-                    cout << "\n[ERROR] Password cannot be empty! Please try again." << endl;
-                    pressEnterToContinue();
-                    system("cls");
-                    displayTableHeader("ADMIN REGISTRATION");
-                    cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                    cout << "\nEnter Full Name: " << fullName << endl;
-                    cout << "Enter Email: " << email << endl;
-                    cout << "Enter IC Number: " << icNumber << endl;
-                    cout << "Enter Contact Number: " << contactNumber << endl;
-                    cout << "Create Username: " << username << endl;
-                } else {
-                    cout << "Re-enter Password: ";
-                    getline(cin, password2);
-                    if (password2 == "0") {
-                        return;
-                    }
+                password1 = getMaskedInput();
+                if (password1 == "0") return;
 
-                    if (!validatePassword(password1, password2)) {
-                        cout << "\n[ERROR] Passwords do not match! Please try again." << endl;
-                        pressEnterToContinue();
-                        system("cls");
-                        displayTableHeader("ADMIN REGISTRATION");
-                        cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
-                        cout << "\nEnter Full Name: " << fullName << endl;
-                        cout << "Enter Email: " << email << endl;
-                        cout << "Enter IC Number: " << icNumber << endl;
-                        cout << "Enter Contact Number: " << contactNumber << endl;
-                        cout << "Create Username: " << username << endl;
-                    } else {
-                        validInput = true;
-                    }
+                if (!validatePasswordComplexity(password1)) {
+                    cout << "\n[ERROR] Password too weak!" << endl;
+                    cout << "Requirements: At least 8 chars, 1 Uppercase, 1 Lowercase, 1 Special char." << endl;
+                    pressEnterToContinue();
+                    redraw();
+                    cout << "Create Username: " << username << endl;
+                    continue;
                 }
+
+                cout << "Re-enter Password: ";
+                password2 = getMaskedInput();
+
+                if (validatePassword(password1, password2)) break;
+
+                cout << "\n[ERROR] Passwords do not match!" << endl;
+                pressEnterToContinue();
+                redraw();
+                cout << "Create Username: " << username << endl;
             }
 
-            // Insert into admin table (formatted_id is auto-generated by trigger)
-            string query = "INSERT INTO admin (formatted_id, full_name, email, contact_number, ic_number, status, role) "
-                "VALUES (NULL, '" + fullName + "', '" + email + "', '" + contactNumber + "', '" + icNumber + "', 'Active', 'Admin')";
+            string query = "INSERT INTO admin (formatted_id, full_name, email, contact_number, ic_number, status, role) VALUES (NULL, '" + fullName + "', '" + email + "', '" + contactNumber + "', '" + icNumber + "', 'Active', 'Admin')";
 
             if (db->executeUpdate(query)) {
-                // Get the formatted_id that was just inserted
-                string getIdQuery = "SELECT formatted_id FROM admin WHERE email = '" + email + "' ORDER BY formatted_id DESC LIMIT 1";
+                string getIdQuery = "SELECT formatted_id FROM admin WHERE ic_number = '" + icNumber + "' ORDER BY formatted_id DESC LIMIT 1";
                 sql::ResultSet* idRes = db->executeSelect(getIdQuery);
                 string adminId = "";
-                if (idRes && idRes->next()) {
-                    adminId = string(idRes->getString("formatted_id"));
-                }
+                if (idRes && idRes->next()) adminId = idRes->getString("formatted_id");
                 if (idRes) delete idRes;
 
                 if (!adminId.empty()) {
-                    // Insert into login table
-                    string loginQuery = "INSERT INTO login (formatted_id, username, password, role, admin_id) "
-                        "VALUES (NULL, '" + username + "', '" + password1 + "', 'Admin', '" + adminId + "')";
-
-                    if (db->executeUpdate(loginQuery)) {
-                        cout << "\n✅ Admin registered successfully!" << endl;
-                        
-                        cout << "\n+----------------------------------------------------------------+" << endl;
-                        cout << "|                    REGISTERED ADMIN DETAILS                     |" << endl;
-                        cout << "+----------------------------------------------------------------+" << endl;
-                        cout << "| Username: " << left << setw(47) << username << "|" << endl;
-                        cout << "| Full Name: " << left << setw(46) << fullName << "|" << endl;
-                        cout << "| Email: " << left << setw(50) << email << "|" << endl;
-                        cout << "+----------------------------------------------------------------+" << endl;
-                        registrationComplete = true;
-                    } else {
-                        cout << "\n⚠️  Admin created but login failed! Please contact system administrator." << endl;
-                        registrationComplete = true;
-                    }
-                } else {
-                    cout << "\n[ERROR] Failed to retrieve admin ID!" << endl;
-                    pressEnterToContinue();
+                    string loginQuery = "INSERT INTO login (formatted_id, username, password, role, admin_id) VALUES (NULL, '" + username + "', '" + password1 + "', 'Admin', '" + adminId + "')";
+                    db->executeUpdate(loginQuery);
+                    cout << "\n✅ Admin registered successfully!" << endl;
+                    registrationComplete = true;
                 }
-            } else {
-                cout << "\n[ERROR] Failed to register admin!" << endl;
-                pressEnterToContinue();
             }
         }
         catch (exception& e) {
@@ -866,7 +507,6 @@ void Registration::registerAdmin() {
             pressEnterToContinue();
         }
     }
-
     pressEnterToContinue();
 }
 
@@ -875,90 +515,44 @@ bool Registration::validatePassword(const string& password1, const string& passw
 }
 
 bool Registration::validateContactNumber(const string& contactNumber) {
-    if (contactNumber.empty()) {
-        return false;
-    }
-    // Check if all characters are digits
+    if (contactNumber.empty()) return false;
     for (char c : contactNumber) {
-        if (!isdigit(c)) {
-            return false;
-        }
+        if (!isdigit(c)) return false;
     }
-    // Check if length is 10 or 11 digits
-    if (contactNumber.length() != 10U && contactNumber.length() != 11U) {
-        return false;
-    }
-    return true;
+    return (contactNumber.length() == 10 || contactNumber.length() == 11);
 }
 
 bool Registration::validateFullName(const string& fullName) {
-    if (fullName.empty()) {
-        return false;
-    }
-    // Check if all characters are letters or spaces
+    if (fullName.empty()) return false;
     for (char c : fullName) {
-        if (!isalpha(c) && c != ' ' && c != '-') {
-            return false;
-        }
-    }
-    // Check if name has at least one letter
-    bool hasLetter = false;
-    for (char c : fullName) {
-        if (isalpha(c)) {
-            hasLetter = true;
-            break;
-        }
-    }
-    return hasLetter;
-}
-
-bool Registration::validateICNumber(const string& icNumber) {
-    if (icNumber.empty()) {
-        return false;
-    }
-    // Check if all characters are digits
-    for (char c : icNumber) {
-        if (!isdigit(c)) {
-            return false;
-        }
-    }
-    // Check if length is exactly 12 digits
-    if (icNumber.length() != 12U) {
-        return false;
+        if (!isalpha(c) && c != ' ' && c != '-') return false;
     }
     return true;
 }
 
+bool Registration::validateICNumber(const string& icNumber) {
+    if (icNumber.empty()) return false;
+    for (char c : icNumber) if (!isdigit(c)) return false;
+    return icNumber.length() == 12;
+}
+
 string Registration::validateAndCorrectGender(string& gender) {
-    // Convert to lowercase for comparison
-    string genderLower = gender;
-    for (char& c : genderLower) {
-        c = tolower(c);
-    }
-    
-    // Auto-correct common inputs
-    if (genderLower == "m" || genderLower == "male") {
-        return "Male";
-    } else if (genderLower == "f" || genderLower == "female") {
-        return "Female";
-    } else {
-        // Return original if not valid
-        return gender;
-    }
+    string g = gender;
+    // Lowercase for comparison
+    transform(g.begin(), g.end(), g.begin(), ::tolower);
+
+    if (g == "m" || g == "male") return "Male";
+    if (g == "f" || g == "female") return "Female";
+    return ""; // Invalid
 }
 
 void Registration::displayTableHeader(const string& title) {
-    // Blue theme header matching new GUI style
     const int SEPARATOR_LENGTH = 80;
-    
     ColorUtils::setColor(LIGHT_BLUE);
     for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
     ColorUtils::resetColor();
     cout << endl;
-    
-    // Centered title with white text on blue background
     MenuNavigator::displayTitle(title, SEPARATOR_LENGTH);
-    
     ColorUtils::setColor(LIGHT_BLUE);
     for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
     ColorUtils::resetColor();
