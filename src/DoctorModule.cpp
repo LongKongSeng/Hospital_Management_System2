@@ -71,29 +71,28 @@ void DoctorModule::viewPatientRecord() {
             return;
         }
 
-  cout << "\n" << endl;
-  cout << "+================================================================+" << endl;
-  cout << "|                      PATIENT INFORMATION                       |" << endl;
-  cout << "+================================================================+" << endl;
+        cout << "\n" << endl;
+        cout << "+================================================================+" << endl;
+        cout << "|                      PATIENT INFORMATION                       |" << endl;
+        cout << "+================================================================+" << endl;
 
-  cout << "| Patient ID: " << left << setw(51) << string(patientRes->getString("formatted_id")) << "|" << endl;
-  cout << "| Full Name: " << left << setw(52) << patientRes->getString("full_name") << "|" << endl;
-  cout << "| Gender: " << left << setw(55) << patientRes->getString("gender") << "|" << endl;
-  cout << "| Date of Birth: " << left << setw(48) << patientRes->getString("date_of_birth") << "|" << endl;
-  cout << "| Contact Number: " << left << setw(47) << patientRes->getString("contact_number") << "|" << endl;
-  cout << "| Blood Type: " << left << setw(51) << (patientRes->isNull("blood_type") ? "N/A" : patientRes->getString("blood_type")) << "|" << endl;
-  cout << "| Status: " << left << setw(55) << patientRes->getString("status") << "|" << endl;
+        cout << "| Patient ID: " << left << setw(51) << string(patientRes->getString("formatted_id")) << "|" << endl;
+        cout << "| Full Name: " << left << setw(52) << patientRes->getString("full_name") << "|" << endl;
+        cout << "| Gender: " << left << setw(55) << patientRes->getString("gender") << "|" << endl;
+        cout << "| Date of Birth: " << left << setw(48) << patientRes->getString("date_of_birth") << "|" << endl;
+        cout << "| Contact Number: " << left << setw(47) << patientRes->getString("contact_number") << "|" << endl;
+        cout << "| Blood Type: " << left << setw(51) << (patientRes->isNull("blood_type") ? "N/A" : patientRes->getString("blood_type")) << "|" << endl;
+        cout << "| Status: " << left << setw(55) << patientRes->getString("status") << "|" << endl;
 
-  cout << "+================================================================+" << endl;
-    
-        delete patientRes;
+        cout << "+================================================================+" << endl;
 
         // Display medical records
-        string recordQuery = "SELECT mr.formatted_id, mr.date_of_record, d.disease, d.disorder, d.duration_of_pain, d.severity, mr.notes "
-                            "FROM medical_record mr "
-                            "LEFT JOIN diagnosis d ON mr.diagnosis_id = d.formatted_id "
-                            "WHERE mr.patient_id = '" + patientId + "' "
-                            "ORDER BY mr.date_of_record DESC";
+         // FIX: Added 'AS record_formatted_id' to match displayMedicalRecordTable expectation
+        string recordQuery = "SELECT mr.formatted_id AS record_formatted_id, mr.date_of_record, d.disease, d.disorder, d.duration_of_pain, d.severity, mr.notes "
+            "FROM medical_record mr "
+            "LEFT JOIN diagnosis d ON mr.diagnosis_id = d.formatted_id "
+            "WHERE mr.patient_id = '" + patientId + "' "
+            "ORDER BY mr.date_of_record DESC";
 
         sql::ResultSet* recordRes = db->executeSelect(recordQuery);
         
