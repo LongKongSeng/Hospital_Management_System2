@@ -251,37 +251,37 @@ void Reports::calculateProfitMargins() {
 void Reports::calculatePatientStatistics() {
     system("cls");
     displayTableHeader("PATIENT STATISTICS (JOINS & AGGREGATIONS)");
-
+    
     try {
         // FIX: Changed 'patient_report' to 'medical_record' 
         // and 'r.report_id' to 'mr.record_id'
         string query = "SELECT p.status, "
-            "COUNT(DISTINCT p.formatted_id) as patient_count, "
-            "COUNT(DISTINCT pr.formatted_id) as total_prescriptions, "
-            "COUNT(DISTINCT mr.formatted_id) as total_reports, "
-            "AVG(DATEDIFF(CURDATE(), p.created_at)) as avg_days_registered "
-            "FROM patient p "
-            "LEFT JOIN prescription pr ON p.formatted_id = pr.patient_id "
-            "LEFT JOIN medical_record mr ON p.formatted_id = mr.patient_id "
-            "GROUP BY p.status "
-            "ORDER BY patient_count DESC";
-
+                      "COUNT(DISTINCT p.formatted_id) as patient_count, "
+                      "COUNT(DISTINCT pr.formatted_id) as total_prescriptions, "
+                      "COUNT(DISTINCT mr.formatted_id) as total_reports, "
+                      "AVG(DATEDIFF(CURDATE(), p.created_at)) as avg_days_registered "
+                      "FROM patient p "
+                      "LEFT JOIN prescription pr ON p.formatted_id = pr.patient_id "
+                      "LEFT JOIN medical_record mr ON p.formatted_id = mr.patient_id "
+                      "GROUP BY p.status "
+                      "ORDER BY patient_count DESC";
+        
         sql::ResultSet* res = db->executeSelect(query);
-
+        
         if (res) {
             cout << "\n+----------------------+---------------+----------------------+--------------+----------------------+" << endl;
             cout << "| Status               | Patient Count | Total Prescriptions | Total Reports| Avg Days Registered |" << endl;
             cout << "+----------------------┼---------------┼----------------------┼--------------┼----------------------+" << endl;
-
+            
             while (res->next()) {
                 double avgDays = res->isNull("avg_days_registered") ? 0 : res->getDouble("avg_days_registered");
                 cout << "| " << setw(20) << left << res->getString("status")
-                    << "| " << setw(13) << right << res->getInt("patient_count")
-                    << "| " << setw(20) << right << res->getInt("total_prescriptions")
-                    << "| " << setw(12) << right << res->getInt("total_reports")
-                    << "| " << setw(20) << right << fixed << setprecision(1) << avgDays << "|" << endl;
+                     << "| " << setw(13) << right << res->getInt("patient_count")
+                     << "| " << setw(20) << right << res->getInt("total_prescriptions")
+                     << "| " << setw(12) << right << res->getInt("total_reports")
+                     << "| " << setw(20) << right << fixed << setprecision(1) << avgDays << "|" << endl;
             }
-
+            
             cout << "+----------------------+---------------+----------------------+--------------+----------------------+" << endl;
             delete res;
         }
@@ -289,7 +289,7 @@ void Reports::calculatePatientStatistics() {
     catch (exception& e) {
         cout << "\n[ERROR] Error: " << e.what() << endl;
     }
-
+    
     pressEnterToContinue();
 }
 
