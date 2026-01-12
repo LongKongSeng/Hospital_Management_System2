@@ -219,74 +219,70 @@ void AdminModule::generateMonthlyReport() {
     displayTableHeader("MONTHLY MEDICATION REPORT");
 
     try {
-        // Complex query: Join prescription with pharmacy, group by month
+        // CHANGED: Group by 'medicine_name' instead of 'category_of_meds'
         string query = "SELECT DATE_FORMAT(p.date, '%Y-%m') as month, "
-                      "ph.category_of_meds, "
-                      "COUNT(p.prescription_id) as prescription_count, "
-                      "SUM(ph.quantity) as total_quantity_prescribed "
-                      "FROM prescription p "
-                      "JOIN pharmacy ph ON p.pharmacy_id = ph.pharmacy_id "
-                      "WHERE p.date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) "
-                      "GROUP BY DATE_FORMAT(p.date, '%Y-%m'), ph.category_of_meds "
-                      "ORDER BY month DESC, ph.category_of_meds";
+            "ph.medicine_name, "
+            "COUNT(p.formatted_id) as prescription_count "
+            "FROM prescription p "
+            "JOIN pharmacy ph ON p.pharmacy_id = ph.formatted_id "
+            "WHERE p.date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) "
+            "GROUP BY DATE_FORMAT(p.date, '%Y-%m'), ph.medicine_name "
+            "ORDER BY month DESC, prescription_count DESC";
 
         sql::ResultSet* res = db->executeSelect(query);
-        
+
         if (res) {
-            cout << "\n+-----------+----------------------+----------------------+--------------------------+" << endl;
+            cout << "\n+-----------+---------------------------+----------------------+" << endl;
             cout << "| " << left << setw(9) << "Month"
-                 << "| " << left << setw(20) << "Category"
-                 << "| " << right << setw(20) << "Prescription Count"
-                 << "| " << right << setw(24) << "Total Quantity Prescribed" << " |" << endl;
-            cout << "+-----------+----------------------+----------------------+--------------------------+" << endl;
-            
+                << "| " << left << setw(25) << "Medicine Name"
+                << "| " << right << setw(20) << "Times Prescribed" << " |" << endl;
+            cout << "+-----------+---------------------------+----------------------+" << endl;
+
+            vector<pair<string, pair<string, int>>> graphData;
+            double maxCount = 0;
+
             while (res->next()) {
                 string month = string(res->getString("month"));
-                string category = string(res->getString("category_of_meds"));
-                int prescriptionCount = res->getInt("prescription_count");
-                int totalQuantity = res->getInt("total_quantity_prescribed");
-                
-                // Truncate long text to fit column width
-                if (category.length() > 20) category = category.substr(0, 17) + "...";
-                
-                cout << "| " << left << setw(9) << month
-                     << "| " << left << setw(20) << category
-                     << "| " << right << setw(20) << prescriptionCount
-                     << "| " << right << setw(24) << totalQuantity << " |" << endl;
-            }
-            cout << "+-----------+----------------------+----------------------+--------------------------+" << endl;
-            
-            // Display graphical representation
-            cout << "\n\nGRAPHICAL REPRESENTATION (Monthly Medication Prescribed):\n" << endl;
-            res->beforeFirst();
-            double maxValue = 0;
-            vector<pair<string, pair<string, int>>> data;
-            
-            while (res->next()) {
-                string month = res->getString("month");
-                string category = res->getString("category_of_meds");
+                string medName = string(res->getString("medicine_name"));
                 int count = res->getInt("prescription_count");
-                data.push_back({month, {category, count}});
-                if (count > maxValue) maxValue = count;
+
+                graphData.push_back({ month, {medName, count} });
+                if (count > maxCount) maxCount = count;
+
+                if (medName.length() > 25) medName = medName.substr(0, 22) + "...";
+
+                cout << "| " << left << setw(9) << month
+                    << "| " << left << setw(25) << medName
+                    << "| " << right << setw(20) << count << " |" << endl;
+            }
+            cout << "+-----------+---------------------------+----------------------+" << endl;
+
+            // GRAPHICAL PART
+            cout << "\n\nGRAPHICAL VIEW (Top Prescriptions per Month):\n" << endl;
+            if (!graphData.empty()) {
+                string currentMonth = "";
+                for (const auto& item : graphData) {
+                    if (item.first != currentMonth) {
+                        cout << "\n--- " << item.first << " ---" << endl;
+                        currentMonth = item.first;
+                    }
+                    int barLength = maxCount > 0 ? (int)((item.second.second / maxCount) * 40) : 0;
+                    cout << left << setw(25) << item.second.first << " |";
+                    ColorUtils::setColor(LIGHT_CYAN);
+                    for (int i = 0; i < barLength; i++) cout << "█";
+                    ColorUtils::resetColor();
+                    cout << " " << item.second.second << endl;
+                }
             }
             delete res;
-            
-            // Display bar chart
-            for (const auto& item : data) {
-                int barLength = maxValue > 0 ? (int)((item.second.second / maxValue) * 50) : 0;
-                cout << left << setw(10) << item.first << " | " 
-                     << setw(20) << item.second.first << " |";
-                for (int i = 0; i < barLength; i++) cout << "█";
-                cout << " " << item.second.second << " prescriptions" << endl;
-            }
-        } else {
+        }
+        else {
             cout << "\n⚠️  No data found for monthly report!" << endl;
         }
     }
     catch (exception& e) {
         cout << "\n[ERROR] Error: " << e.what() << endl;
     }
-
     pressEnterToContinue();
 }
 
@@ -295,74 +291,70 @@ void AdminModule::generateYearlyReport() {
     displayTableHeader("YEARLY MEDICATION REPORT");
 
     try {
-        // Complex query: Join prescription with pharmacy, group by year
+        // CHANGED: Group by 'medicine_name' instead of 'category_of_meds'
         string query = "SELECT YEAR(p.date) as year, "
-                      "ph.category_of_meds, "
-                      "COUNT(p.prescription_id) as prescription_count, "
-                      "SUM(ph.quantity) as total_quantity_prescribed "
-                      "FROM prescription p "
-                      "JOIN pharmacy ph ON p.pharmacy_id = ph.pharmacy_id "
-                      "WHERE p.date >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR) "
-                      "GROUP BY YEAR(p.date), ph.category_of_meds "
-                      "ORDER BY year DESC, ph.category_of_meds";
+            "ph.medicine_name, "
+            "COUNT(p.formatted_id) as prescription_count "
+            "FROM prescription p "
+            "JOIN pharmacy ph ON p.pharmacy_id = ph.formatted_id "
+            "WHERE p.date >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR) "
+            "GROUP BY YEAR(p.date), ph.medicine_name "
+            "ORDER BY year DESC, prescription_count DESC";
 
         sql::ResultSet* res = db->executeSelect(query);
-        
+
         if (res) {
-            cout << "\n+-------+----------------------+----------------------+--------------------------+" << endl;
-            cout << "| " << right << setw(5) << "Year"
-                 << "| " << left << setw(20) << "Category"
-                 << "| " << right << setw(20) << "Prescription Count"
-                 << "| " << right << setw(24) << "Total Quantity Prescribed" << " |" << endl;
-            cout << "+-------+----------------------+----------------------+--------------------------+" << endl;
-            
+            cout << "\n+-------+---------------------------+----------------------+" << endl;
+            cout << "| " << left << setw(5) << "Year"
+                << "| " << left << setw(25) << "Medicine Name"
+                << "| " << right << setw(20) << "Times Prescribed" << " |" << endl;
+            cout << "+-------+---------------------------+----------------------+" << endl;
+
+            vector<pair<int, pair<string, int>>> graphData;
+            double maxCount = 0;
+
             while (res->next()) {
                 int year = res->getInt("year");
-                string category = string(res->getString("category_of_meds"));
-                int prescriptionCount = res->getInt("prescription_count");
-                int totalQuantity = res->getInt("total_quantity_prescribed");
-                
-                // Truncate long text to fit column width
-                if (category.length() > 20) category = category.substr(0, 17) + "...";
-                
-                cout << "| " << right << setw(5) << year
-                     << "| " << left << setw(20) << category
-                     << "| " << right << setw(20) << prescriptionCount
-                     << "| " << right << setw(24) << totalQuantity << " |" << endl;
-            }
-            cout << "+-------+----------------------+----------------------+--------------------------+" << endl;
-            
-            // Display graphical representation
-            cout << "\n\nGRAPHICAL REPRESENTATION (Annual Medication Prescribed):\n" << endl;
-            res->beforeFirst();
-            double maxValue = 0;
-            vector<pair<int, pair<string, int>>> data;
-            
-            while (res->next()) {
-                int year = res->getInt("year");
-                string category = res->getString("category_of_meds");
+                string medName = string(res->getString("medicine_name"));
                 int count = res->getInt("prescription_count");
-                data.push_back({year, {category, count}});
-                if (count > maxValue) maxValue = count;
+
+                graphData.push_back({ year, {medName, count} });
+                if (count > maxCount) maxCount = count;
+
+                if (medName.length() > 25) medName = medName.substr(0, 22) + "...";
+
+                cout << "| " << left << setw(5) << year
+                    << "| " << left << setw(25) << medName
+                    << "| " << right << setw(20) << count << " |" << endl;
+            }
+            cout << "+-------+---------------------------+----------------------+" << endl;
+
+            // GRAPHICAL PART
+            cout << "\n\nGRAPHICAL VIEW (Top Prescriptions per Year):\n" << endl;
+            if (!graphData.empty()) {
+                int currentYear = 0;
+                for (const auto& item : graphData) {
+                    if (item.first != currentYear) {
+                        cout << "\n--- " << item.first << " ---" << endl;
+                        currentYear = item.first;
+                    }
+                    int barLength = maxCount > 0 ? (int)((item.second.second / maxCount) * 40) : 0;
+                    cout << left << setw(25) << item.second.first << " |";
+                    ColorUtils::setColor(LIGHT_MAGENTA);
+                    for (int i = 0; i < barLength; i++) cout << "█";
+                    ColorUtils::resetColor();
+                    cout << " " << item.second.second << endl;
+                }
             }
             delete res;
-            
-            // Display bar chart
-            for (const auto& item : data) {
-                int barLength = maxValue > 0 ? (int)((item.second.second / maxValue) * 50) : 0;
-                cout << left << setw(6) << item.first << " | " 
-                     << setw(20) << item.second.first << " |";
-                for (int i = 0; i < barLength; i++) cout << "█";
-                cout << " " << item.second.second << " prescriptions" << endl;
-            }
-        } else {
+        }
+        else {
             cout << "\n⚠️  No data found for yearly report!" << endl;
         }
     }
     catch (exception& e) {
         cout << "\n[ERROR] Error: " << e.what() << endl;
     }
-
     pressEnterToContinue();
 }
 
@@ -403,68 +395,76 @@ void AdminModule::generateHospitalReport() {
 
 void AdminModule::displayGraphicalReport() {
     system("cls");
-    displayTableHeader("GRAPHICAL HOSPITAL REPORT");
+    displayTableHeader("MEDICATION POPULARITY REPORT");
 
     try {
-        // Removed SUM(ph.quantity)
-        string query = "SELECT ph.category_of_meds, "
-            "COUNT(p.prescription_id) as total_prescriptions, "
-            "AVG(ph.unit_price) as avg_price "
+        // CHANGED: Query specific medicines instead of categories
+        string query = "SELECT ph.formatted_id, ph.medicine_name, "
+            "COUNT(p.formatted_id) as total_prescriptions "
             "FROM prescription p "
-            "JOIN pharmacy ph ON p.pharmacy_id = ph.formatted_id " //Fixed join condition for formatted_id
-            "GROUP BY ph.category_of_meds "
+            "JOIN pharmacy ph ON p.pharmacy_id = ph.formatted_id "
+            "GROUP BY ph.formatted_id, ph.medicine_name "
             "ORDER BY total_prescriptions DESC";
 
         sql::ResultSet* res = db->executeSelect(query);
 
         if (res) {
-            // Removed Total Quantity column from header
-            cout << "\n+----------------------+----------------------+------------------+" << endl;
-            cout << "| " << left << setw(20) << "Category"
-                << "| " << right << setw(20) << "Total Prescriptions"
-                << "| " << right << setw(16) << "Average Price" << " |" << endl;
-            cout << "+----------------------+----------------------+------------------+" << endl;
+            cout << "\n+-------------+---------------------------+-----------------------+" << endl;
+            cout << "| " << left << setw(11) << "Med ID"
+                << "| " << left << setw(25) << "Medicine Name"
+                << "| " << right << setw(21) << "Times Prescribed" << " |" << endl;
+            cout << "+-------------+---------------------------+-----------------------+" << endl;
 
             double maxPrescriptions = 0;
             vector<pair<string, int>> chartData;
 
             while (res->next()) {
-                string category = string(res->getString("category_of_meds"));
-                int prescriptions = res->getInt("total_prescriptions");
-                double avgPrice = res->getDouble("avg_price");
+                string medId = string(res->getString("formatted_id"));
+                string medName = string(res->getString("medicine_name"));
+                int count = res->getInt("total_prescriptions");
 
-                chartData.push_back({ category, prescriptions });
-                if (prescriptions > maxPrescriptions) maxPrescriptions = prescriptions;
+                // Label for chart (ID + Name)
+                string label = medId + " - " + medName;
+                if (label.length() > 25) label = label.substr(0, 22) + "...";
+                chartData.push_back({ label, count });
 
-                if (category.length() > 20) category = category.substr(0, 17) + "...";
+                if (count > maxPrescriptions) maxPrescriptions = count;
 
-                // Removed totalQuantity output
-                cout << "| " << left << setw(20) << category
-                    << "| " << right << setw(20) << prescriptions
-                    << "| RM " << right << setw(12) << fixed << setprecision(2) << avgPrice << " |" << endl;
+                if (medName.length() > 25) medName = medName.substr(0, 22) + "...";
+
+                cout << "| " << left << setw(11) << medId
+                    << "| " << left << setw(25) << medName
+                    << "| " << right << setw(21) << count << " |" << endl;
             }
-            cout << "+----------------------+----------------------+------------------+" << endl;
+            cout << "+-------------+---------------------------+-----------------------+" << endl;
 
-            cout << "\n\nGRAPHICAL CHART (Amount of Medication Prescribed):\n" << endl;
-            for (const auto& item : chartData) {
-                int barLength = maxPrescriptions > 0 ? (int)((item.second / maxPrescriptions) * 50) : 0;
-                cout << left << setw(25) << item.first << " |";
-                for (int i = 0; i < barLength; i++) cout << "█";
-                cout << " " << item.second << " prescriptions" << endl;
+            // GRAPHICAL CHART
+            cout << "\n\nPOPULARITY CHART (Most Prescribed Medicines):\n" << endl;
+            if (chartData.empty()) {
+                cout << "No prescription data available." << endl;
             }
-
+            else {
+                for (const auto& item : chartData) {
+                    int barLength = maxPrescriptions > 0 ? (int)((item.second / maxPrescriptions) * 50) : 0;
+                    cout << left << setw(30) << item.first << " |";
+                    ColorUtils::setColor(LIGHT_GREEN);
+                    for (int i = 0; i < barLength; i++) cout << "█";
+                    ColorUtils::resetColor();
+                    cout << " " << item.second << endl;
+                }
+            }
             delete res;
         }
         else {
-            cout << "\n⚠️  No data found!" << endl;
+            cout << "\n⚠️  No prescription data found!" << endl;
         }
     }
     catch (exception& e) {
         cout << "\n[ERROR] Error: " << e.what() << endl;
     }
-
     pressEnterToContinue();
-}
+}nd
+
 
 void AdminModule::addPatient() {
     system("cls");
@@ -735,55 +735,49 @@ void AdminModule::calculatePatientReceipt(const string& patientId) {
         // First, get patient details
         string patientQuery = "SELECT formatted_id, full_name, contact_number, status FROM patient WHERE formatted_id = '" + patientId + "'";
         sql::ResultSet* patientRes = db->executeSelect(patientQuery);
-        
+
         if (!patientRes || !patientRes->next()) {
             cout << "\n[ERROR] Patient not found!" << endl;
             if (patientRes) delete patientRes;
             pressEnterToContinue();
             return;
         }
-        
-        string patientName = patientRes->getString("full_name");
+
         delete patientRes;
 
-        // Calculate total treatment done to patient with consultant fee
-        // Using SUM aggregation with JOIN
-        string query = "SELECT SUM(t.consultation_fee + t.treatment_fee) as total_amount, "
-                      "COUNT(t.formatted_id) as treatment_count "
-                      "FROM treatment t "
-                      "JOIN medical_record mr ON t.doctor_id = mr.doctor_id "
-                      "WHERE mr.patient_id = '" + patientId + "'";
+        // --- UPDATED: Calculate Total based on Medical Records (Consultations) ---
+        // Assuming a standard Consultation Fee of RM 50.00 per visit
+        double standardConsultationFee = 50.00;
 
+        string query = "SELECT COUNT(*) as visit_count FROM medical_record WHERE patient_id = '" + patientId + "'";
         sql::ResultSet* res = db->executeSelect(query);
-        
+
         double totalAmount = 0.0;
-        int treatmentCount = 0;
-        
+
         if (res && res->next()) {
-            totalAmount = res->getDouble("total_amount");
-            treatmentCount = res->getInt("treatment_count");
+            int visits = res->getInt("visit_count");
+            totalAmount = visits * standardConsultationFee;
         }
         if (res) delete res;
 
-        // If no treatments found, set default consultation fee
+        // If no records found, total is 0 (or you can keep the default 50 logic if you prefer)
         if (totalAmount == 0) {
-            totalAmount = 50.00; // Default consultation fee
+            // Optional: Uncomment below if you want to charge a base fee even with no history
+            // totalAmount = 50.00; 
         }
 
         displayReceipt(patientId, totalAmount);
-        
-        // Update patient status based on next appointment
-        // If next appointment exists -> patient status = Active, else = Inactive
+
+        // Update patient status logic (unchanged)
         string appointmentQuery = "SELECT COUNT(*) as count FROM appointment WHERE patient_id = '" + patientId + "' AND appointment_date >= CURDATE()";
         sql::ResultSet* apptRes = db->executeSelect(appointmentQuery);
-        
+
         string newStatus = "Inactive";
         if (apptRes && apptRes->next() && apptRes->getInt("count") > 0) {
             newStatus = "Active";
         }
         if (apptRes) delete apptRes;
 
-        // Update patient status
         string updateQuery = "UPDATE patient SET status = '" + newStatus + "' WHERE formatted_id = '" + patientId + "'";
         db->executeUpdate(updateQuery);
 
@@ -797,13 +791,13 @@ void AdminModule::calculatePatientReceipt(const string& patientId) {
 
 void AdminModule::displayReceipt(const string& patientId, double totalAmount) {
     system("cls");
-    displayTableHeader("PATIENT RECEIPT");
+    displayTableHeader("PATIENT RECEIPT (CONSULTATION HISTORY)");
 
     try {
         // Get patient details
         string patientQuery = "SELECT formatted_id, full_name, contact_number, date_of_birth FROM patient WHERE formatted_id = '" + patientId + "'";
         sql::ResultSet* patientRes = db->executeSelect(patientQuery);
-        
+
         if (!patientRes || !patientRes->next()) {
             cout << "\n[ERROR] Patient not found!" << endl;
             if (patientRes) delete patientRes;
@@ -816,63 +810,63 @@ void AdminModule::displayReceipt(const string& patientId, double totalAmount) {
         string dob = patientRes->isNull("date_of_birth") ? "N/A" : patientRes->getString("date_of_birth");
         delete patientRes;
 
-        // Get treatment details
-        string treatmentQuery = "SELECT t.formatted_id as treatment_formatted_id, t.consultation_fee, t.treatment_fee, t.treatment_date, d.full_name as doctor_name "
-                              "FROM treatment t "
-                              "JOIN medical_record mr ON t.doctor_id = mr.doctor_id "
-                              "JOIN doctor d ON t.doctor_id = d.formatted_id "
-                              "WHERE mr.patient_id = '" + patientId + "' "
-                              "ORDER BY t.treatment_date DESC";
+        // --- UPDATED: Query 'medical_record' instead of 'treatment' ---
+        // This ensures we show every diagnosis visit as a consultation
+        string consultationQuery = "SELECT mr.formatted_id, mr.date_of_record, d.full_name as doctor_name "
+            "FROM medical_record mr "
+            "JOIN doctor d ON mr.doctor_id = d.formatted_id "
+            "WHERE mr.patient_id = '" + patientId + "' "
+            "ORDER BY mr.date_of_record DESC";
 
-        sql::ResultSet* treatmentRes = db->executeSelect(treatmentQuery);
+        sql::ResultSet* res = db->executeSelect(consultationQuery);
 
-        // Display receipt
+        // Display receipt header
         cout << "\n" << endl;
         cout << "+================================================================+" << endl;
-        cout << "|                        HOSPITAL RECEIPT                         |" << endl;
+        cout << "|                  HOSPITAL CONSULTATION RECEIPT                 |" << endl;
         cout << "+================================================================+" << endl;
         cout << "| Patient ID: " << left << setw(54) << patientFormattedId << "|" << endl;
         cout << "| Patient Name: " << left << setw(52) << patientName << "|" << endl;
         cout << "| Contact Number: " << left << setw(50) << contactNumber << "|" << endl;
         cout << "| Date of Birth: " << left << setw(51) << dob << "|" << endl;
         cout << "+================================================================+" << endl;
-        cout << "|                        TREATMENT DETAILS                        |" << endl;
+        cout << "|                      CONSULTATION DETAILS                      |" << endl;
         cout << "+================================================================+" << endl;
 
-        if (treatmentRes && treatmentRes->rowsCount() > 0) {
-            cout << "+-------------+----------------------+------------------+------------------+--------------+" << endl;
-            cout << "| " << left << setw(11) << "Treatment ID"
-                 << "| " << left << setw(20) << "Doctor Name"
-                 << "| " << right << setw(16) << "Consultation Fee"
-                 << "| " << right << setw(16) << "Treatment Fee"
-                 << "| " << left << setw(12) << "Date" << "|" << endl;
-            cout << "+-------------+----------------------+------------------+------------------+--------------+" << endl;
-            
-            while (treatmentRes->next()) {
-                string treatmentId = string(treatmentRes->getString("treatment_formatted_id"));
-                string doctorName = string(treatmentRes->getString("doctor_name"));
-                double consultationFee = treatmentRes->getDouble("consultation_fee");
-                double treatmentFee = treatmentRes->getDouble("treatment_fee");
-                string treatmentDate = treatmentRes->isNull("treatment_date") ? "N/A" : string(treatmentRes->getString("treatment_date"));
-                
+        if (res && res->rowsCount() > 0) {
+            cout << "+-------------+----------------------+------------------+--------------+" << endl;
+            cout << "| " << left << setw(11) << "Record ID"
+                << "| " << left << setw(20) << "Doctor Name"
+                << "| " << right << setw(16) << "Consultation Fee"
+                << "| " << left << setw(12) << "Date" << "|" << endl;
+            cout << "+-------------+----------------------+------------------+--------------+" << endl;
+
+            while (res->next()) {
+                string recordId = string(res->getString("formatted_id"));
+                string doctorName = string(res->getString("doctor_name"));
+                string date = res->isNull("date_of_record") ? "N/A" : string(res->getString("date_of_record"));
+
+                // Standard fee for every consultation record
+                double consultationFee = 50.00;
+
                 // Truncate long names to fit column width
                 if (doctorName.length() > 20) doctorName = doctorName.substr(0, 17) + "...";
-                
-                cout << "| " << left << setw(11) << treatmentId
-                     << "| " << left << setw(20) << doctorName
-                     << "| " << right << setw(14) << fixed << setprecision(2) << consultationFee << " |"
-                     << " " << right << setw(14) << fixed << setprecision(2) << treatmentFee << " |"
-                     << " " << left << setw(12) << treatmentDate << "|" << endl;
+
+                cout << "| " << left << setw(11) << recordId
+                    << "| " << left << setw(20) << doctorName
+                    << "| " << right << setw(14) << fixed << setprecision(2) << consultationFee << " |"
+                    << " " << left << setw(12) << date << "|" << endl;
             }
-            cout << "+-------------+----------------------+------------------+------------------+--------------+" << endl;
-        } else {
-            cout << "| " << left << setw(64) << "No treatments found. Default consultation fee applied." << "|" << endl;
+            cout << "+-------------+----------------------+------------------+--------------+" << endl;
+        }
+        else {
+            cout << "| " << left << setw(64) << "No consultation records found." << "|" << endl;
             cout << "+================================================================+" << endl;
         }
-        if (treatmentRes) delete treatmentRes;
+        if (res) delete res;
 
         cout << "\n+================================================================+" << endl;
-        cout << "| Total Amount: " << left << setw(51) << ("RM " + to_string((long long)totalAmount)) << "|" << endl;
+        cout << "| Total Consultation Fees: " << left << setw(42) << ("RM " + to_string((long long)totalAmount)) << "|" << endl;
         cout << "| Date: " << left << setw(59) << (string(__DATE__) + " " + string(__TIME__)) << "|" << endl;
         cout << "+================================================================+" << endl;
 
