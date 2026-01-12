@@ -7,12 +7,11 @@ Reports::Reports(Database* database) : db(database) {}
 void Reports::showMenu() {
     int choice;
     do {
-        // CLEANED MENU: Only Prescription Reports remain
+        // CLEANED MENU: Removed separate Trend Chart, integrated into reports below
         vector<string> menuOptions = {
             "Prescription Report (All)",
-            "Monthly Prescription Report",
-            "Yearly Prescription Report",
-            "Prescription Trend Chart",
+            "Monthly Prescription Report", // Now includes Graph
+            "Yearly Prescription Report",  // Now includes Graph
             "Back to Admin Menu"
         };
 
@@ -24,10 +23,51 @@ void Reports::showMenu() {
         case 0: generatePrescriptionReport(); break;
         case 1: generateMonthlyPrescriptionReport(); break;
         case 2: generateYearlyPrescriptionReport(); break;
-        case 3: displayPrescriptionTrendChart(); break;
-        case 4: return;
+        case 3: return;
         }
     } while (true);
+}
+
+// ---------------------------------------------------------
+// HELPER: Get Month Name
+// ---------------------------------------------------------
+string Reports::getMonthName(int monthNumber) {
+    const string months[] = {
+        "Invalid", "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    };
+    if (monthNumber >= 1 && monthNumber <= 12) {
+        return months[monthNumber];
+    }
+    return "Unknown";
+}
+
+// ---------------------------------------------------------
+// HELPER: Display Horizontal Bar Chart (Integrated)
+// ---------------------------------------------------------
+void Reports::displayIntegratedChart(const vector<pair<string, int>>& data, const string& labelHeader) {
+    if (data.empty()) return;
+
+    // Find max value for scaling
+    int maxVal = 0;
+    for (const auto& item : data) {
+        if (item.second > maxVal) maxVal = item.second;
+    }
+
+    cout << "\n   " << labelHeader << " TREND ANALYSIS" << endl;
+    cout << "   " << string(labelHeader.length() + 15, '-') << endl;
+
+    for (const auto& item : data) {
+        // Calculate bar length (max 50 chars)
+        int barLength = (maxVal > 0) ? (int)((double)item.second / maxVal * 50.0) : 0;
+
+        cout << "   " << left << setw(15) << item.first << " |";
+        ColorUtils::setColor(LIGHT_CYAN);
+        for (int i = 0; i < barLength; i++) cout << "█";
+        ColorUtils::resetColor();
+        cout << " " << item.second << endl;
+    }
+    cout << endl;
 }
 
 // ---------------------------------------------------------
@@ -78,13 +118,14 @@ void Reports::generatePrescriptionReport() {
 }
 
 // ---------------------------------------------------------
-// MONTHLY REPORT
+// MONTHLY REPORT (Updated with Graph & Month Names)
 // ---------------------------------------------------------
 void Reports::generateMonthlyPrescriptionReport() {
     system("cls");
     displayTableHeader("MONTHLY PRESCRIPTION REPORT");
 
     try {
+        // Part 1: Detailed Table
         string query = "SELECT DATE_FORMAT(pr.date, '%Y-%m') as month_str, "
             "ph.medicine_name, "
             "COUNT(pr.formatted_id) as total_count "
@@ -96,19 +137,50 @@ void Reports::generateMonthlyPrescriptionReport() {
         sql::ResultSet* res = db->executeSelect(query);
 
         if (res) {
-            cout << "\n+-----------+----------------------+-------------+" << endl;
-            cout << "| Month     | Medication Name      | Total Count |" << endl;
-            cout << "+-----------+----------------------+-------------+" << endl;
+            cout << "\n+---------------------+----------------------+-------------+" << endl;
+            cout << "| Month               | Medication Name      | Total Count |" << endl;
+            cout << "+---------------------+----------------------+-------------+" << endl;
             while (res->next()) {
-                cout << "| " << setw(9) << left << res->getString("month_str")
+                // Parse "2024-01" -> "January 2024"
+                string monthStr = res->getString("month_str");
+                string year = monthStr.substr(0, 4);
+                int monthNum = stoi(monthStr.substr(5, 2));
+                string niceDate = getMonthName(monthNum) + " " + year;
+
+                cout << "| " << setw(19) << left << niceDate
                     << "| " << setw(20) << res->getString("medicine_name").substr(0, 19)
                     << "| " << setw(11) << right << res->getInt("total_count") << " |" << endl;
             }
-            cout << "+-----------+----------------------+-------------+" << endl;
+            cout << "+---------------------+----------------------+-------------+" << endl;
             delete res;
         }
         else {
             cout << "\nNo prescription records found!" << endl;
+            pressEnterToContinue();
+            return;
+        }
+
+        // Part 2: Integrated Summary Graph (Grouped ONLY by Month)
+        string graphQuery = "SELECT DATE_FORMAT(date, '%Y-%m') as month_str, COUNT(*) as count "
+            "FROM prescription GROUP BY month_str ORDER BY month_str DESC LIMIT 12";
+
+        sql::ResultSet* graphRes = db->executeSelect(graphQuery);
+        vector<pair<string, int>> graphData;
+
+        if (graphRes) {
+            while (graphRes->next()) {
+                string monthStr = graphRes->getString("month_str");
+                string year = monthStr.substr(0, 4);
+                int monthNum = stoi(monthStr.substr(5, 2));
+                string label = getMonthName(monthNum) + " " + year; // e.g. "January 2024"
+
+                graphData.push_back({ label, graphRes->getInt("count") });
+            }
+            delete graphRes;
+
+            // Display the graph below the table
+            cout << "\n" << string(66, '=') << endl;
+            displayIntegratedChart(graphData, "MONTHLY");
         }
     }
     catch (exception& e) {
@@ -118,14 +190,14 @@ void Reports::generateMonthlyPrescriptionReport() {
 }
 
 // ---------------------------------------------------------
-// YEARLY REPORT (REVENUE REMOVED)
+// YEARLY REPORT (Updated with Graph)
 // ---------------------------------------------------------
 void Reports::generateYearlyPrescriptionReport() {
     system("cls");
     displayTableHeader("YEARLY PRESCRIPTION REPORT");
 
     try {
-        // MODIFIED: Removed revenue calculations
+        // Part 1: Detailed Table
         string query = "SELECT DATE_FORMAT(pr.date, '%Y') as year_str, "
             "ph.category_of_meds, "
             "COUNT(pr.formatted_id) as total_count "
@@ -148,64 +220,23 @@ void Reports::generateYearlyPrescriptionReport() {
             cout << "+-------+----------------------+-------------+" << endl;
             delete res;
         }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    pressEnterToContinue();
-}
 
-// ---------------------------------------------------------
-// TREND CHART
-// ---------------------------------------------------------
-void displayVerticalBarChart(const vector<pair<string, int>>& data) {
-    if (data.empty()) return;
-    int maxVal = 0;
-    for (const auto& d : data) maxVal = max(maxVal, d.second);
+        // Part 2: Integrated Summary Graph (Grouped ONLY by Year)
+        string graphQuery = "SELECT DATE_FORMAT(date, '%Y') as year_str, COUNT(*) as count "
+            "FROM prescription GROUP BY year_str ORDER BY year_str DESC LIMIT 5";
 
-    cout << "\n   (Count)\n";
-    for (int row = 10; row > 0; row--) {
-        int threshold = (maxVal * row) / 10;
-        if (threshold == 0 && row == 1 && maxVal > 0) threshold = 1;
-        cout << setw(4) << threshold << " |";
-        for (const auto& d : data) {
-            int barHeight = (maxVal > 0) ? (int)(((double)d.second / maxVal) * 10.0) : 0;
-            if (barHeight >= row) cout << "  █  ";
-            else                  cout << "     ";
-        }
-        cout << endl;
-    }
-    cout << "      +";
-    for (size_t i = 0; i < data.size(); i++) cout << "-----";
-    cout << endl;
-    cout << "       ";
-    for (const auto& d : data) {
-        string label = (d.first.length() >= 7) ? d.first.substr(5, 2) : "??";
-        cout << "  " << label << " ";
-    }
-    cout << "\n         (Month)" << endl;
-}
+        sql::ResultSet* graphRes = db->executeSelect(graphQuery);
+        vector<pair<string, int>> graphData;
 
-void Reports::displayPrescriptionTrendChart() {
-    system("cls");
-    displayTableHeader("PRESCRIPTION TREND CHART");
-
-    try {
-        string query = "SELECT DATE_FORMAT(date, '%Y-%m') as month, COUNT(*) as count FROM prescription GROUP BY month ORDER BY month DESC LIMIT 6";
-        sql::ResultSet* res = db->executeSelect(query);
-
-        if (res) {
-            vector<pair<string, int>> data;
-            while (res->next()) {
-                data.insert(data.begin(), { res->getString("month"), res->getInt("count") });
+        if (graphRes) {
+            while (graphRes->next()) {
+                graphData.push_back({ graphRes->getString("year_str"), graphRes->getInt("count") });
             }
-            delete res;
-            if (!data.empty()) {
-                displayVerticalBarChart(data);
-            }
-            else {
-                cout << "\nNo data available." << endl;
-            }
+            delete graphRes;
+
+            // Display the graph below the table
+            cout << "\n" << string(46, '=') << endl;
+            displayIntegratedChart(graphData, "YEARLY");
         }
     }
     catch (exception& e) {
