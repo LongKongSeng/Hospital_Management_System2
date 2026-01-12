@@ -11,16 +11,19 @@ using namespace std;
 class Login {
 private:
     Database* db;
-    string currentUserId;  // Now stores formatted_id (D001, N001, A001, etc.)
+    string currentUserId;
     string currentUserType;
     string currentUsername;
-    string currentRole; // Doctor, Nurse, or Admin
+    string currentRole;
+
+    // Helper for password masking
+    string getMaskedInput();
 
 public:
     Login(Database* database);
     bool authenticate(const string& username, const string& password);
     void showLoginMenu();
-    string getCurrentUserId();  // Returns formatted_id string
+    string getCurrentUserId();
     string getCurrentUserType();
     string getCurrentUsername();
     string getCurrentRole();
