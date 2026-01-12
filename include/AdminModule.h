@@ -19,19 +19,13 @@ public:
     
     // Admin Module Functions (from flowchart)
     void viewPharmacy();
-    void generateHospitalReport();
     void addPatient();
     void patientReceipt();
     
     // Pharmacy View Functions
     void displayPharmacyList();
     void filterPharmacyByCategory();
-    void displayPharmacyGraphical();
-    
-    // Report Generation Functions
-    void generateMonthlyReport();
-    void generateYearlyReport();
-    void displayGraphicalReport();
+
     
     // Patient Receipt Functions
     void calculatePatientReceipt(const string& patientId);
