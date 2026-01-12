@@ -15,15 +15,18 @@ private:
     void displayTableHeader(const string& title);
     void pressEnterToContinue();
 
+    // New Helpers
+    string getMonthName(int monthNumber);
+    void displayIntegratedChart(const vector<pair<string, int>>& data, const string& labelHeader);
+
 public:
     Reports(Database* database);
     void showMenu();
 
-    // Prescription Reports Only
+    // Prescription Reports Only (Trend Chart integrated into these)
     void generatePrescriptionReport();
     void generateMonthlyPrescriptionReport();
     void generateYearlyPrescriptionReport();
-    void displayPrescriptionTrendChart();
 };
 
 #endif
