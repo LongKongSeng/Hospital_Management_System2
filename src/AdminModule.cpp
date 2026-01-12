@@ -4,6 +4,9 @@
 #include "MenuNavigator.h"
 #include "IdFormatter.h"
 #include <cctype>
+#include <string>
+#include <set>
+#include <algorithm>
 
 AdminModule::AdminModule(Database* database) : db(database) {}
 
@@ -12,7 +15,7 @@ void AdminModule::showMenu() {
     do {
         vector<string> menuOptions = {
             "View Pharmacy",
-            "Prescription Reports", // Renamed to reflect content
+            "Prescription Reports",
             "Add Patient",
             "Patient Receipt",
             "Logout"
@@ -26,7 +29,6 @@ void AdminModule::showMenu() {
         case 0: viewPharmacy(); break;
         case 1:
         {
-            // Correctly calls the new Reports module
             Reports reports(db);
             reports.showMenu();
         }
@@ -133,10 +135,33 @@ void AdminModule::addPatient() {
     string fullName = getStringInput("Enter Patient Name: ");
     if (fullName.empty()) return;
 
-    // Add your validation logic back here if needed
     string gender = getStringInput("Enter Gender (Male/Female): ");
+
+    string dob;
+    while (true) {
+        dob = getStringInput("Enter DOB (YYYY-MM-DD): ");
+        if (dob.empty()) {
+            cout << "\n[ERROR] Date of Birth cannot be empty!" << endl;
+            pressEnterToContinue();
+            system("cls");
+            displayTableHeader("ADD PATIENT");
+            cout << "Enter Patient Name: " << fullName << endl;
+            cout << "Enter Gender (Male/Female): " << gender << endl;
+        }
+        else if (validateDateFormat(dob)) {
+            break;
+        }
+        else {
+            cout << "\n[ERROR] Invalid format! Please use YYYY-MM-DD (e.g., 1990-05-20)." << endl;
+            pressEnterToContinue();
+            system("cls");
+            displayTableHeader("ADD PATIENT");
+            cout << "Enter Patient Name: " << fullName << endl;
+            cout << "Enter Gender (Male/Female): " << gender << endl;
+        }
+    }
+
     string icNumber = getStringInput("Enter IC Number: ");
-    string dob = getStringInput("Enter DOB (YYYY-MM-DD): ");
     string contact = getStringInput("Enter Contact: ");
     string blood = getStringInput("Enter Blood Type: ");
     string emergency = getStringInput("Enter Emergency Contact: ");
@@ -161,35 +186,145 @@ void AdminModule::patientReceipt() {
     calculatePatientReceipt(patientId);
 }
 
+// ---------------------------------------------------------
+// UPDATED RECEIPT LOGIC: Unified Date-Based Table
+// ---------------------------------------------------------
 void AdminModule::calculatePatientReceipt(const string& patientId) {
-    string query = "SELECT full_name FROM patient WHERE formatted_id = '" + patientId + "'";
-    sql::ResultSet* res = db->executeSelect(query);
-    if (!res || !res->next()) {
+    // 1. Fetch Patient Details
+    string patientQuery = "SELECT full_name, ic_number, contact_number FROM patient WHERE formatted_id = '" + patientId + "'";
+    sql::ResultSet* patientRes = db->executeSelect(patientQuery);
+
+    if (!patientRes || !patientRes->next()) {
         cout << "\n[ERROR] Patient not found!" << endl;
-        if (res) delete res;
+        if (patientRes) delete patientRes;
         pressEnterToContinue();
         return;
     }
-    delete res;
 
-    string countQuery = "SELECT COUNT(*) as visits FROM medical_record WHERE patient_id = '" + patientId + "'";
-    sql::ResultSet* countRes = db->executeSelect(countQuery);
-    double total = 0;
-    if (countRes && countRes->next()) {
-        total = countRes->getInt("visits") * 50.00;
+    string patientName = patientRes->getString("full_name");
+    string icNumber = patientRes->getString("ic_number");
+    string contact = patientRes->getString("contact_number");
+    delete patientRes;
+
+    system("cls");
+    displayTableHeader("OFFICIAL RECEIPT");
+
+    cout << "\nPATIENT DETAILS:" << endl;
+    cout << "----------------" << endl;
+    cout << "Name:    " << patientName << endl;
+    cout << "ID:      " << patientId << endl;
+    cout << "IC No:   " << icNumber << endl;
+    cout << "Contact: " << contact << endl;
+    cout << endl;
+
+    // Header with aligned columns
+    cout << "+------------+----------------------+----------------------+------------+------------+------------+------------+" << endl;
+    cout << "| Date       | Description          | Medication           | Consult.   | Treatment  | Med. Cost  | Total      |" << endl;
+    cout << "+------------+----------------------+----------------------+------------+------------+------------+------------+" << endl;
+
+    double grandTotal = 0.0;
+
+    // 2. Get all distinct dates involved (Treatment OR Medical Record)
+    string dateQuery = "SELECT DISTINCT d.date_val FROM ("
+        "SELECT treatment_date as date_val FROM treatment WHERE patient_id = '" + patientId + "' "
+        "UNION "
+        "SELECT date_of_record as date_val FROM medical_record WHERE patient_id = '" + patientId + "') AS d "
+        "ORDER BY d.date_val DESC";
+
+    sql::ResultSet* dateRes = db->executeSelect(dateQuery);
+
+    if (dateRes) {
+        while (dateRes->next()) {
+            string date = dateRes->getString("date_val");
+            double dailyConsult = 0.0;
+            double dailyTreatment = 0.0;
+            double dailyMeds = 0.0;
+            string description = "";
+            string medications = "";
+
+            // A. Fetch Treatment Data for this date
+            string treatQuery = "SELECT dressing_applied, consultation_fee, treatment_fee FROM treatment "
+                "WHERE patient_id = '" + patientId + "' AND treatment_date = '" + date + "'";
+            sql::ResultSet* treatRes = db->executeSelect(treatQuery);
+            if (treatRes) {
+                while (treatRes->next()) {
+                    dailyConsult += treatRes->getDouble("consultation_fee");
+                    dailyTreatment += treatRes->getDouble("treatment_fee");
+                    string dressing = treatRes->isNull("dressing_applied") ? "" : treatRes->getString("dressing_applied");
+                    if (!dressing.empty() && dressing != "None") {
+                        if (!description.empty()) description += ", ";
+                        description += dressing;
+                    }
+                }
+                delete treatRes;
+            }
+
+            // B. Fetch Medical Record (Diagnosis & Prescription) for this date
+            string medQuery = "SELECT d.disease, ph.medicine_name, ph.unit_price "
+                "FROM medical_record mr "
+                "LEFT JOIN diagnosis d ON mr.diagnosis_id = d.formatted_id "
+                "LEFT JOIN prescription pr ON d.prescription_id = pr.formatted_id "
+                "LEFT JOIN pharmacy ph ON pr.pharmacy_id = ph.formatted_id "
+                "WHERE mr.patient_id = '" + patientId + "' AND mr.date_of_record = '" + date + "'";
+
+            sql::ResultSet* medRes = db->executeSelect(medQuery);
+            if (medRes) {
+                while (medRes->next()) {
+                    string disease = medRes->isNull("disease") ? "" : medRes->getString("disease");
+                    string medName = medRes->isNull("medicine_name") ? "" : medRes->getString("medicine_name");
+                    double price = medRes->isNull("unit_price") ? 0.0 : medRes->getDouble("unit_price");
+
+                    dailyMeds += price;
+
+                    if (!disease.empty() && description.find(disease) == string::npos) {
+                        if (!description.empty()) description += "/";
+                        description += disease;
+                    }
+                    if (!medName.empty()) {
+                        if (!medications.empty()) medications += ", ";
+                        medications += medName;
+                    }
+                }
+                delete medRes;
+            }
+
+            // Defaults if empty
+            if (description.empty()) description = "Checkup";
+            if (medications.empty()) medications = "None";
+
+            // Formatting Truncation
+            if (description.length() > 20) description = description.substr(0, 17) + "...";
+            if (medications.length() > 20) medications = medications.substr(0, 17) + "...";
+
+            double dailyTotal = dailyConsult + dailyTreatment + dailyMeds;
+            grandTotal += dailyTotal;
+
+            cout << "| " << left << setw(11) << date
+                << "| " << left << setw(21) << description
+                << "| " << left << setw(21) << medications
+                << "| " << right << setw(10) << fixed << setprecision(2) << dailyConsult
+                << " | " << right << setw(10) << fixed << setprecision(2) << dailyTreatment
+                << " | " << right << setw(10) << fixed << setprecision(2) << dailyMeds
+                << " | " << right << setw(10) << fixed << setprecision(2) << dailyTotal << " |" << endl;
+        }
+        delete dateRes;
     }
-    if (countRes) delete countRes;
+    else {
+        cout << "| " << left << setw(106) << "No records found." << " |" << endl;
+    }
 
-    displayReceipt(patientId, total);
+    cout << "+------------+----------------------+----------------------+------------+------------+------------+------------+" << endl;
+
+    // Grand Total
+    cout << "|                                                                                         TOTAL | "
+        << right << setw(10) << fixed << setprecision(2) << grandTotal << " |" << endl;
+    cout << "+------------------------------------------------------------------------------------------------------+" << endl;
+
     pressEnterToContinue();
 }
 
 void AdminModule::displayReceipt(const string& patientId, double totalAmount) {
-    system("cls");
-    displayTableHeader("RECEIPT");
-    cout << "Patient ID: " << patientId << endl;
-    cout << "Total Outstanding: RM " << fixed << setprecision(2) << totalAmount << endl;
-    cout << "--------------------------------" << endl;
+    // Deprecated
 }
 
 void AdminModule::displayPharmacyTable(sql::ResultSet* res) {
@@ -199,6 +334,7 @@ void AdminModule::displayPharmacyTable(sql::ResultSet* res) {
         << "| " << left << setw(20) << "Category"
         << "| " << right << setw(11) << "Unit Price" << " |" << endl;
     cout << "+-------------+----------------------+----------------------+-------------+" << endl;
+
     while (res->next()) {
         cout << "| " << left << setw(11) << res->getString("formatted_id")
             << "| " << left << setw(20) << res->getString("medicine_name").substr(0, 19)
@@ -240,7 +376,21 @@ string AdminModule::getStringInput(const string& prompt) {
 
 // Helpers
 bool AdminModule::validatePhoneNumber(const string& s) { return s.length() >= 10; }
-bool AdminModule::validateDateFormat(const string& s) { return s.length() == 10; }
+
+bool AdminModule::validateDateFormat(const string& s) {
+    if (s.length() != 10) return false;
+    if (s[4] != '-' || s[7] != '-') return false;
+    for (int i = 0; i < 10; i++) {
+        if (i == 4 || i == 7) continue;
+        if (!isdigit(s[i])) return false;
+    }
+    int m = stoi(s.substr(5, 2));
+    int d = stoi(s.substr(8, 2));
+    if (m < 1 || m > 12) return false;
+    if (d < 1 || d > 31) return false;
+    return true;
+}
+
 bool AdminModule::validateBloodType(const string& s) { return !s.empty(); }
 bool AdminModule::validateICNumber(const string& s) { return s.length() == 12; }
 string AdminModule::validateAndCorrectGender(string& s) { return s; }
