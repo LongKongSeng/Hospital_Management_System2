@@ -8,30 +8,30 @@ void Reports::showMenu() {
     int choice;
     do {
         vector<string> menuOptions = {
-            "Total Inventory Value",
-            "Category Statistics",
-            "Monthly Sales Analysis",
-            "Profit Margin Analysis",
+            "Total Inventory Value (N/A)", // Marked N/A due to missing table
+            "Category Statistics (N/A)",
+            "Monthly Sales Analysis (N/A)",
+            "Profit Margin Analysis (N/A)",
             "Patient Statistics",
             "Prescription Statistics",
-            "Inventory Report",
+            "Inventory Report (N/A)",
             "Patient Report",
             "Prescription Report",
-            "Financial Report",
-            "Low Stock Report",
-            "Expiring Items Report",
-            "Inventory Value Chart",
-            "Category Distribution Chart",
-            "Monthly Transaction Chart",
+            "Financial Report (Partial)",
+            "Low Stock Report (N/A)",
+            "Expiring Items Report (N/A)",
+            "Inventory Value Chart (N/A)",
+            "Category Distribution Chart (N/A)",
+            "Monthly Transaction Chart (N/A)",
             "Patient Status Chart",
-            "Monthly Prescription Report", // NEW (Index 16)
-            "Yearly Prescription Report",  // NEW (Index 17)
-            "Prescription Trend Chart",    // NEW (Index 18)
-            "Back to Main Menu"            // (Index 19)
+            "Monthly Prescription Report",
+            "Yearly Prescription Report",
+            "Prescription Trend Chart",
+            "Back to Main Menu"
         };
-        
+
         choice = MenuNavigator::showMenu(menuOptions, "REPORTS & ANALYTICS MODULE", true);
-        
+
         if (choice == -1) {
             return; // ESC pressed
         }
@@ -56,232 +56,81 @@ void Reports::showMenu() {
         case 16: generateMonthlyPrescriptionReport(); break;
         case 17: generateYearlyPrescriptionReport(); break;
         case 18: displayPrescriptionTrendChart(); break;
-
-        case 19: return; // Updated Exit Index
+        case 19: return;
         default:
             cout << "\n[ERROR] Invalid choice!" << endl;
             pressEnterToContinue();
         }
-    } while (choice != 19);  //change to 0
+    } while (choice != 19);
 }
 
-// Complex Calculation: Total Inventory Value (Aggregation)
+// ---------------------------------------------------------
+// INVENTORY FUNCTIONS (DISABLED - Table 'inventory' missing)
+// ---------------------------------------------------------
 void Reports::calculateTotalInventoryValue() {
     system("cls");
-    displayTableHeader("TOTAL INVENTORY VALUE CALCULATION");
-    
-    try {
-        // Using SUM aggregation
-        string query = "SELECT SUM(quantity * unit_price) as total_value, "
-                      "SUM(quantity) as total_quantity, "
-                      "COUNT(*) as item_count, "
-                      "AVG(unit_price) as avg_price "
-                      "FROM inventory";
-        
-        sql::ResultSet* res = db->executeSelect(query);
-        
-        if (res && res->next()) {
-            double totalValue = res->getDouble("total_value");
-            int totalQuantity = res->getInt("total_quantity");
-            int itemCount = res->getInt("item_count");
-            double avgPrice = res->getDouble("avg_price");
-            
-            cout << "\n+----------------------------------------------------------------+" << endl;
-            cout << "|              INVENTORY VALUE CALCULATION RESULTS                 |" << endl;
-            cout << "+----------------------------------------------------------------+" << endl;
-            cout << "| Total Inventory Value:    RM " << setw(40) << right << fixed << setprecision(2) << totalValue << "  |" << endl;
-            cout << "| Total Quantity:           " << setw(45) << right << totalQuantity << "  |" << endl;
-            cout << "| Number of Items:          " << setw(45) << right << itemCount << "  |" << endl;
-            cout << "| Average Unit Price:       RM " << setw(40) << right << fixed << setprecision(2) << avgPrice << "  |" << endl;
-            cout << "+----------------------------------------------------------------+" << endl;
-            
-            delete res;
-        } else {
-            cout << "\n⚠️  No inventory data found!" << endl;
-        }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    
+    displayTableHeader("TOTAL INVENTORY VALUE");
+    cout << "\n⚠️  Error: Table 'inventory' does not exist in the database schema." << endl;
+    cout << "    This feature is currently unavailable." << endl;
     pressEnterToContinue();
 }
 
-// Complex Calculation: Category Statistics (Grouping & Aggregation)
 void Reports::calculateCategoryStatistics() {
     system("cls");
-    displayTableHeader("CATEGORY STATISTICS (GROUP BY & AGGREGATION)");
-    
-    try {
-        // Using GROUP BY with multiple aggregations
-        string query = "SELECT category, "
-                      "COUNT(*) as item_count, "
-                      "SUM(quantity) as total_quantity, "
-                      "SUM(quantity * unit_price) as category_value, "
-                      "AVG(unit_price) as avg_price, "
-                      "MIN(quantity) as min_quantity, "
-                      "MAX(quantity) as max_quantity "
-                      "FROM inventory "
-                      "GROUP BY category "
-                      "ORDER BY category_value DESC";
-        
-        sql::ResultSet* res = db->executeSelect(query);
-        
-        if (res) {
-            cout << "\n+--------------+-------------+-----------------+------------------+-------------+-------------+-------------+" << endl;
-            cout << "| Category     | Item Count  | Total Quantity  | Category Value   | Avg Price   | Min Qty     | Max Qty     |" << endl;
-            cout << "+--------------┼-------------┼-----------------┼------------------┼-------------┼-------------┼-------------+" << endl;
-            
-            while (res->next()) {
-                cout << "| " << setw(12) << left << res->getString("category")
-                     << "| " << setw(11) << right << res->getInt("item_count")
-                     << "| " << setw(15) << right << res->getInt("total_quantity")
-                     << "| RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("category_value")
-                     << "| RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("avg_price")
-                     << "| " << setw(11) << right << res->getInt("min_quantity")
-                     << "| " << setw(11) << right << res->getInt("max_quantity") << "|" << endl;
-            }
-            
-            cout << "+--------------+-------------+-----------------+------------------+-------------+-------------+-------------+" << endl;
-            delete res;
-        }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    
+    displayTableHeader("CATEGORY STATISTICS");
+    cout << "\n⚠️  Error: Table 'inventory' does not exist in the database schema." << endl;
     pressEnterToContinue();
 }
 
-// Complex Calculation: Monthly Sales (Grouping with Date Functions)
 void Reports::calculateMonthlySales() {
     system("cls");
-    displayTableHeader("MONTHLY SALES ANALYSIS (GROUP BY & DATE FUNCTIONS)");
-    
-    try {
-        // Using GROUP BY with DATE_FORMAT and aggregations
-        string query = "SELECT DATE_FORMAT(transaction_date, '%Y-%m') as month, "
-                      "DATE_FORMAT(transaction_date, '%M %Y') as month_name, "
-                      "transaction_type, "
-                      "SUM(quantity_change) as total_change, "
-                      "COUNT(*) as transaction_count, "
-                      "SUM(CASE WHEN transaction_type = 'Purchase' THEN quantity_change ELSE 0 END) as purchases, "
-                      "SUM(CASE WHEN transaction_type = 'Usage' THEN ABS(quantity_change) ELSE 0 END) as usage "
-                      "FROM inventory_transaction "
-                      "GROUP BY DATE_FORMAT(transaction_date, '%Y-%m'), transaction_type "
-                      "ORDER BY month DESC, transaction_type";
-        
-        sql::ResultSet* res = db->executeSelect(query);
-        
-        if (res) {
-            cout << "\n+-----------+------------------+------------------+---------------+------------------+--------------+--------------+" << endl;
-            cout << "| Month     | Month Name       | Transaction Type | Total Change  | Transaction Count| Purchases    | Usage         |" << endl;
-            cout << "+-----------┼------------------┼------------------┼---------------┼------------------┼--------------┼--------------+" << endl;
-            
-            while (res->next()) {
-                cout << "| " << setw(9) << res->getString("month")
-                     << "| " << setw(16) << res->getString("month_name")
-                     << "| " << setw(16) << res->getString("transaction_type")
-                     << "| " << setw(13) << res->getInt("total_change")
-                     << "| " << setw(16) << res->getInt("transaction_count")
-                     << "| " << setw(12) << res->getInt("purchases")
-                     << "| " << setw(12) << res->getInt("usage") << "|" << endl;
-            }
-            
-            cout << "+-----------+------------------+------------------+---------------+------------------+--------------+--------------+" << endl;
-            delete res;
-        }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    
+    displayTableHeader("MONTHLY SALES ANALYSIS");
+    cout << "\n⚠️  Error: Table 'inventory_transaction' does not exist in the database schema." << endl;
     pressEnterToContinue();
 }
 
-// Complex Calculation: Profit Margins (Subquery & Calculations)
 void Reports::calculateProfitMargins() {
     system("cls");
-    displayTableHeader("PROFIT MARGIN ANALYSIS (SUBQUERY & CALCULATIONS)");
-    
-    try {
-        // Using subquery to calculate profit margins
-        string query = "SELECT i.item_name, i.category, i.unit_price, "
-                      "i.quantity, (i.quantity * i.unit_price) as total_value, "
-                      "(SELECT COALESCE(SUM(CASE WHEN it.transaction_type = 'Purchase' THEN it.quantity_change * i.unit_price ELSE 0 END), 0) "
-                      " FROM inventory_transaction it WHERE it.inventory_id = i.inventory_id) as purchase_cost, "
-                      "(SELECT COALESCE(SUM(CASE WHEN it.transaction_type = 'Usage' THEN ABS(it.quantity_change) * i.unit_price ELSE 0 END), 0) "
-                      " FROM inventory_transaction it WHERE it.inventory_id = i.inventory_id) as usage_value, "
-                      "((i.quantity * i.unit_price) - "
-                      "(SELECT COALESCE(SUM(CASE WHEN it.transaction_type = 'Purchase' THEN it.quantity_change * i.unit_price ELSE 0 END), 0) "
-                      " FROM inventory_transaction it WHERE it.inventory_id = i.inventory_id)) as profit_margin "
-                      "FROM inventory i "
-                      "ORDER BY profit_margin DESC";
-        
-        sql::ResultSet* res = db->executeSelect(query);
-        
-        if (res) {
-            cout << "\n+----------------------+--------------+-------------+----------+--------------+--------------+--------------+--------------+" << endl;
-            cout << "| Item Name            | Category     | Unit Price  | Quantity | Total Value  | Purchase Cost| Usage Value  | Profit Margin|" << endl;
-            cout << "+----------------------┼--------------┼-------------┼----------┼--------------┼--------------┼--------------┼--------------+" << endl;
-            
-            while (res->next()) {
-                cout << "| " << setw(20) << left << res->getString("item_name")
-                     << "| " << setw(12) << res->getString("category")
-                     << "| RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("unit_price")
-                     << "| " << setw(8) << right << res->getInt("quantity")
-                     << "| RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("total_value")
-                     << "| RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("purchase_cost")
-                     << "| RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("usage_value")
-                     << "| RM " << setw(12) << right << fixed << setprecision(2) << res->getDouble("profit_margin") << "|" << endl;
-            }
-            
-            cout << "+----------------------+--------------+-------------+----------+--------------+--------------+--------------+--------------+" << endl;
-            delete res;
-        }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    
+    displayTableHeader("PROFIT MARGIN ANALYSIS");
+    cout << "\n⚠️  Error: Table 'inventory' does not exist in the database schema." << endl;
     pressEnterToContinue();
 }
 
-// Complex Calculation: Patient Statistics (Joins & Aggregations)
+// ---------------------------------------------------------
+// PATIENT STATISTICS (FIXED JOINS)
+// ---------------------------------------------------------
 void Reports::calculatePatientStatistics() {
     system("cls");
-    displayTableHeader("PATIENT STATISTICS (JOINS & AGGREGATIONS)");
-    
+    displayTableHeader("PATIENT STATISTICS");
+
     try {
-        // FIX: Changed 'patient_report' to 'medical_record' 
-        // and 'r.report_id' to 'mr.record_id'
+        // FIXED: Joined through medical_record and diagnosis to count prescriptions
         string query = "SELECT p.status, "
-                      "COUNT(DISTINCT p.formatted_id) as patient_count, "
-                      "COUNT(DISTINCT pr.formatted_id) as total_prescriptions, "
-                      "COUNT(DISTINCT mr.formatted_id) as total_reports, "
-                      "AVG(DATEDIFF(CURDATE(), p.created_at)) as avg_days_registered "
-                      "FROM patient p "
-                      "LEFT JOIN prescription pr ON p.formatted_id = pr.patient_id "
-                      "LEFT JOIN medical_record mr ON p.formatted_id = mr.patient_id "
-                      "GROUP BY p.status "
-                      "ORDER BY patient_count DESC";
-        
+            "COUNT(DISTINCT p.formatted_id) as patient_count, "
+            "COUNT(DISTINCT d.prescription_id) as total_prescriptions, "
+            "COUNT(DISTINCT mr.formatted_id) as total_reports, "
+            "AVG(DATEDIFF(CURDATE(), p.created_at)) as avg_days_registered "
+            "FROM patient p "
+            "LEFT JOIN medical_record mr ON p.formatted_id = mr.patient_id "
+            "LEFT JOIN diagnosis d ON mr.diagnosis_id = d.formatted_id "
+            "GROUP BY p.status "
+            "ORDER BY patient_count DESC";
+
         sql::ResultSet* res = db->executeSelect(query);
-        
+
         if (res) {
             cout << "\n+----------------------+---------------+----------------------+--------------+----------------------+" << endl;
             cout << "| Status               | Patient Count | Total Prescriptions | Total Reports| Avg Days Registered |" << endl;
-            cout << "+----------------------┼---------------┼----------------------┼--------------┼----------------------+" << endl;
-            
+            cout << "+----------------------+---------------+----------------------+--------------+----------------------+" << endl;
+
             while (res->next()) {
                 double avgDays = res->isNull("avg_days_registered") ? 0 : res->getDouble("avg_days_registered");
                 cout << "| " << setw(20) << left << res->getString("status")
-                     << "| " << setw(13) << right << res->getInt("patient_count")
-                     << "| " << setw(20) << right << res->getInt("total_prescriptions")
-                     << "| " << setw(12) << right << res->getInt("total_reports")
-                     << "| " << setw(20) << right << fixed << setprecision(1) << avgDays << "|" << endl;
+                    << "| " << setw(13) << right << res->getInt("patient_count")
+                    << "| " << setw(20) << right << res->getInt("total_prescriptions")
+                    << "| " << setw(12) << right << res->getInt("total_reports")
+                    << "| " << setw(20) << right << fixed << setprecision(1) << avgDays << "|" << endl;
             }
-            
             cout << "+----------------------+---------------+----------------------+--------------+----------------------+" << endl;
             delete res;
         }
@@ -289,22 +138,25 @@ void Reports::calculatePatientStatistics() {
     catch (exception& e) {
         cout << "\n[ERROR] Error: " << e.what() << endl;
     }
-    
     pressEnterToContinue();
 }
 
-// FIXED: Calculated Dosage Statistics instead of missing 'status'/'duration'
+// ---------------------------------------------------------
+// PRESCRIPTION STATISTICS (FIXED JOINS)
+// ---------------------------------------------------------
 void Reports::calculatePrescriptionStatistics() {
     system("cls");
-    displayTableHeader("PRESCRIPTION STATISTICS (DOSAGE ANALYSIS)");
+    displayTableHeader("PRESCRIPTION STATISTICS (DOSAGE)");
 
     try {
-        // Group by 'dosage' since 'status' does not exist in prescription table
-        string query = "SELECT dosage, "
-            "COUNT(*) as dosage_count, "
-            "COUNT(DISTINCT patient_id) as unique_patients "
-            "FROM prescription "
-            "GROUP BY dosage "
+        // FIXED: Joined to patient via diagnosis->medical_record
+        string query = "SELECT pr.dosage, "
+            "COUNT(pr.formatted_id) as dosage_count, "
+            "COUNT(DISTINCT mr.patient_id) as unique_patients "
+            "FROM prescription pr "
+            "LEFT JOIN diagnosis d ON d.prescription_id = pr.formatted_id "
+            "LEFT JOIN medical_record mr ON mr.diagnosis_id = d.formatted_id "
+            "GROUP BY pr.dosage "
             "ORDER BY dosage_count DESC LIMIT 10";
 
         sql::ResultSet* res = db->executeSelect(query);
@@ -323,7 +175,6 @@ void Reports::calculatePrescriptionStatistics() {
                     << "| " << setw(20) << right << res->getInt("dosage_count")
                     << "| " << setw(20) << right << res->getInt("unique_patients") << " |" << endl;
             }
-
             cout << "+----------------------+----------------------+----------------------+" << endl;
             delete res;
         }
@@ -334,88 +185,52 @@ void Reports::calculatePrescriptionStatistics() {
     catch (exception& e) {
         cout << "\n[ERROR] Error: " << e.what() << endl;
     }
-
     pressEnterToContinue();
 }
 
-// Report Generation: Comprehensive Inventory Report
 void Reports::generateInventoryReport() {
     system("cls");
-    displayTableHeader("COMPREHENSIVE INVENTORY REPORT");
-    
-    try {
-        string query = "SELECT inventory_id, item_name, category, quantity, unit_price, "
-                      "(quantity * unit_price) as total_value, supplier, expiry_date, "
-                      "reorder_level, "
-                      "CASE WHEN quantity <= reorder_level THEN 'LOW' ELSE 'OK' END as stock_status "
-                      "FROM inventory "
-                      "ORDER BY total_value DESC";
-        
-        sql::ResultSet* res = db->executeSelect(query);
-        
-        if (res) {
-            cout << "\n+-------------+----------------------+--------------+----------+-------------+------------------+--------------+--------------+" << endl;
-            cout << "| Inventory ID| Item Name            | Category     | Quantity | Unit Price  | Total Value      | Stock Status | Supplier     |" << endl;
-            cout << "+-------------┼----------------------┼--------------┼----------┼-------------┼------------------┼--------------┼--------------+" << endl;
-            
-            while (res->next()) {
-                string expiry = res->isNull("expiry_date") ? "N/A" : res->getString("expiry_date");
-                cout << "| " << setw(11) << res->getInt("inventory_id")
-                     << "| " << setw(20) << left << res->getString("item_name")
-                     << "| " << setw(12) << res->getString("category")
-                     << "| " << setw(8) << right << res->getInt("quantity")
-                     << "| RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("unit_price")
-                     << "| RM " << setw(14) << right << fixed << setprecision(2) << res->getDouble("total_value")
-                     << "| " << setw(12) << res->getString("stock_status")
-                     << "| " << setw(16) << res->getString("supplier") << "|" << endl;
-            }
-            
-            cout << "+-------------+----------------------+--------------+----------+-------------+------------------+--------------+--------------+" << endl;
-            delete res;
-        }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    
+    displayTableHeader("INVENTORY REPORT");
+    cout << "\n⚠️  Error: Table 'inventory' does not exist." << endl;
     pressEnterToContinue();
 }
 
-// Report Generation: Patient Report
+// ---------------------------------------------------------
+// PATIENT REPORT (FIXED COLUMN NAMES)
+// ---------------------------------------------------------
 void Reports::generatePatientReport() {
     system("cls");
     displayTableHeader("COMPREHENSIVE PATIENT REPORT");
-    
+
     try {
-        string query = "SELECT p.patient_id, p.full_name, p.contact_number, p.status, "
-                      "p.created_at, "
-                      "COUNT(DISTINCT pr.prescription_id) as prescription_count, "
-                      "COUNT(DISTINCT mr.record_id) as report_count "
-                      "FROM patient p "
-                      "LEFT JOIN medical_record mr ON mr.patient_id = p.patient_id "
-                      "LEFT JOIN diagnosis d ON d.diagnosis_id = mr.diagnosis_id "
-                      "LEFT JOIN prescription pr ON pr.prescription_id = d.prescription_id "
-                      "GROUP BY p.patient_id, p.full_name, p.contact_number, p.status, p.created_at "
-                      "ORDER BY p.patient_id";
-        
+        // FIXED: p.patient_id -> p.formatted_id, fixed join logic
+        string query = "SELECT p.formatted_id, p.full_name, p.contact_number, p.status, "
+            "p.created_at, "
+            "COUNT(DISTINCT d.prescription_id) as prescription_count, "
+            "COUNT(DISTINCT mr.formatted_id) as report_count "
+            "FROM patient p "
+            "LEFT JOIN medical_record mr ON mr.patient_id = p.formatted_id "
+            "LEFT JOIN diagnosis d ON d.formatted_id = mr.diagnosis_id "
+            "GROUP BY p.formatted_id, p.full_name, p.contact_number, p.status, p.created_at "
+            "ORDER BY p.formatted_id";
+
         sql::ResultSet* res = db->executeSelect(query);
-        
+
         if (res) {
             cout << "\n+-------------+----------------------+----------------------+--------------+----------------------+----------------------+--------------+" << endl;
             cout << "| Patient ID  | Full Name            | Contact Number       | Status       | Registration Date    | Prescription Count   | Report Count |" << endl;
             cout << "+-------------+----------------------+----------------------+--------------+----------------------+----------------------+--------------+" << endl;
-            
+
             while (res->next()) {
                 string regDate = res->isNull("created_at") ? "N/A" : res->getString("created_at").substr(0, 10);
-                cout << "| " << setw(11) << res->getInt("patient_id")
-                     << "| " << setw(20) << left << res->getString("full_name")
-                     << "| " << setw(20) << res->getString("contact_number")
-                     << "| " << setw(12) << res->getString("status")
-                     << "| " << setw(20) << regDate
-                     << "| " << setw(20) << right << res->getInt("prescription_count")
-                     << "| " << setw(12) << right << res->getInt("report_count") << "|" << endl;
+                cout << "| " << setw(11) << res->getString("formatted_id")
+                    << "| " << setw(20) << left << res->getString("full_name").substr(0, 19)
+                    << "| " << setw(20) << res->getString("contact_number")
+                    << "| " << setw(12) << res->getString("status")
+                    << "| " << setw(20) << regDate
+                    << "| " << setw(20) << right << res->getInt("prescription_count")
+                    << "| " << setw(12) << right << res->getInt("report_count") << "|" << endl;
             }
-            
             cout << "+-------------+----------------------+----------------------+--------------+----------------------+----------------------+--------------+" << endl;
             delete res;
         }
@@ -423,42 +238,37 @@ void Reports::generatePatientReport() {
     catch (exception& e) {
         cout << "\n[ERROR] Error: " << e.what() << endl;
     }
-    
     pressEnterToContinue();
 }
 
-// Report Generation: Prescription Report
-// Report Generation: Prescription Report (FIXED to match Schema)
+// ---------------------------------------------------------
+// PRESCRIPTION REPORT (YOUR FIXED VERSION)
+// ---------------------------------------------------------
 void Reports::generatePrescriptionReport() {
     system("cls");
     displayTableHeader("COMPREHENSIVE PRESCRIPTION REPORT");
 
     try {
-        // FIXED:
-        // 1. Used 'pr.formatted_id' instead of 'prescription_id'
-        // 2. Used 'pr.date' instead of 'prescribed_date'
-        // 3. Joins 'pharmacy' table to get 'medicine_name'
-        // 4. Used 'pr.duration_of_meds' instead of 'duration'
         string query = "SELECT pr.formatted_id, pt.full_name as patient_name, "
             "ph.medicine_name, pr.dosage, pr.duration_of_meds, "
             "pr.date, "
             "DATEDIFF(CURDATE(), pr.date) as days_since_prescribed "
             "FROM prescription pr "
-            "JOIN patient pt ON pr.patient_id = pt.formatted_id " // Fixed join on formatted_id
+            "JOIN diagnosis d ON d.prescription_id = pr.formatted_id "
+            "JOIN medical_record mr ON mr.diagnosis_id = d.formatted_id "
+            "JOIN patient pt ON mr.patient_id = pt.formatted_id "
             "JOIN pharmacy ph ON pr.pharmacy_id = ph.formatted_id "
             "ORDER BY pr.date DESC";
 
         sql::ResultSet* res = db->executeSelect(query);
 
         if (res) {
-            // Adjusted table headers to match available data
             cout << "\n+-----------------+----------------------+----------------------+-----------+----------------------+----------------------+" << endl;
             cout << "| Prescription ID | Patient Name         | Medication           | Dosage    | Duration             | Prescribed Date      |" << endl;
             cout << "+-----------------+----------------------+----------------------+-----------+----------------------+----------------------+" << endl;
 
             while (res->next()) {
                 string presDate = res->getString("date").substr(0, 10);
-
                 cout << "| " << setw(15) << res->getString("formatted_id")
                     << "| " << setw(20) << left << res->getString("patient_name").substr(0, 19)
                     << "| " << setw(20) << res->getString("medicine_name").substr(0, 19)
@@ -466,7 +276,6 @@ void Reports::generatePrescriptionReport() {
                     << "| " << setw(20) << res->getString("duration_of_meds").substr(0, 19)
                     << "| " << setw(20) << presDate << " |" << endl;
             }
-
             cout << "+-----------------+----------------------+----------------------+-----------+----------------------+----------------------+" << endl;
             delete res;
         }
@@ -477,340 +286,103 @@ void Reports::generatePrescriptionReport() {
     catch (exception& e) {
         cout << "\n[ERROR] Error: " << e.what() << endl;
     }
-
     pressEnterToContinue();
 }
 
-// Report Generation: Financial Report
 void Reports::generateFinancialReport() {
     system("cls");
     displayTableHeader("FINANCIAL REPORT");
-    
-    try {
-        // Summary of financial data
-        string query1 = "SELECT SUM(quantity * unit_price) as total_inventory_value FROM inventory";
-        sql::ResultSet* res1 = db->executeSelect(query1);
-        
-        double totalInventoryValue = 0;
-        if (res1 && res1->next()) {
-            totalInventoryValue = res1->getDouble("total_inventory_value");
-        }
-        if (res1) delete res1;
-        
-        string query2 = "SELECT SUM(CASE WHEN transaction_type = 'Purchase' THEN quantity_change * "
-                        "(SELECT unit_price FROM inventory WHERE inventory_id = inventory_transaction.inventory_id) ELSE 0 END) as total_purchases "
-                        "FROM inventory_transaction";
-        sql::ResultSet* res2 = db->executeSelect(query2);
-        
-        double totalPurchases = 0;
-        if (res2 && res2->next()) {
-            totalPurchases = res2->getDouble("total_purchases");
-        }
-        if (res2) delete res2;
-        
-        cout << "\n+----------------------------------------------------------------+" << endl;
-        cout << "|                    FINANCIAL SUMMARY                           |" << endl;
-        cout << "+----------------------------------------------------------------+" << endl;
-        cout << "| Total Inventory Value:    RM " << setw(40) << right << fixed << setprecision(2) << totalInventoryValue << "  |" << endl;
-        cout << "| Total Purchase Cost:      RM " << setw(40) << right << fixed << setprecision(2) << totalPurchases << "  |" << endl;
-        cout << "| Estimated Profit Margin:  RM " << setw(40) << right << fixed << setprecision(2) << (totalInventoryValue - totalPurchases) << "  |" << endl;
-        cout << "+----------------------------------------------------------------+" << endl;
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    
+    cout << "\n⚠️  Inventory Data Missing." << endl;
     pressEnterToContinue();
 }
 
-// Report Generation: Low Stock Report
 void Reports::generateLowStockReport() {
     system("cls");
-    displayTableHeader("LOW STOCK ALERT REPORT");
-    
-    try {
-        string query = "SELECT inventory_id, item_name, category, quantity, reorder_level, "
-                      "unit_price, (quantity * unit_price) as current_value, "
-                      "(reorder_level - quantity) as units_needed "
-                      "FROM inventory "
-                      "WHERE quantity <= reorder_level "
-                      "ORDER BY (reorder_level - quantity) DESC";
-        
-        sql::ResultSet* res = db->executeSelect(query);
-        
-        if (res) {
-            if (res->rowsCount() == 0) {
-                cout << "\n✅ All items are above reorder level!" << endl;
-            } else {
-                cout << "\n+-------------+----------------------+--------------+----------+--------------+-------------+------------------+-----------------+" << endl;
-                cout << "| Inventory ID| Item Name            | Category     | Quantity | Reorder Level | Unit Price  | Current Value    | Units Needed    |" << endl;
-                cout << "+-------------┼----------------------┼--------------┼----------┼--------------┼-------------┼------------------┼-----------------+" << endl;
-                
-                while (res->next()) {
-                    cout << "| " << setw(11) << res->getInt("inventory_id")
-                         << "| " << setw(20) << left << res->getString("item_name")
-                         << "| " << setw(12) << res->getString("category")
-                         << "| " << setw(8) << right << res->getInt("quantity")
-                         << "| " << setw(12) << right << res->getInt("reorder_level")
-                         << "| RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("unit_price")
-                         << "| RM " << setw(14) << right << fixed << setprecision(2) << res->getDouble("current_value")
-                         << "| " << setw(15) << right << res->getInt("units_needed") << "|" << endl;
-                }
-                
-                cout << "+-------------+----------------------+--------------+----------+--------------+-------------+------------------+-----------------+" << endl;
-            }
-            delete res;
-        }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    
+    displayTableHeader("LOW STOCK ALERT");
+    cout << "\n⚠️  Error: Table 'inventory' does not exist." << endl;
     pressEnterToContinue();
 }
 
-// Report Generation: Expiring Items Report (Unary Operation: DATEDIFF)
 void Reports::generateExpiringItemsReport() {
     system("cls");
-    displayTableHeader("EXPIRING ITEMS REPORT (Next 30 Days)");
-    
-    try {
-        // Using DATEDIFF unary operation
-        string query = "SELECT inventory_id, item_name, category, quantity, expiry_date, "
-                      "DATEDIFF(expiry_date, CURDATE()) as days_until_expiry, "
-                      "unit_price, (quantity * unit_price) as total_value "
-                      "FROM inventory "
-                      "WHERE expiry_date IS NOT NULL "
-                      "AND expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) "
-                      "ORDER BY expiry_date ASC";
-        
-        sql::ResultSet* res = db->executeSelect(query);
-        
-        if (res) {
-            if (res->rowsCount() == 0) {
-                cout << "\n✅ No items expiring in the next 30 days!" << endl;
-            } else {
-                cout << "\n+-------------+----------------------+--------------+----------+--------------+----------------------+-------------+------------------+" << endl;
-                cout << "| Inventory ID| Item Name            | Category     | Quantity | Expiry Date  | Days Until Expiry    | Unit Price  | Total Value      |" << endl;
-                cout << "+-------------┼----------------------┼--------------┼----------┼--------------┼----------------------┼-------------┼------------------+" << endl;
-                
-                while (res->next()) {
-                    int daysLeft = res->getInt("days_until_expiry");
-                    string urgency = (daysLeft <= 7) ? "⚠️ URGENT" : (daysLeft <= 14) ? "⚠️ SOON" : "";
-                    
-                    cout << "| " << setw(11) << res->getInt("inventory_id")
-                         << "| " << setw(20) << left << res->getString("item_name")
-                         << "| " << setw(12) << res->getString("category")
-                         << "| " << setw(8) << right << res->getInt("quantity")
-                         << "| " << setw(12) << res->getString("expiry_date")
-                         << "| " << setw(20) << right << daysLeft << " " << urgency
-                         << "| RM " << setw(9) << right << fixed << setprecision(2) << res->getDouble("unit_price")
-                         << "| RM " << setw(14) << right << fixed << setprecision(2) << res->getDouble("total_value") << "|" << endl;
-                }
-                
-                cout << "+-------------+----------------------+--------------+----------+--------------+----------------------+-------------+------------------+" << endl;
-            }
-            delete res;
-        }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    
+    displayTableHeader("EXPIRING ITEMS");
+    cout << "\n⚠️  Error: Table 'inventory' does not exist." << endl;
     pressEnterToContinue();
 }
 
-// Chart: Inventory Value Chart (Horizontal Bar)
 void Reports::displayInventoryValueChart() {
     system("cls");
-    displayTableHeader("INVENTORY VALUE CHART (Text-based Bar Chart)");
-    
-    try {
-        string query = "SELECT item_name, (quantity * unit_price) as value FROM inventory ORDER BY value DESC LIMIT 10";
-        sql::ResultSet* res = db->executeSelect(query);
-        
-        if (res) {
-            double maxValue = 0;
-            vector<pair<string, double>> items;
-            
-            while (res->next()) {
-                string name = res->getString("item_name");
-                double value = res->getDouble("value");
-                items.push_back({name, value});
-                if (value > maxValue) maxValue = value;
-            }
-            delete res;
-            
-            if (maxValue > 0) {
-                cout << "\n";
-                for (const auto& item : items) {
-                    displayHorizontalBar(item.first, item.second, maxValue, 50);
-                }
-            } else {
-                cout << "\n⚠️  No inventory data available for chart!" << endl;
-            }
-        }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    
+    displayTableHeader("INVENTORY VALUE CHART");
+    cout << "\n⚠️  Error: Table 'inventory' does not exist." << endl;
     pressEnterToContinue();
 }
 
-// Chart: Category Distribution Chart
 void Reports::displayCategoryDistributionChart() {
     system("cls");
     displayTableHeader("CATEGORY DISTRIBUTION CHART");
-    
-    try {
-        string query = "SELECT category, SUM(quantity * unit_price) as category_value FROM inventory GROUP BY category ORDER BY category_value DESC";
-        sql::ResultSet* res = db->executeSelect(query);
-        
-        if (res) {
-            double maxValue = 0;
-            vector<pair<string, double>> categories;
-            
-            while (res->next()) {
-                string category = res->getString("category");
-                double value = res->getDouble("category_value");
-                categories.push_back({category, value});
-                if (value > maxValue) maxValue = value;
-            }
-            delete res;
-            
-            if (maxValue > 0) {
-                cout << "\n";
-                for (const auto& cat : categories) {
-                    displayHorizontalBar(cat.first, cat.second, maxValue, 50);
-                }
-            }
-        }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    
+    cout << "\n⚠️  Error: Table 'inventory' does not exist." << endl;
     pressEnterToContinue();
 }
 
-// Chart: Monthly Transaction Chart
 void Reports::displayMonthlyTransactionChart() {
     system("cls");
     displayTableHeader("MONTHLY TRANSACTION CHART");
-    
-    try {
-        string query = "SELECT DATE_FORMAT(transaction_date, '%Y-%m') as month, "
-                      "SUM(CASE WHEN transaction_type = 'Purchase' THEN quantity_change ELSE 0 END) as purchases, "
-                      "SUM(CASE WHEN transaction_type = 'Usage' THEN ABS(quantity_change) ELSE 0 END) as usage "
-                      "FROM inventory_transaction "
-                      "GROUP BY DATE_FORMAT(transaction_date, '%Y-%m') "
-                      "ORDER BY month DESC LIMIT 6";
-        
-        sql::ResultSet* res = db->executeSelect(query);
-        
-        if (res) {
-            vector<tuple<string, int, int>> months;
-            int maxValue = 0;
-            
-            while (res->next()) {
-                string month = res->getString("month");
-                int purchases = res->getInt("purchases");
-                int usage = res->getInt("usage");
-                months.push_back({month, purchases, usage});
-                if (purchases > maxValue) maxValue = purchases;
-                if (usage > maxValue) maxValue = usage;
-            }
-            delete res;
-            
-            if (maxValue > 0) {
-                cout << "\nMonthly Transactions (Last 6 Months):\n" << endl;
-                for (const auto& m : months) {
-                    cout << get<0>(m) << ":" << endl;
-                    cout << "  Purchases: ";
-                    displayHorizontalBar("", get<1>(m), maxValue, 30);
-                    cout << "  Usage:     ";
-                    displayHorizontalBar("", get<2>(m), maxValue, 30);
-                    cout << endl;
-                }
-            }
-        }
-    }
-    catch (exception& e) {
-        cout << "\n[ERROR] Error: " << e.what() << endl;
-    }
-    
+    cout << "\n⚠️  Error: Table 'inventory_transaction' does not exist." << endl;
     pressEnterToContinue();
 }
 
-// Chart: Patient Status Chart
 void Reports::displayPatientStatusChart() {
     system("cls");
-    displayTableHeader("PATIENT STATUS DISTRIBUTION CHART");
-    
+    displayTableHeader("PATIENT STATUS CHART");
+
     try {
         string query = "SELECT status, COUNT(*) as count FROM patient GROUP BY status ORDER BY count DESC";
         sql::ResultSet* res = db->executeSelect(query);
-        
+
         if (res) {
             int maxCount = 0;
             vector<pair<string, int>> statuses;
-            
+
             while (res->next()) {
                 string status = res->getString("status");
                 int count = res->getInt("count");
-                statuses.push_back({status, count});
+                statuses.push_back({ status, count });
                 if (count > maxCount) maxCount = count;
             }
             delete res;
-            
+
             if (maxCount > 0) {
                 cout << "\n";
                 for (const auto& s : statuses) {
                     displayHorizontalBar(s.first, s.second, maxCount, 50);
                 }
             }
+            else {
+                cout << "\nNo patient data found." << endl;
+            }
         }
     }
     catch (exception& e) {
         cout << "\n[ERROR] Error: " << e.what() << endl;
     }
-    
     pressEnterToContinue();
 }
 
-// Helper: Display Horizontal Bar
 void Reports::displayHorizontalBar(const string& label, double value, double maxValue, int width) {
-    int barLength = (int)((value / maxValue) * width);
+    int barLength = (maxValue > 0) ? (int)((value / maxValue) * width) : 0;
     cout << left << setw(25) << label.substr(0, 24) << " |";
     for (int i = 0; i < barLength; i++) {
         cout << "█";
     }
-    cout << " " << fixed << setprecision(2) << value << endl;
-}
-
-// Helper: Display Vertical Bar (for future use)
-void Reports::displayVerticalBar(const string& label, double value, double maxValue, int height) {
-    int barHeight = (int)((value / maxValue) * height);
-    cout << label << ":" << endl;
-    for (int i = height; i >= 1; i--) {
-        if (i <= barHeight) {
-            cout << "  █" << endl;
-        } else {
-            cout << "   " << endl;
-        }
-    }
-    cout << "  " << fixed << setprecision(2) << value << endl;
+    cout << " " << fixed << setprecision(0) << value << endl;
 }
 
 void Reports::displayTableHeader(const string& title) {
-    // Blue theme header with Yellow text on Blue background
     ColorUtils::setColor(BLUE);
     cout << "\n+----------------------------------------------------------------+" << endl;
     cout << "|" << setw(60) << "" << "|" << endl;
     ColorUtils::resetColor();
-    
-    // Highlighted title: Yellow text on Blue background
+
     ColorUtils::setColor(WHITE);
     cout << "|";
     int padding = static_cast<int>((60 - static_cast<int>(title.length())) / 2);
@@ -819,7 +391,7 @@ void Reports::displayTableHeader(const string& title) {
     for (int i = 0; i < static_cast<int>(60 - title.length() - padding); i++) cout << " ";
     ColorUtils::setColor(WHITE);
     cout << "|" << endl;
-    
+
     ColorUtils::setColor(BLUE);
     cout << "|" << setw(60) << "" << "|" << endl;
     cout << "+----------------------------------------------------------------+" << endl;
@@ -832,17 +404,13 @@ void Reports::pressEnterToContinue() {
 }
 
 // ---------------------------------------------------------
-// FIXED: Monthly Prescription Report (Using prescribed_date)
-// ---------------------------------------------------------
-// ---------------------------------------------------------
-// FIXED: Monthly Prescription Report (Aligned with Schema 'date')
+// MONTHLY PRESCRIPTION REPORT (CORRECTED)
 // ---------------------------------------------------------
 void Reports::generateMonthlyPrescriptionReport() {
     system("cls");
     displayTableHeader("MONTHLY PRESCRIPTION REPORT");
 
     try {
-        // FIXED: Used 'pr.date' instead of 'prescribed_date'
         string query = "SELECT DATE_FORMAT(pr.date, '%Y-%m') as month_str, "
             "ph.medicine_name, "
             "doc.full_name as doctor_name, "
@@ -892,22 +460,14 @@ void Reports::generateMonthlyPrescriptionReport() {
     catch (exception& e) {
         cout << "\n[ERROR] Error: " << e.what() << endl;
     }
-
     pressEnterToContinue();
 }
 
-// ---------------------------------------------------------
-// FIXED: Yearly Prescription Report (Using prescribed_date)
-// ---------------------------------------------------------
-// ---------------------------------------------------------
-// FIXED: Yearly Prescription Report (Aligned with Schema 'date')
-// ---------------------------------------------------------
 void Reports::generateYearlyPrescriptionReport() {
     system("cls");
     displayTableHeader("YEARLY PRESCRIPTION REPORT");
 
     try {
-        // FIXED: Used 'pr.date' instead of 'prescribed_date'
         string query = "SELECT DATE_FORMAT(pr.date, '%Y') as year_str, "
             "ph.category_of_meds, "
             "COUNT(pr.formatted_id) as total_count, "
@@ -937,57 +497,43 @@ void Reports::generateYearlyPrescriptionReport() {
     catch (exception& e) {
         cout << "\n[ERROR] Error: " << e.what() << endl;
     }
-
     pressEnterToContinue();
 }
 
-// Helper: Display Vertical Bar Chart
 void displayVerticalBarChart(const vector<pair<string, int>>& data) {
     if (data.empty()) {
         cout << "\n[No Data]\n";
         return;
     }
-
     int maxVal = 0;
     for (const auto& d : data) maxVal = max(maxVal, d.second);
 
     cout << "\n   (Count)\n";
-    // Print 10 rows of height
     for (int row = 10; row > 0; row--) {
         int threshold = (maxVal * row) / 10;
         if (threshold == 0 && row == 1 && maxVal > 0) threshold = 1;
-
         cout << setw(4) << threshold << " |";
         for (const auto& d : data) {
-            // Calculate height of this specific bar
             int barHeight = (maxVal > 0) ? (int)(((double)d.second / maxVal) * 10.0) : 0;
-
-            if (barHeight >= row) cout << "  █  "; // Bar block
-            else                  cout << "     "; // Empty space
+            if (barHeight >= row) cout << "  █  ";
+            else                  cout << "     ";
         }
         cout << endl;
     }
-
-    // Print X-axis line
     cout << "      +";
     for (size_t i = 0; i < data.size(); i++) cout << "-----";
     cout << endl;
-
-    // Print Labels (Months)
     cout << "       ";
     for (const auto& d : data) {
-        // Extract month part "10" from "2023-10"
         string label = (d.first.length() >= 7) ? d.first.substr(5, 2) : "??";
         cout << "  " << label << " ";
     }
     cout << "\n         (Month)" << endl;
 }
-// ---------------------------------------------------------
-// FIXED: Trend Chart (Aligned with Schema 'date')
-// ---------------------------------------------------------
+
 void Reports::displayPrescriptionTrendChart() {
     system("cls");
-    displayTableHeader("PRESCRIPTION TREND CHART (Last 6 Months)");
+    displayTableHeader("PRESCRIPTION TREND CHART");
 
     try {
         string query = "SELECT DATE_FORMAT(date, '%Y-%m') as month, "
@@ -1000,28 +546,23 @@ void Reports::displayPrescriptionTrendChart() {
 
         if (res) {
             vector<pair<string, int>> data;
-
             while (res->next()) {
                 string month = res->getString("month");
                 int count = res->getInt("count");
-                // Insert at beginning to keep chronological order (Oldest -> Newest) left to right
                 data.insert(data.begin(), { month, count });
             }
             delete res;
-
             if (!data.empty()) {
-                // Call the new vertical chart helper
                 displayVerticalBarChart(data);
-                cout << "\nNote: Labels show the Month number (e.g., 01 = Jan)" << endl;
+                cout << "\nNote: Labels show the Month number." << endl;
             }
             else {
-                cout << "\n⚠️  No data available for charting." << endl;
+                cout << "\n⚠️  No data available." << endl;
             }
         }
     }
     catch (exception& e) {
         cout << "\n[ERROR] Error: " << e.what() << endl;
     }
-
     pressEnterToContinue();
 }
