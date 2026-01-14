@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 09, 2026 at 06:44 AM
+-- Generation Time: Jan 14, 2026 at 11:32 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -43,8 +43,8 @@ CREATE TABLE `admin` (
 --
 
 INSERT INTO `admin` (`formatted_id`, `full_name`, `email`, `contact_number`, `ic_number`, `status`, `role`, `created_at`) VALUES
-('A001', 'System Administrator', 'admin@hospital.com', '1234567890', 'ADMIN001', 'Active', 'Admin', '2026-01-08 06:20:22'),
-('A002', 'Jennifer', 'jen@gmail.com', '01122223333', '711218085957', 'Active', 'Admin', '2026-01-08 07:23:44');
+('A001', 'Ron Weasley', 'ronWeasley@gmail.com', '0192837465', '851225016677', 'Active', 'Admin', '2026-01-13 08:34:46'),
+('A002', 'Professor Dumbledore', 'dumbledore@hogwarts.com', '0198765432', '550505105544', 'Active', 'Admin', '2026-01-13 08:58:05');
 
 --
 -- Triggers `admin`
@@ -84,12 +84,14 @@ CREATE TABLE `appointment` (
 --
 
 INSERT INTO `appointment` (`formatted_id`, `patient_id`, `nurse_id`, `doctor_id`, `appointment_date`, `appointment_time`, `status`, `created_at`) VALUES
-('AP001', 'P001', 'N001', 'D001', '2026-01-20', '20:30:00', 'Scheduled', '2026-01-08 07:28:41'),
-('AP002', 'P001', 'N001', 'D001', '2026-01-10', '09:00:00', 'Scheduled', '2026-01-08 11:42:59'),
-('AP003', 'P002', 'N002', 'D002', '2026-01-10', '10:30:00', 'Scheduled', '2026-01-08 11:42:59'),
-('AP004', 'P003', 'N003', 'D003', '2026-01-11', '14:00:00', 'Scheduled', '2026-01-08 11:42:59'),
-('AP005', 'P001', 'N001', 'D001', '2026-01-01', '22:30:00', 'Scheduled', '2026-01-08 16:05:55'),
-('AP006', 'P003', 'N001', 'D002', '2028-09-30', '15:30:00', 'Scheduled', '2026-01-09 00:56:15');
+('AP001', 'P001', 'N001', 'D001', '2026-01-10', '09:00:00', 'Completed', '2026-01-13 08:58:05'),
+('AP002', 'P002', 'N002', 'D002', '2026-01-12', '10:30:00', 'Completed', '2026-01-13 08:58:05'),
+('AP003', 'P003', 'N001', 'D003', '2026-02-15', '14:00:00', 'Completed', '2026-01-13 08:58:05'),
+('AP004', 'P004', 'N001', 'D001', '2026-06-20', '09:00:00', 'Scheduled', '2026-01-13 08:58:05'),
+('AP005', 'P001', 'N002', 'D002', '2026-06-21', '11:00:00', 'Scheduled', '2026-01-13 08:58:05'),
+('AP006', 'P002', 'N002', 'D004', '2026-07-05', '15:30:00', 'Scheduled', '2026-01-13 08:58:05'),
+('AP007', 'P001', 'N001', 'D001', '2026-01-16', '08:00:00', 'Scheduled', '2026-01-13 12:47:57'),
+('AP008', 'P001', 'N001', 'D001', '2026-01-16', '09:00:00', 'Scheduled', '2026-01-13 12:48:32');
 
 --
 -- Triggers `appointment`
@@ -129,14 +131,9 @@ CREATE TABLE `diagnosis` (
 --
 
 INSERT INTO `diagnosis` (`formatted_id`, `disease`, `disorder`, `duration_of_pain`, `severity`, `prescription_id`, `date`, `created_at`) VALUES
-('DI001', 'alzhimers', 'none', 'few week', 'mid', NULL, '2026-01-08', '2026-01-08 07:27:23'),
-('DI002', 'Migraine', 'Neurological', '3 days', 'Moderate', 'PR001', '2026-01-08', '2026-01-08 11:42:59'),
-('DI003', '0', 'Respiratory', '1 week', 'Severe', 'PR002', '2026-01-08', '2026-01-08 11:42:59'),
-('DI004', 'Skin Infection', 'Dermatological', '4 days', 'Mild', 'PR003', '2026-01-08', '2026-01-08 11:42:59'),
-('DI005', '', '', '', '', NULL, '0000-00-00', '2026-01-08 16:51:02'),
-('DI006', '', '', '', '', NULL, '0000-00-00', '2026-01-09 00:54:25'),
-('DI007', 'Scratch Eye', 'none', 'few days', 'high', NULL, '0000-00-00', '2026-01-09 05:31:32'),
-('DI008', '', '', '', '', NULL, '0000-00-00', '2026-01-09 05:34:10');
+('DI001', 'Dehydration', 'General', '2 Days', 'Low', NULL, '2026-01-10', '2026-01-13 08:58:05'),
+('DI002', 'Memory Loss', 'Neurological', 'Chronic', 'Moderate', NULL, '2026-01-12', '2026-01-13 08:58:05'),
+('DI003', 'Bronchitis', 'Respiratory', '1 Week', 'High', NULL, '2026-02-15', '2026-01-13 08:58:05');
 
 --
 -- Triggers `diagnosis`
@@ -178,10 +175,11 @@ CREATE TABLE `doctor` (
 --
 
 INSERT INTO `doctor` (`formatted_id`, `full_name`, `gender`, `specialization`, `contact_number`, `ic_number`, `availability`, `status`, `role`, `created_at`) VALUES
-('D001', 'COLIN TEH JON RYAN', 'Male', 'Optemetris', '01111922983', '050705081169', 'Available', 'Active', 'Doctor', '2026-01-08 06:39:58'),
-('D002', 'Dr. Emily Chen', 'Female', 'Cardiology', '012-1111111', '800101-14-1111', 'Available', 'Active', 'Doctor', '2026-01-08 11:42:59'),
-('D003', 'Dr. Raj Kumar', 'Male', 'Neurology', '012-2222222', '750505-10-2222', 'Busy', 'Active', 'Doctor', '2026-01-08 11:42:59'),
-('D004', 'Dr. Sarah Ahmad', 'Female', 'General Surgery', '012-3333333', '881212-01-3333', 'Off', 'Active', 'Doctor', '2026-01-08 11:42:59');
+('D001', 'Dr.Harry Potter', 'Male', 'Cardiologist', '0123948572', '900101145521', 'Available', 'Active', 'Doctor', '2026-01-13 08:32:19'),
+('D002', 'Dr. Strange', 'Male', 'Neurologist', '0142223333', '850520106699', 'Available', 'Active', 'Doctor', '2026-01-13 08:58:05'),
+('D003', 'Dr. House', 'Male', 'Diagnostician', '0167778888', '790909087711', 'Busy', 'Active', 'Doctor', '2026-01-13 08:58:05'),
+('D004', 'Dr. Meredith Grey', 'Female', 'General Surgeon', '0191122334', '821212143355', 'Off', 'Active', 'Doctor', '2026-01-13 08:58:05'),
+('D005', 'Colin Teh Jon Ryan', 'Male', 'Cardiologist', '0197132092', '050705081169', 'Available', 'Active', 'Doctor', '2026-01-13 12:42:04');
 
 --
 -- Triggers `doctor`
@@ -212,15 +210,6 @@ CREATE TABLE `finance` (
   `payment_status` enum('Paid','Pending','Partial') DEFAULT 'Pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `finance`
---
-
-INSERT INTO `finance` (`formatted_id`, `treatment_id`, `date_of_payment`, `payment_status`, `created_at`) VALUES
-('F001', 'T001', '2026-01-08', 'Paid', '2026-01-08 11:42:59'),
-('F002', 'T002', '2026-01-08', 'Pending', '2026-01-08 11:42:59'),
-('F003', 'T003', '2026-01-08', 'Partial', '2026-01-08 11:42:59');
 
 --
 -- Triggers `finance`
@@ -260,13 +249,15 @@ CREATE TABLE `login` (
 --
 
 INSERT INTO `login` (`formatted_id`, `username`, `password`, `role`, `doctor_id`, `nurse_id`, `admin_id`, `created_at`) VALUES
-('L001', 'admin', 'admin123', 'Admin', NULL, NULL, 'A001', '2026-01-08 06:20:22'),
-('L002', 'colin', 'colin123', 'Doctor', 'D001', NULL, NULL, '2026-01-08 06:39:58'),
-('L003', 'cat', 'cat123', 'Nurse', NULL, 'N001', NULL, '2026-01-08 06:41:23'),
-('L004', 'jen', 'jen123', 'Admin', NULL, NULL, 'A002', '2026-01-08 07:23:44'),
-('L005', 'doc_emily', 'password123', 'Doctor', 'D001', NULL, NULL, '2026-01-08 11:42:59'),
-('L006', 'nurse_hafiz', 'password123', 'Nurse', NULL, 'N001', NULL, '2026-01-08 11:42:59'),
-('L007', 'doc_raj', 'password123', 'Doctor', 'D002', NULL, NULL, '2026-01-08 11:42:59');
+('L001', 'Harry', 'Harry123!', 'Doctor', 'D001', NULL, NULL, '2026-01-13 08:32:19'),
+('L002', 'Hermione', 'Hermione123!', 'Nurse', NULL, 'N001', NULL, '2026-01-13 08:33:34'),
+('L003', 'Ron', 'Ron12345!', 'Admin', NULL, NULL, 'A001', '2026-01-13 08:34:46'),
+('L004', 'strange', 'magic123', 'Doctor', 'D002', NULL, NULL, '2026-01-13 08:58:05'),
+('L005', 'house', 'vicodin123', 'Doctor', 'D003', NULL, NULL, '2026-01-13 08:58:05'),
+('L006', 'grey', 'anatomy123', 'Doctor', 'D004', NULL, NULL, '2026-01-13 08:58:05'),
+('L007', 'joy', 'pokemon123', 'Nurse', NULL, 'N002', NULL, '2026-01-13 08:58:05'),
+('L008', 'dumbledore', 'sherbet123', 'Admin', NULL, NULL, 'A002', '2026-01-13 08:58:05'),
+('L009', 'colin', 'Colin123!', 'Doctor', 'D005', NULL, NULL, '2026-01-13 12:42:04');
 
 --
 -- Triggers `login`
@@ -305,14 +296,14 @@ CREATE TABLE `medical_record` (
 --
 
 INSERT INTO `medical_record` (`formatted_id`, `patient_id`, `doctor_id`, `diagnosis_id`, `date_of_record`, `notes`, `created_at`) VALUES
-('MR001', 'P001', 'D001', 'DI001', '2026-01-08', 'Diagnosis made by doctor', '2026-01-08 07:27:23'),
-('MR002', 'P001', 'D001', 'DI001', '2026-01-08', 'Patient reports sensitivity to light.', '2026-01-08 11:42:59'),
-('MR003', 'P002', 'D002', 'DI002', '2026-01-08', 'Breathing difficulty observed.', '2026-01-08 11:42:59'),
-('MR004', 'P003', 'D003', 'DI003', '2026-01-08', 'Wound cleaning required.', '2026-01-08 11:42:59'),
-('MR005', 'P001', 'D001', 'DI005', '0000-00-00', 'Diagnosis made by doctor', '2026-01-08 16:51:02'),
-('MR006', 'P001', 'D001', 'DI006', '0000-00-00', 'Diagnosis made by doctor', '2026-01-09 00:54:25'),
-('MR007', 'P001', 'D001', 'DI007', '2026-01-09', 'Diagnosis made by doctor', '2026-01-09 05:31:32'),
-('MR008', 'P001', 'D001', 'DI008', '0000-00-00', 'Diagnosis made by doctor', '2026-01-09 05:34:10');
+('MR001', 'P001', 'D001', 'DI001', '2026-01-10', 'Patient needs to drink more water.', '2026-01-13 08:58:05'),
+('MR002', 'P002', 'D002', 'DI002', '2026-01-12', 'Patient forgot where he lives. Prescribed memory aids.', '2026-01-13 08:58:05'),
+('MR003', 'P003', 'D003', 'DI003', '2026-02-15', 'Patient complaining of difficulty breathing underwater.', '2026-01-13 08:58:05'),
+('MR004', 'P001', 'D001', NULL, '2026-01-14', 'Diagnosis made by doctor. Prescribed: Panadol Extend(7 weeks)', '2026-01-14 08:15:00'),
+('MR005', 'P001', 'D001', NULL, '2026-01-14', 'Diagnosis made by doctor. Prescribed: Panadol Extend(aced)', '2026-01-14 09:54:28'),
+('MR006', 'P001', 'D001', NULL, '2026-01-14', 'Diagnosis made by doctor. Prescribed: Panadol Extend(2 tabs), Cough Syrup(2ml)', '2026-01-14 10:08:05'),
+('MR007', 'P001', 'D001', NULL, '2026-01-14', 'Diagnosis made by doctor. Prescribed: Panadol Extend(2 tabs), Cough Syrup(2ml)', '2026-01-14 10:15:19'),
+('MR008', 'P001', 'D001', NULL, '2026-01-14', 'Diagnosis made by doctor. Prescribed: Antiseptic Cream(2ml)', '2026-01-14 10:19:14');
 
 --
 -- Triggers `medical_record`
@@ -352,10 +343,9 @@ CREATE TABLE `nurse` (
 --
 
 INSERT INTO `nurse` (`formatted_id`, `full_name`, `gender`, `contact_number`, `ic_number`, `status`, `role`, `created_at`) VALUES
-('N001', 'Catherine', 'Male', '01111111111', '010101011192', 'Active', 'Nurse', '2026-01-08 06:41:23'),
-('N002', 'Nurse Hafiz', 'Male', '019-1110001', '950101-14-5555', 'Active', 'Nurse', '2026-01-08 11:42:59'),
-('N003', 'Nurse Jessica Lee', 'Female', '019-2220002', '980202-10-6666', 'Active', 'Nurse', '2026-01-08 11:42:59'),
-('N004', 'Nurse Mei Ling', 'Female', '019-3330003', '990303-01-7777', 'Active', 'Nurse', '2026-01-08 11:42:59');
+('N001', 'Hermione Granger', 'Female', '0174839201', '020512108842', 'Active', 'Nurse', '2026-01-13 08:33:34'),
+('N002', 'Nurse Joy', 'Female', '0173334444', '931111146677', 'Active', 'Nurse', '2026-01-13 08:58:05'),
+('N003', 'Nurse Jackie', 'Female', '0112345678', '950101015522', 'Active', 'Nurse', '2026-01-13 08:58:05');
 
 --
 -- Triggers `nurse`
@@ -397,10 +387,10 @@ CREATE TABLE `patient` (
 --
 
 INSERT INTO `patient` (`formatted_id`, `full_name`, `gender`, `date_of_birth`, `contact_number`, `blood_type`, `emergency_contact`, `ic_number`, `status`, `created_at`) VALUES
-('P001', 'Tobi', 'Male', '2005-05-12', '01133334444', 'A+', '01122225555', '029384729930', 'Active', '2026-01-08 07:24:50'),
-('P002', 'Ahmad Albab', 'Male', '1990-05-20', '017-5551234', 'A+', 'Siti: 017-0000001', '900520-14-1234', 'Active', '2026-01-08 11:42:59'),
-('P003', 'Muthu Sammy', 'Male', '1985-08-15', '017-5555678', 'O+', 'Devi: 017-0000002', '850815-10-5678', 'Active', '2026-01-08 11:42:59'),
-('P004', 'Chong Wei', 'Male', '2001-11-30', '017-5559012', 'B-', 'Mrs. Chong: 017-0000003', '011130-01-9012', 'Active', '2026-01-08 11:42:59');
+('P001', 'Spongebob', 'Male', '2026-01-15', '0162738495', 'A+', '0138765432', '980715071234', 'Active', '2026-01-13 08:46:14'),
+('P002', 'Patrick Star', 'Male', '1995-05-20', '0174839201', 'O+', '0138887777 (Spongebob)', '950520108842', 'Active', '2026-01-13 08:58:05'),
+('P003', 'Squidward Tentacles', 'Male', '1988-11-11', '0192837465', 'B+', 'None', '881111075599', 'Active', '2026-01-13 08:58:05'),
+('P004', 'Sandy Cheeks', 'Female', '1998-03-10', '0162738495', 'AB+', '0122223333 (Mom)', '980310086677', 'Active', '2026-01-13 08:58:05');
 
 --
 -- Triggers `patient`
@@ -433,15 +423,6 @@ CREATE TABLE `pharmacy` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `pharmacy`
---
-
-INSERT INTO `pharmacy` (`formatted_id`, `medicine_name`, `category_of_meds`, `unit_price`, `created_at`) VALUES
-('PH001', 'Panadol Extend', 'Painkiller', 1.50, '2026-01-08 11:42:59'),
-('PH002', 'Cough Syrup', 'Syrup', 12.00, '2026-01-08 11:42:59'),
-('PH003', 'Antibiotic Cream', 'Topical', 15.50, '2026-01-08 11:42:59');
-
---
 -- Triggers `pharmacy`
 --
 DELIMITER $$
@@ -465,6 +446,7 @@ DELIMITER ;
 
 CREATE TABLE `prescription` (
   `formatted_id` varchar(20) NOT NULL,
+  `patient_id` varchar(20) NOT NULL,
   `pharmacy_id` varchar(20) NOT NULL,
   `dosage` varchar(50) DEFAULT NULL,
   `duration_of_meds` varchar(50) DEFAULT NULL,
@@ -472,15 +454,6 @@ CREATE TABLE `prescription` (
   `date` date NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `prescription`
---
-
-INSERT INTO `prescription` (`formatted_id`, `pharmacy_id`, `dosage`, `duration_of_meds`, `instructions`, `date`, `created_at`) VALUES
-('PR001', 'PH001', '2 tablets', '3 days', 'Take after food', '2026-01-08', '2026-01-08 11:42:59'),
-('PR002', 'PH002', '10ml', '5 days', '3 times a day', '2026-01-08', '2026-01-08 11:42:59'),
-('PR003', 'PH003', 'Apply thin layer', '1 week', 'Apply twice daily', '2026-01-08', '2026-01-08 11:42:59');
 
 --
 -- Triggers `prescription`
@@ -506,6 +479,7 @@ DELIMITER ;
 
 CREATE TABLE `treatment` (
   `formatted_id` varchar(20) NOT NULL,
+  `patient_id` varchar(20) DEFAULT NULL,
   `doctor_id` varchar(20) NOT NULL,
   `dressing_applied` varchar(200) DEFAULT NULL,
   `consultation_fee` decimal(10,2) DEFAULT 0.00,
@@ -513,15 +487,6 @@ CREATE TABLE `treatment` (
   `treatment_date` date NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `treatment`
---
-
-INSERT INTO `treatment` (`formatted_id`, `doctor_id`, `dressing_applied`, `consultation_fee`, `treatment_fee`, `treatment_date`, `created_at`) VALUES
-('T001', 'D001', 'None', 50.00, 0.00, '2026-01-08', '2026-01-08 11:42:59'),
-('T002', 'D002', 'Oxygen Mask', 80.00, 20.00, '2026-01-08', '2026-01-08 11:42:59'),
-('T003', 'D003', 'Antiseptic Dressing', 40.00, 15.00, '2026-01-08', '2026-01-08 11:42:59');
 
 --
 -- Triggers `treatment`
@@ -639,7 +604,8 @@ ALTER TABLE `prescription`
 --
 ALTER TABLE `treatment`
   ADD PRIMARY KEY (`formatted_id`),
-  ADD KEY `doctor_id` (`doctor_id`);
+  ADD KEY `doctor_id` (`doctor_id`),
+  ADD KEY `fk_treatment_patient` (`patient_id`);
 
 --
 -- Constraints for dumped tables
@@ -691,6 +657,7 @@ ALTER TABLE `prescription`
 -- Constraints for table `treatment`
 --
 ALTER TABLE `treatment`
+  ADD CONSTRAINT `fk_treatment_patient` FOREIGN KEY (`patient_id`) REFERENCES `patient` (`formatted_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `treatment_ibfk_1` FOREIGN KEY (`doctor_id`) REFERENCES `doctor` (`formatted_id`) ON DELETE CASCADE;
 COMMIT;
 
