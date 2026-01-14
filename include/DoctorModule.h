@@ -12,19 +12,22 @@ using namespace std;
 class DoctorModule {
 private:
     Database* db;
-    string currentDoctorId;  // Now stores formatted_id (D001, D002, etc.)
+    string currentDoctorId;  // Stores formatted_id (D001, D002, etc.)
+
+    // Internal Helper for Searching
+    string searchPatientId();
 
 public:
-    DoctorModule(Database* database, const string& doctorId);  // Takes formatted_id string
-    void showMenu(); // Main doctor menu from flowchart
-    
-    // Doctor Module Functions (from flowchart)
+    DoctorModule(Database* database, const string& doctorId);
+    void showMenu();
+
+    // Core Functions
     void viewPatientRecord();
     void viewAppointments();
     void makeDiagnosis();
     void editPatientMedicalRecord();
-    
-    // Helper Functions
+
+    // UI Helpers
     void displayTableHeader(const string& title);
     void pressEnterToContinue();
     int getIntInput(const string& prompt);
