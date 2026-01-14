@@ -12,17 +12,21 @@ using namespace std;
 class NurseModule {
 private:
     Database* db;
-    string currentNurseId;  // Now stores formatted_id (N001, N002, etc.)
+    string currentNurseId;  // Stores formatted_id (N001, N002, etc.)
+
+    // Search Helpers
+    string searchPatientId();
+    string searchDoctorId();
 
 public:
-    NurseModule(Database* database, const string& nurseId);  // Takes formatted_id string
-    void showMenu(); // Main nurse menu from flowchart
-    
-    // Nurse Module Functions (from flowchart)
+    NurseModule(Database* database, const string& nurseId);
+    void showMenu();
+
+    // Core Functions
     void viewPatientRecord();
     void generateNextAppointment();
-    
-    // Helper Functions
+
+    // UI Helpers
     void displayTableHeader(const string& title);
     void pressEnterToContinue();
     int getIntInput(const string& prompt);
