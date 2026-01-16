@@ -1,4 +1,5 @@
 #include "Database.h"
+#include "ColorUtils.h" // Needed for red text
 
 Database::Database() {
     host = "tcp://127.0.0.1:3306";
@@ -100,3 +101,30 @@ void Database::displayError(const string& operation) {
     cout << "\n❌ Error in " << operation << " operation!" << endl;
 }
 
+// ---------------------------------------------------------
+// NEW HELPER: CHECK IF PATIENT IS ACTIVE
+// ---------------------------------------------------------
+bool Database::isPatientActive(const string& patientId) {
+    string query = "SELECT status FROM patient WHERE formatted_id = '" + patientId + "'";
+    sql::ResultSet* res = executeSelect(query);
+
+    if (res && res->next()) {
+        string status = res->getString("status");
+        delete res;
+
+        if (status == "Inactive") {
+            ColorUtils::setColor(LIGHT_RED);
+            cout << "\n[RESTRICTED] This patient is INACTIVE." << endl;
+            cout << "Action cannot be performed." << endl;
+            ColorUtils::resetColor();
+
+            cout << "\nPress Enter to continue...";
+            cin.get();
+            return false;
+        }
+        return true; // Patient is Active
+    }
+
+    if (res) delete res;
+    return false; // Patient not found
+}
