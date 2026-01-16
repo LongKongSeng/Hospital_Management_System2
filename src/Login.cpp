@@ -2,6 +2,9 @@
 #include "ColorUtils.h"
 #include "MenuNavigator.h"
 #include <conio.h> // Required for _getch()
+#include <iostream>
+
+using namespace std;
 
 Login::Login(Database* database) : db(database), currentUserId(""), currentUserType(""), currentUsername(""), currentRole("") {}
 
@@ -31,8 +34,9 @@ string Login::getMaskedInput() {
 
 bool Login::authenticate(const string& username, const string& password) {
     try {
+        // [UPDATED] Added 'BINARY' keyword to force Case-Sensitive comparison
         string query = "SELECT formatted_id, username, role, doctor_id, nurse_id, admin_id FROM login "
-            "WHERE username = '" + username + "' AND password = '" + password + "'";
+            "WHERE BINARY username = '" + username + "' AND BINARY password = '" + password + "'";
 
         sql::ResultSet* res = db->executeSelect(query);
 
@@ -71,6 +75,7 @@ void Login::showLoginMenu() {
 
     const int SEPARATOR_LENGTH = 80;
 
+    // Header Design
     ColorUtils::setColor(LIGHT_BLUE);
     for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
     ColorUtils::resetColor();
@@ -86,38 +91,34 @@ void Login::showLoginMenu() {
     string username, password;
 
     // Enter Username
-    ColorUtils::setColor(WHITE);
     cout << "Enter Username: ";
-    ColorUtils::resetColor();
     getline(cin, username);
 
     if (username.empty()) {
         ColorUtils::setColor(LIGHT_CYAN);
         cout << "\n[ERROR] Username cannot be empty!\n";
         ColorUtils::resetColor();
-        cout << "Press Enter to continue...";
+        cout << "Press Enter to try again...";
         cin.get();
         return;
     }
 
     // Enter Password (MASKED)
-    ColorUtils::setColor(WHITE);
     cout << "Enter Password: ";
-    ColorUtils::resetColor();
-    password = getMaskedInput(); // Using new masking function
+    password = getMaskedInput();
 
     if (password.empty()) {
         ColorUtils::setColor(LIGHT_CYAN);
         cout << "\n[ERROR] Password cannot be empty!\n";
         ColorUtils::resetColor();
-        cout << "Press Enter to continue...";
+        cout << "Press Enter to try again...";
         cin.get();
         return;
     }
 
     cout << endl;
     ColorUtils::setColor(LIGHT_BLUE);
-    for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "=";
+    for (int i = 0; i < SEPARATOR_LENGTH; i++) cout << "-";
     ColorUtils::resetColor();
     cout << endl;
 
@@ -129,14 +130,14 @@ void Login::showLoginMenu() {
         ColorUtils::setColor(LIGHT_CYAN);
         cout << currentRole << endl;
         ColorUtils::resetColor();
-        cout << "Press Enter to continue...";
+        cout << "\nPress Enter to access system...";
         cin.get();
     }
     else {
         ColorUtils::setColor(LIGHT_CYAN);
         cout << "\n[ERROR] Invalid username or password!\n";
         ColorUtils::resetColor();
-        cout << "Press Enter to continue...";
+        cout << "\nPress Enter to try again...";
         cin.get();
     }
 }
