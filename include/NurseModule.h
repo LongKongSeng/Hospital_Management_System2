@@ -7,6 +7,18 @@
 #include <iomanip>
 #include <vector>
 
+// --- FIX: Correct MySQL Includes & Warning Suppression ---
+#pragma warning(push)
+#pragma warning(disable : 26495) // Suppress false positive warning from MySQL library
+#include "mysql_connection.h"
+#include <cppconn/driver.h>
+#include <cppconn/exception.h>
+#include <cppconn/resultset.h>
+#include <cppconn/statement.h>
+#include <cppconn/prepared_statement.h>
+#pragma warning(pop)
+// ---------------------------------------------------------
+
 using namespace std;
 
 class NurseModule {
@@ -25,6 +37,11 @@ public:
     // Core Functions
     void viewPatientRecord();
     void generateNextAppointment();
+
+    // --- NEW FUNCTIONS ADDED HERE ---
+    void updatePatientStatus();      // Feature 1: Active/Inactive
+    void updateAppointmentStatus();  // Feature 2: Scheduled/Completed
+    // --------------------------------
 
     // UI Helpers
     void displayTableHeader(const string& title);
