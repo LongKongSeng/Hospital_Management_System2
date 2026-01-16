@@ -27,10 +27,14 @@ public:
     bool validatePassword(const string& password1, const string& password2);
     // New validation for complexity
     bool validatePasswordComplexity(const string& password);
+    bool isIcDuplicate(const string& ic);
+    bool isContactDuplicate(const string& contact);
+    bool isUsernameDuplicate(const string& username);
 
     bool validateContactNumber(const string& contactNumber);
     bool validateFullName(const string& fullName);
     bool validateICNumber(const string& icNumber);
+    bool validateEmail(const string& email);
     string validateAndCorrectGender(string& gender);
     void displayTableHeader(const string& title);
     void pressEnterToContinue();
