@@ -30,11 +30,34 @@ void Reports::showMenu() {
     } while (true);
 }
 
+// Helper to draw a graph for a specific dataset
+void drawGraph(const map<string, int>& data, const vector<string>& order, const string& title, int colorCode) {
+    cout << "\n  " << title << endl;
+    cout << "  -------------------------------------" << endl;
+
+    int maxVal = 0;
+    for (const auto& key : order) {
+        if (data.at(key) > maxVal) maxVal = data.at(key);
+    }
+
+    for (const auto& key : order) {
+        int val = data.at(key);
+        int barLength = (maxVal > 0) ? (val * 40 / maxVal) : 0;
+
+        cout << "  " << left << setw(15) << key << " | ";
+        ColorUtils::setColor(colorCode);
+        for (int b = 0; b < barLength; b++) cout << "█";
+        if (barLength == 0 && val > 0) cout << "▏";
+        ColorUtils::resetColor();
+        cout << " " << val << endl;
+    }
+    cout << endl;
+}
+
 void Reports::generateMonthlyReport() {
     system("cls");
     displayTableHeader("MONTHLY PRESCRIPTION REPORT");
 
-    // 1. DATA QUERY
     string query = "SELECT "
         "DATE_FORMAT(mr.date_of_record, '%Y') as year_str, "
         "DATE_FORMAT(mr.date_of_record, '%M') as month_str, "
@@ -43,26 +66,21 @@ void Reports::generateMonthlyReport() {
         "COUNT(*) as usage_count "
         "FROM medical_record mr "
         "JOIN diagnosis d ON mr.diagnosis_id = d.formatted_id "
-        "JOIN prescription pr ON d.prescription_id = pr.formatted_id "
+        "JOIN prescription pr ON pr.diagnosis_id = d.formatted_id "
         "JOIN pharmacy ph ON pr.pharmacy_id = ph.formatted_id "
         "GROUP BY year_str, month_str, month_num, ph.medicine_name "
         "ORDER BY year_str DESC, month_num ASC, ph.medicine_name ASC";
 
     sql::ResultSet* res = db->executeSelect(query);
 
-    // Data structures for the Graph
-    map<string, int> graphData;
-    vector<string> graphOrder;
-
     if (res && res->rowsCount() > 0) {
-        // --- DISPLAY TABLE ---
-        string prevYear = "";
-        string prevMonth = "";
 
-        // Column Width Configuration
-        // Month: 15 chars | Med Name: 30 chars | Count: 12 chars
-        // Dashes: 15+2=17 | 30+2=32 | 12+2=14
+        string prevYear = "";
         const string TABLE_BORDER = "+-----------------+--------------------------------+--------------+";
+
+        // Temporary storage for the current year's graph data
+        map<string, int> currentYearGraphData;
+        vector<string> currentYearGraphOrder;
 
         while (res->next()) {
             string currentYear = res->getString("year_str");
@@ -70,26 +88,26 @@ void Reports::generateMonthlyReport() {
             string medName = res->getString("medicine_name");
             int count = res->getInt("usage_count");
 
-            // --- GRAPH AGGREGATION LOGIC ---
-            string shortMonth = currentMonth.substr(0, 3);
-            string graphKey = shortMonth + " " + currentYear;
-
-            if (find(graphOrder.begin(), graphOrder.end(), graphKey) == graphOrder.end()) {
-                graphOrder.push_back(graphKey);
-            }
-            graphData[graphKey] += count;
-
-            // --- YEAR HEADER LOGIC ---
+            // --- YEAR CHANGE LOGIC ---
             if (currentYear != prevYear) {
+                // If we finished a previous year, print its graph NOW
                 if (!prevYear.empty()) {
                     ColorUtils::setColor(LIGHT_CYAN);
                     cout << TABLE_BORDER << endl;
                     ColorUtils::resetColor();
-                    cout << endl;
+
+                    // Draw Graph for the PREVIOUS year immediately
+                    drawGraph(currentYearGraphData, currentYearGraphOrder,
+                        "TOTAL PRESCRIPTIONS FOR " + prevYear, LIGHT_CYAN);
+
+                    // Clear graph data for the new year
+                    currentYearGraphData.clear();
+                    currentYearGraphOrder.clear();
                 }
 
+                // Print Header for NEW Year
                 ColorUtils::setColor(LIGHT_CYAN);
-                cout << "  YEAR: " << currentYear << endl;
+                cout << "\n YEAR: " << currentYear << endl;
                 cout << TABLE_BORDER << endl;
                 cout << "| " << left << setw(15) << "Month"
                     << " | " << left << setw(30) << "Medication Name"
@@ -98,62 +116,34 @@ void Reports::generateMonthlyReport() {
                 ColorUtils::resetColor();
 
                 prevYear = currentYear;
-                prevMonth = "";
             }
 
-            // --- MONTH ROW LOGIC ---
-            string displayMonth;
-            if (currentMonth != prevMonth) {
-                if (!prevMonth.empty()) {
-                    // Optional: Separator between months, or just keep it clean
-                    // cout << "|                 +--------------------------------+--------------+" << endl;
-                }
-                displayMonth = currentMonth;
+            // --- GRAPH DATA ACCUMULATION ---
+            string shortMonth = currentMonth.substr(0, 3);
+            // Key is just the month name since the graph is specific to this year
+            if (find(currentYearGraphOrder.begin(), currentYearGraphOrder.end(), shortMonth) == currentYearGraphOrder.end()) {
+                currentYearGraphOrder.push_back(shortMonth);
             }
-            else {
-                displayMonth = "";
-            }
+            currentYearGraphData[shortMonth] += count;
 
-            // STRICT TRUNCATION to prevent table breaking
-            if (displayMonth.length() > 15) displayMonth = displayMonth.substr(0, 15);
+            // --- PRINT ROW ---
             if (medName.length() > 30) medName = medName.substr(0, 27) + "...";
+            if (currentMonth.length() > 15) currentMonth = currentMonth.substr(0, 15);
 
-            cout << "| " << left << setw(15) << displayMonth
+            cout << "| " << left << setw(15) << currentMonth
                 << " | " << left << setw(30) << medName
                 << " | " << right << setw(12) << count << " |" << endl;
-
-            prevMonth = currentMonth;
         }
 
+        // Print final footer and graph for the very last year loop
         ColorUtils::setColor(LIGHT_CYAN);
         cout << TABLE_BORDER << endl;
         ColorUtils::resetColor();
 
+        drawGraph(currentYearGraphData, currentYearGraphOrder,
+            "TOTAL PRESCRIPTIONS FOR " + prevYear, LIGHT_CYAN);
+
         delete res;
-
-        // --- DISPLAY GRAPH ---
-        cout << "\n" << endl;
-        cout << "  TOTAL PRESCRIPTIONS PER MONTH (GRAPH)" << endl;
-        cout << "  -------------------------------------" << endl;
-
-        int maxVal = 0;
-        for (const auto& key : graphOrder) {
-            if (graphData[key] > maxVal) maxVal = graphData[key];
-        }
-
-        for (const auto& key : graphOrder) {
-            int val = graphData[key];
-            int barLength = (maxVal > 0) ? (val * 40 / maxVal) : 0;
-
-            cout << "  " << left << setw(15) << key << " | ";
-            ColorUtils::setColor(LIGHT_CYAN);
-            for (int b = 0; b < barLength; b++) cout << "█";
-            if (barLength == 0 && val > 0) cout << "▏";
-            ColorUtils::resetColor();
-            cout << " " << val << endl;
-        }
-        cout << endl;
-
     }
     else {
         cout << "\n[INFO] No prescription records found." << endl;
@@ -173,7 +163,7 @@ void Reports::generateYearlyReport() {
         "COUNT(*) as total_count "
         "FROM medical_record mr "
         "JOIN diagnosis d ON mr.diagnosis_id = d.formatted_id "
-        "JOIN prescription pr ON d.prescription_id = pr.formatted_id "
+        "JOIN prescription pr ON pr.diagnosis_id = d.formatted_id "
         "JOIN pharmacy ph ON pr.pharmacy_id = ph.formatted_id "
         "GROUP BY year_str, ph.medicine_name "
         "ORDER BY year_str DESC, total_count DESC";
@@ -185,12 +175,9 @@ void Reports::generateYearlyReport() {
 
     if (res && res->rowsCount() > 0) {
 
-        // Column Width Config
-        // Year: 10 chars | Med: 30 chars | Count: 12 chars
-        // Dashes: 10+2=12 | 30+2=32 | 12+2=14
         const string TABLE_BORDER = "+------------+--------------------------------+--------------+";
 
-        ColorUtils::setColor(LIGHT_CYAN);
+        ColorUtils::setColor(LIGHT_GREEN);
         cout << "\n" << TABLE_BORDER << endl;
         cout << "| " << left << setw(10) << "Year"
             << " | " << left << setw(30) << "Medication Name"
@@ -205,26 +192,14 @@ void Reports::generateYearlyReport() {
             string medName = res->getString("medicine_name");
             int count = res->getInt("total_count");
 
-            // --- GRAPH AGGREGATION LOGIC ---
-            string graphKey = currentYear;
-            if (find(graphOrder.begin(), graphOrder.end(), graphKey) == graphOrder.end()) {
-                graphOrder.push_back(graphKey);
+            // Graph Logic
+            if (find(graphOrder.begin(), graphOrder.end(), currentYear) == graphOrder.end()) {
+                graphOrder.push_back(currentYear);
             }
-            graphData[graphKey] += count;
+            graphData[currentYear] += count;
 
-            // --- YEAR ROW LOGIC ---
-            string displayYear;
-            if (currentYear != prevYear) {
-                if (!prevYear.empty()) {
-                    // cout << TABLE_BORDER << endl; // Optional separator
-                }
-                displayYear = currentYear;
-            }
-            else {
-                displayYear = "";
-            }
+            string displayYear = (currentYear != prevYear) ? currentYear : "";
 
-            // STRICT TRUNCATION
             if (medName.length() > 30) medName = medName.substr(0, 27) + "...";
 
             cout << "| " << left << setw(10) << displayYear
@@ -234,33 +209,13 @@ void Reports::generateYearlyReport() {
             prevYear = currentYear;
         }
 
-        ColorUtils::setColor(LIGHT_CYAN);
+        ColorUtils::setColor(LIGHT_GREEN);
         cout << TABLE_BORDER << endl;
         ColorUtils::resetColor();
         delete res;
 
-        // --- DISPLAY GRAPH ---
-        cout << "\n" << endl;
-        cout << "  TOTAL PRESCRIPTIONS PER YEAR (GRAPH)" << endl;
-        cout << "  ------------------------------------" << endl;
-
-        int maxVal = 0;
-        for (const auto& key : graphOrder) {
-            if (graphData[key] > maxVal) maxVal = graphData[key];
-        }
-
-        for (const auto& key : graphOrder) {
-            int val = graphData[key];
-            int barLength = (maxVal > 0) ? (val * 40 / maxVal) : 0;
-
-            cout << "  " << left << setw(15) << key << " | ";
-            ColorUtils::setColor(LIGHT_GREEN);
-            for (int b = 0; b < barLength; b++) cout << "█";
-            if (barLength == 0 && val > 0) cout << "▏";
-            ColorUtils::resetColor();
-            cout << " " << val << endl;
-        }
-        cout << endl;
+        // Display Graph
+        drawGraph(graphData, graphOrder, "TOTAL PRESCRIPTIONS PER YEAR", LIGHT_GREEN);
 
     }
     else {
