@@ -71,7 +71,7 @@ void AdminModule::displayPharmacyList() {
 
     try {
         string query = "SELECT formatted_id, medicine_name, category_of_meds, unit_price "
-            "FROM pharmacy ORDER BY category_of_meds, medicine_name";
+            "FROM pharmacy ORDER BY category_of_meds ASC, medicine_name ASC";
         sql::ResultSet* res = db->executeSelect(query);
 
         if (res) {
@@ -111,7 +111,7 @@ void AdminModule::filterPharmacyByCategory() {
 
             string query = "SELECT formatted_id, medicine_name, category_of_meds, unit_price "
                 "FROM pharmacy WHERE category_of_meds LIKE '%" + category + "%' "
-                "ORDER BY medicine_name";
+                "ORDER BY category_of_meds ASC, medicine_name ASC";
 
             sql::ResultSet* res = db->executeSelect(query);
             if (res) {
@@ -132,9 +132,6 @@ void AdminModule::filterPharmacyByCategory() {
     } while (choice != 1);
 }
 
-// ---------------------------------------------------------
-// ADD PATIENT
-// ---------------------------------------------------------
 void AdminModule::addPatient() {
     system("cls");
     displayTableHeader("ADD PATIENT");
@@ -168,7 +165,7 @@ void AdminModule::addPatient() {
             break;
         }
         else {
-            cout << "\n[ERROR] Invalid format! Please use YYYY-MM-DD (e.g., 1990-05-20)." << endl;
+            cout << "\n[ERROR] Invalid format! Please use YYYY-MM-DD" << endl;
             pressEnterToContinue();
             redrawForm(fullName, gender, "", "", "", "", "");
         }
@@ -176,7 +173,7 @@ void AdminModule::addPatient() {
 
     string icNumber;
     while (true) {
-        icNumber = getStringInput("Enter IC Number (12 digits): ");
+        icNumber = getStringInput("Enter IC Number: ");
         if (validateICNumber(icNumber)) {
             break;
         }
@@ -189,7 +186,7 @@ void AdminModule::addPatient() {
 
     string contact;
     while (true) {
-        contact = getStringInput("Enter Contact (10-11 digits): ");
+        contact = getStringInput("Enter Contact: ");
         if (validatePhoneNumber(contact)) {
             break;
         }
@@ -202,7 +199,7 @@ void AdminModule::addPatient() {
 
     string blood;
     while (true) {
-        blood = getStringInput("Enter Blood Type (A/B/AB/O +/-): ");
+        blood = getStringInput("Enter Blood Type: ");
         if (validateBloodType(blood)) {
             break;
         }
@@ -215,7 +212,7 @@ void AdminModule::addPatient() {
 
     string emergency;
     while (true) {
-        emergency = getStringInput("Enter Emergency Contact (10-11 digits): ");
+        emergency = getStringInput("Enter Emergency Contact: ");
         if (validatePhoneNumber(emergency)) {
             break;
         }
@@ -238,9 +235,6 @@ void AdminModule::addPatient() {
     pressEnterToContinue();
 }
 
-// ---------------------------------------------------------
-// SEARCH PATIENT HELPER
-// ---------------------------------------------------------
 void AdminModule::patientReceipt() {
     system("cls");
     displayTableHeader("SEARCH PATIENT RECEIPT");
@@ -318,7 +312,7 @@ void AdminModule::patientReceipt() {
 }
 
 // ---------------------------------------------------------
-// RECEIPT GENERATOR (FIXED ALIGNMENT)
+// RECEIPT GENERATOR (FIXED ALIGNMENT + COLOR)
 // ---------------------------------------------------------
 void AdminModule::calculatePatientReceipt(const string& patientId) {
     string patientQuery = "SELECT full_name, ic_number, contact_number FROM patient WHERE formatted_id = '" + patientId + "'";
@@ -347,20 +341,35 @@ void AdminModule::calculatePatientReceipt(const string& patientId) {
     cout << "Contact: " << contact << endl;
     cout << endl;
 
-    // FIX: Last column border changed from 12 to 13 dashes to fit 13 chars of content
-    const string TABLE_BORDER = "+------------+----------------------+----------------------+-------------+-------------+-------------+-------------+-------------+";
+    // --- TABLE CONFIGURATION (FIXED WIDTHS) ---
+    const int W_DATE = 12;
+    const int W_DESC = 22;
+    const int W_MEDS = 22;
+    const int W_COST = 11;
+    const int W_STAT = 10;
+
+    // Build Border String
+    string BORDER = "+";
+    BORDER += string(W_DATE, '-') + "+";
+    BORDER += string(W_DESC, '-') + "+";
+    BORDER += string(W_MEDS, '-') + "+";
+    BORDER += string(W_COST, '-') + "+"; // Consult
+    BORDER += string(W_COST, '-') + "+"; // Treatment
+    BORDER += string(W_COST, '-') + "+"; // Med Cost
+    BORDER += string(W_COST, '-') + "+"; // Total
+    BORDER += string(W_STAT, '-') + "+";
 
     ColorUtils::setColor(LIGHT_CYAN);
-    cout << TABLE_BORDER << endl;
-    cout << "| " << left << setw(10) << "Date"
-        << "| " << left << setw(20) << "Description"
-        << "| " << left << setw(20) << "Medication"
-        << "| " << left << setw(11) << "Consult."
-        << "| " << left << setw(11) << "Treatment"
-        << "| " << left << setw(11) << "Med. Cost"
-        << "| " << left << setw(11) << "Total"
-        << "| " << left << setw(11) << "Status" << " |" << endl; // Matched border 13 (2 + 11 = 13)
-    cout << TABLE_BORDER << endl;
+    cout << BORDER << endl;
+    cout << "| " << left << setw(W_DATE - 2) << "Date"
+        << " | " << left << setw(W_DESC - 2) << "Description"
+        << " | " << left << setw(W_MEDS - 2) << "Medication"
+        << " | " << right << setw(W_COST - 2) << "Consult."
+        << " | " << right << setw(W_COST - 2) << "Treatment"
+        << " | " << right << setw(W_COST - 2) << "Med. Cost"
+        << " | " << right << setw(W_COST - 2) << "Total"
+        << " | " << left << setw(W_STAT - 2) << "Status" << " |" << endl;
+    cout << BORDER << endl;
     ColorUtils::resetColor();
 
     double grandTotal = 0.0;
@@ -383,6 +392,7 @@ void AdminModule::calculatePatientReceipt(const string& patientId) {
             string medications = "";
             string paymentStatus = "Pending";
 
+            // 1. Get Treatment Costs
             string treatQuery = "SELECT t.formatted_id, t.dressing_applied, t.consultation_fee, t.treatment_fee, f.payment_status "
                 "FROM treatment t "
                 "LEFT JOIN finance f ON t.formatted_id = f.treatment_id "
@@ -408,26 +418,37 @@ void AdminModule::calculatePatientReceipt(const string& patientId) {
                 delete treatRes;
             }
 
-            string medQuery = "SELECT d.disease, ph.medicine_name, ph.unit_price "
-                "FROM medical_record mr "
+            // 2. Get Disease Info
+            string diagQuery = "SELECT d.disease FROM medical_record mr "
                 "LEFT JOIN diagnosis d ON mr.diagnosis_id = d.formatted_id "
-                "LEFT JOIN prescription pr ON d.prescription_id = pr.formatted_id "
-                "LEFT JOIN pharmacy ph ON pr.pharmacy_id = ph.formatted_id "
                 "WHERE mr.patient_id = '" + patientId + "' AND mr.date_of_record = '" + date + "'";
+            sql::ResultSet* diagRes = db->executeSelect(diagQuery);
+            if (diagRes) {
+                while (diagRes->next()) {
+                    string disease = diagRes->isNull("disease") ? "" : diagRes->getString("disease");
+                    if (!disease.empty() && description.find(disease) == string::npos) {
+                        if (!description.empty()) description += "/";
+                        description += disease;
+                    }
+                }
+                delete diagRes;
+            }
+
+            // 3. Get Medication Costs
+            string medQuery = "SELECT ph.medicine_name, ph.unit_price "
+                "FROM prescription pr "
+                "JOIN pharmacy ph ON pr.pharmacy_id = ph.formatted_id "
+                "JOIN diagnosis d ON pr.diagnosis_id = d.formatted_id "
+                "WHERE pr.patient_id = '" + patientId + "' AND d.date = '" + date + "'";
 
             sql::ResultSet* medRes = db->executeSelect(medQuery);
             if (medRes) {
                 while (medRes->next()) {
-                    string disease = medRes->isNull("disease") ? "" : medRes->getString("disease");
                     string medName = medRes->isNull("medicine_name") ? "" : medRes->getString("medicine_name");
                     double price = medRes->isNull("unit_price") ? 0.0 : medRes->getDouble("unit_price");
 
                     dailyMeds += price;
 
-                    if (!disease.empty() && description.find(disease) == string::npos) {
-                        if (!description.empty()) description += "/";
-                        description += disease;
-                    }
                     if (!medName.empty()) {
                         if (!medications.empty()) medications += ", ";
                         medications += medName;
@@ -439,49 +460,62 @@ void AdminModule::calculatePatientReceipt(const string& patientId) {
             if (description.empty()) description = "Checkup";
             if (medications.empty()) medications = "None";
 
-            if (description.length() > 20) description = description.substr(0, 17) + "...";
-            if (medications.length() > 20) medications = medications.substr(0, 17) + "...";
+            // --- STRICT TRUNCATION TO PREVENT TABLE BREAKING ---
+            if (description.length() > (W_DESC - 2)) description = description.substr(0, W_DESC - 5) + "...";
+            if (medications.length() > (W_MEDS - 2)) medications = medications.substr(0, W_MEDS - 5) + "...";
 
             double dailyTotal = dailyConsult + dailyTreatment + dailyMeds;
             grandTotal += dailyTotal;
 
             string statusDisplay = (paymentStatus == "Paid") ? "PAID" : "PENDING";
 
-            // Row output aligned with headers
-            // Last column: | (2) + setw(10) + | (1) = 13. Fits 13-dash border.
-            cout << "| " << left << setw(10) << date
-                << "| " << left << setw(20) << description
-                << "| " << left << setw(20) << medications
-                << "| " << right << setw(11) << fixed << setprecision(2) << dailyConsult
-                << "| " << right << setw(11) << fixed << setprecision(2) << dailyTreatment
-                << "| " << right << setw(11) << fixed << setprecision(2) << dailyMeds
-                << "| " << right << setw(11) << fixed << setprecision(2) << dailyTotal
-                << "| " << left << setw(10) << statusDisplay << " |" << endl; // | + 10 + space + | = 13
+            // --- PRINT ROW WITH ALIGNMENT & COLOR ---
+            cout << "| " << left << setw(W_DATE - 2) << date
+                << " | " << left << setw(W_DESC - 2) << description
+                << " | " << left << setw(W_MEDS - 2) << medications
+                << " | " << right << setw(W_COST - 2) << fixed << setprecision(2) << dailyConsult
+                << " | " << right << setw(W_COST - 2) << fixed << setprecision(2) << dailyTreatment
+                << " | " << right << setw(W_COST - 2) << fixed << setprecision(2) << dailyMeds
+                << " | " << right << setw(W_COST - 2) << fixed << setprecision(2) << dailyTotal
+                << " | ";
+
+            // Apply Color
+            if (statusDisplay == "PAID") {
+                ColorUtils::setColor(YELLOW);
+            }
+            else {
+                ColorUtils::setColor(LIGHT_RED);
+            }
+
+            cout << left << setw(W_STAT - 2) << statusDisplay;
+            ColorUtils::resetColor();
+            cout << " |" << endl;
         }
         delete dateRes;
     }
     else {
-        cout << "| " << left << setw(126) << "No records found." << "|" << endl;
+        cout << "| " << left << setw(120) << "No records found." << " |" << endl;
     }
 
     ColorUtils::setColor(LIGHT_CYAN);
-    cout << TABLE_BORDER << endl;
+    cout << BORDER << endl;
 
-    // Grand Total Row - Merged first 6 columns
-    // Math: 12+1+22+1+22+1+13+1+13+1+13 = 99 + 1(start pipe) = 100.
-    // Start | + 98 spaces = 100 chars
-    cout << "| " << right << setw(98) << "TOTAL BILL "
-        << "| " << right << setw(11) << fixed << setprecision(2) << grandTotal
-        << "| " << setw(11) << " " << " |" << endl; // Matches last col width 13
+    // Total Row
+    int totalLabelWidth = W_DATE + W_DESC + W_MEDS + W_COST + W_COST + W_COST + 5;
+    int totalValueWidth = W_COST - 1;
 
-    cout << TABLE_BORDER << endl;
+    cout << "| " << right << setw(totalLabelWidth) << "TOTAL BILL "
+        << " | " << right << setw(totalValueWidth) << fixed << setprecision(2) << grandTotal
+        << setw(W_STAT - 1) << " " << "|" << endl;
+
+    cout << BORDER << endl;
     ColorUtils::resetColor();
 
     pressEnterToContinue();
 }
 
 // ---------------------------------------------------------
-// PROCESS PAYMENT FUNCTION (FIXED ALIGNMENT)
+// PROCESS PAYMENT FUNCTION (UPDATED to sum all meds via Diagnosis Link)
 // ---------------------------------------------------------
 void AdminModule::processPayment() {
     system("cls");
@@ -519,13 +553,13 @@ void AdminModule::processPayment() {
     }
     delete res;
 
+    // UPDATED QUERY: Sum meds via Diagnosis Link
     string billQuery = "SELECT t.formatted_id, t.treatment_date, t.consultation_fee, t.treatment_fee, d.full_name as doctor_name, "
         "(SELECT COALESCE(SUM(ph.unit_price), 0) "
-        " FROM medical_record mr "
-        " JOIN diagnosis diag ON mr.diagnosis_id = diag.formatted_id "
-        " JOIN prescription pr ON diag.prescription_id = pr.formatted_id "
+        " FROM prescription pr "
         " JOIN pharmacy ph ON pr.pharmacy_id = ph.formatted_id "
-        " WHERE mr.patient_id = t.patient_id AND mr.date_of_record = t.treatment_date) as med_cost "
+        " JOIN diagnosis diag ON pr.diagnosis_id = diag.formatted_id "
+        " WHERE pr.patient_id = t.patient_id AND diag.date = t.treatment_date) as med_cost "
         "FROM treatment t "
         "JOIN doctor d ON t.doctor_id = d.formatted_id "
         "LEFT JOIN finance f ON t.formatted_id = f.treatment_id "
@@ -544,7 +578,6 @@ void AdminModule::processPayment() {
 
     cout << "\nPENDING BILLS FOR: " << patientName << endl;
 
-    // Widths: No(6) | Date(12) | Doctor(22) | Consult(12) | Treat(12) | Meds(12) | Total(14)
     const string BORDER = "+------+------------+----------------------+------------+------------+------------+--------------+";
     ColorUtils::setColor(LIGHT_CYAN);
     cout << BORDER << endl;
@@ -653,7 +686,6 @@ void AdminModule::displayTableHeader(const string& title) {
     cout << "+==============================================================================+" << endl;
     int paddingLeft = (78 - title.length()) / 2;
     int paddingRight = 78 - paddingLeft - title.length();
-
     cout << "|" << string(paddingLeft, ' ') << title << string(paddingRight, ' ') << "|" << endl;
     cout << "+==============================================================================+" << endl;
     ColorUtils::resetColor();
@@ -682,19 +714,14 @@ string AdminModule::getStringInput(const string& prompt) {
 // Helpers
 bool AdminModule::validatePhoneNumber(const string& s) {
     if (s.length() < 10 || s.length() > 11) return false;
-    for (char c : s) {
-        if (!isdigit(c)) return false;
-    }
+    for (char c : s) { if (!isdigit(c)) return false; }
     return true;
 }
 
 bool AdminModule::validateDateFormat(const string& s) {
     if (s.length() != 10) return false;
     if (s[4] != '-' || s[7] != '-') return false;
-    for (int i = 0; i < 10; i++) {
-        if (i == 4 || i == 7) continue;
-        if (!isdigit(s[i])) return false;
-    }
+    for (int i = 0; i < 10; i++) { if (i == 4 || i == 7) continue; if (!isdigit(s[i])) return false; }
     int m = stoi(s.substr(5, 2));
     int d = stoi(s.substr(8, 2));
     if (m < 1 || m > 12) return false;
@@ -711,11 +738,8 @@ bool AdminModule::validateBloodType(const string& s) {
 
 bool AdminModule::validateICNumber(const string& s) {
     if (s.length() != 12) return false;
-    for (char c : s) {
-        if (!isdigit(c)) return false;
-    }
+    for (char c : s) { if (!isdigit(c)) return false; }
     return true;
 }
-
 
 string AdminModule::validateAndCorrectGender(string& s) { return s; }
