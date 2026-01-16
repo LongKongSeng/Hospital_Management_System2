@@ -8,6 +8,54 @@
 
 Registration::Registration(Database* database) : db(database) {}
 
+// --- HELPER FUNCTIONS FOR DUPLICATE CHECKS ---
+
+bool Registration::isIcDuplicate(const string& ic) {
+    string tables[] = { "doctor", "nurse", "admin" };
+    for (const string& table : tables) {
+        // Check if IC exists in this table
+        string query = "SELECT formatted_id FROM " + table + " WHERE ic_number = '" + ic + "'";
+        sql::ResultSet* res = db->executeSelect(query);
+        if (res && res->next()) {
+            delete res;
+            return true; // Found a duplicate
+        }
+        if (res) delete res;
+    }
+    return false; // No duplicate found
+}
+
+bool Registration::isContactDuplicate(const string& contact) {
+    string tables[] = { "doctor", "nurse", "admin" };
+    for (const string& table : tables) {
+        // Check if Contact exists in this table
+        string query = "SELECT formatted_id FROM " + table + " WHERE contact_number = '" + contact + "'";
+        sql::ResultSet* res = db->executeSelect(query);
+        if (res && res->next()) {
+            delete res;
+            return true; // Found a duplicate
+        }
+        if (res) delete res;
+    }
+    return false; // No duplicate found
+}
+
+// NEW: Username Check (Case-Sensitive check logic depends on DB collation, 
+// but this ensures we catch duplicates before insertion)
+bool Registration::isUsernameDuplicate(const string& username) {
+    // Check against the central LOGIN table
+    string query = "SELECT formatted_id FROM login WHERE username = '" + username + "'";
+    sql::ResultSet* res = db->executeSelect(query);
+    if (res && res->next()) {
+        delete res;
+        return true; // Username taken
+    }
+    if (res) delete res;
+    return false;
+}
+
+// -------------------------------------------------
+
 // Helper for masking password
 string Registration::getMaskedInput() {
     string password;
@@ -32,7 +80,7 @@ string Registration::getMaskedInput() {
     return password;
 }
 
-// Complexity check
+// Complexity check (Enforces Case Sensitivity Requirements)
 bool Registration::validatePasswordComplexity(const string& password) {
     if (password.length() < 8) return false;
 
@@ -106,7 +154,6 @@ void Registration::registerDoctor() {
     string fullName, gender, specialization, contactNumber, password1, password2, username, icNumber;
     bool registrationComplete = false;
 
-    // Helper lambda to easily redraw screen
     auto redraw = [&]() {
         printContext("DOCTOR REGISTRATION", fullName, gender, icNumber, contactNumber, "Enter Specialization", specialization);
         };
@@ -147,14 +194,22 @@ void Registration::registerDoctor() {
                 printContext("DOCTOR REGISTRATION", fullName);
             }
 
-            // IC Number
+            // --- IC Number Check ---
             while (true) {
                 cout << "Enter IC Number (12 digits): ";
                 getline(cin, icNumber);
                 if (icNumber == "0") return;
-                if (validateICNumber(icNumber)) break;
 
-                cout << "\n[ERROR] Invalid IC Number. Must be exactly 12 numeric digits." << endl;
+                if (!validateICNumber(icNumber)) {
+                    cout << "\n[ERROR] Invalid IC Number. Must be exactly 12 numeric digits." << endl;
+                }
+                else if (isIcDuplicate(icNumber)) {
+                    cout << "\n[ERROR] This IC Number is already registered in the system." << endl;
+                }
+                else {
+                    break; // Valid and Unique
+                }
+
                 pressEnterToContinue();
                 printContext("DOCTOR REGISTRATION", fullName, gender);
             }
@@ -171,35 +226,50 @@ void Registration::registerDoctor() {
                 printContext("DOCTOR REGISTRATION", fullName, gender, icNumber);
             }
 
-            // Contact
+            // --- Contact Check ---
             while (true) {
                 cout << "Enter Contact Number: ";
                 getline(cin, contactNumber);
                 if (contactNumber == "0") return;
-                if (validateContactNumber(contactNumber)) break;
 
-                cout << "\n[ERROR] Invalid contact number. Must be 10-11 digits." << endl;
+                if (!validateContactNumber(contactNumber)) {
+                    cout << "\n[ERROR] Invalid contact number. Must be 10-11 digits." << endl;
+                }
+                else if (isContactDuplicate(contactNumber)) {
+                    cout << "\n[ERROR] This Contact Number is already registered in the system." << endl;
+                }
+                else {
+                    break; // Valid and Unique
+                }
+
                 pressEnterToContinue();
                 printContext("DOCTOR REGISTRATION", fullName, gender, icNumber, "", "Enter Specialization", specialization);
             }
 
-            // Username
+            // Username (Case Sensitive Input)
             while (true) {
                 cout << "Create Username: ";
-                getline(cin, username);
+                getline(cin, username); // Reads raw input, preserving case
                 if (username == "0") return;
-                if (!username.empty()) break;
 
-                cout << "\n[ERROR] Username cannot be empty." << endl;
+                if (username.empty()) {
+                    cout << "\n[ERROR] Username cannot be empty." << endl;
+                }
+                else if (isUsernameDuplicate(username)) {
+                    cout << "\n[ERROR] Username '" << username << "' is already taken. Please choose another." << endl;
+                }
+                else {
+                    break;
+                }
+
                 pressEnterToContinue();
                 redraw();
-                if (!contactNumber.empty()) cout << "Enter Contact Number: " << contactNumber << endl;
             }
 
-            // Password
+            // Password (Case Sensitive & Complexity Check)
             while (true) {
                 cout << "Create Password: ";
-                password1 = getMaskedInput();
+                password1 = getMaskedInput(); // Reads raw input
                 if (password1 == "0") return;
 
                 if (!validatePasswordComplexity(password1)) {
@@ -207,7 +277,6 @@ void Registration::registerDoctor() {
                     cout << "Requirements: At least 8 chars, 1 Uppercase, 1 Lowercase, 1 Special char." << endl;
                     pressEnterToContinue();
                     redraw();
-                    cout << "Enter Contact Number: " << contactNumber << endl;
                     cout << "Create Username: " << username << endl;
                     continue;
                 }
@@ -215,12 +284,11 @@ void Registration::registerDoctor() {
                 cout << "Re-enter Password: ";
                 password2 = getMaskedInput();
 
-                if (validatePassword(password1, password2)) break;
+                if (validatePassword(password1, password2)) break; // Comparison is case sensitive
 
                 cout << "\n[ERROR] Passwords do not match!" << endl;
                 pressEnterToContinue();
                 redraw();
-                cout << "Enter Contact Number: " << contactNumber << endl;
                 cout << "Create Username: " << username << endl;
             }
 
@@ -229,7 +297,7 @@ void Registration::registerDoctor() {
                 "VALUES (NULL, '" + fullName + "', '" + gender + "', '" + specialization + "', '" + contactNumber + "', '" + icNumber + "', 'Available', 'Active', 'Doctor')";
 
             if (db->executeUpdate(query)) {
-                string getIdQuery = "SELECT formatted_id FROM doctor WHERE full_name = '" + fullName + "' AND contact_number = '" + contactNumber + "' ORDER BY formatted_id DESC LIMIT 1";
+                string getIdQuery = "SELECT formatted_id FROM doctor WHERE ic_number = '" + icNumber + "'";
                 sql::ResultSet* idRes = db->executeSelect(getIdQuery);
                 string doctorId = "";
                 if (idRes && idRes->next()) doctorId = idRes->getString("formatted_id");
@@ -296,43 +364,65 @@ void Registration::registerNurse() {
                 printContext("NURSE REGISTRATION", fullName);
             }
 
-            // IC Number
+            // --- IC Number Check ---
             while (true) {
                 cout << "Enter IC Number (12 digits): ";
                 getline(cin, icNumber);
                 if (icNumber == "0") return;
-                if (validateICNumber(icNumber)) break;
 
-                cout << "\n[ERROR] Invalid IC Number. Must be exactly 12 numeric digits." << endl;
+                if (!validateICNumber(icNumber)) {
+                    cout << "\n[ERROR] Invalid IC Number. Must be exactly 12 numeric digits." << endl;
+                }
+                else if (isIcDuplicate(icNumber)) {
+                    cout << "\n[ERROR] This IC Number is already registered in the system." << endl;
+                }
+                else {
+                    break;
+                }
                 pressEnterToContinue();
                 printContext("NURSE REGISTRATION", fullName, gender);
             }
 
-            // Contact
+            // --- Contact Check ---
             while (true) {
                 cout << "Enter Contact Number: ";
                 getline(cin, contactNumber);
                 if (contactNumber == "0") return;
-                if (validateContactNumber(contactNumber)) break;
 
-                cout << "\n[ERROR] Invalid contact number. Must be 10-11 digits." << endl;
+                if (!validateContactNumber(contactNumber)) {
+                    cout << "\n[ERROR] Invalid contact number. Must be 10-11 digits." << endl;
+                }
+                else if (isContactDuplicate(contactNumber)) {
+                    cout << "\n[ERROR] This Contact Number is already registered in the system." << endl;
+                }
+                else {
+                    break;
+                }
                 pressEnterToContinue();
                 printContext("NURSE REGISTRATION", fullName, gender, icNumber);
             }
 
-            // Username
+            // Username (Case Sensitive Input)
             while (true) {
                 cout << "Create Username: ";
                 getline(cin, username);
                 if (username == "0") return;
-                if (!username.empty()) break;
 
-                cout << "\n[ERROR] Username cannot be empty." << endl;
+                if (username.empty()) {
+                    cout << "\n[ERROR] Username cannot be empty." << endl;
+                }
+                else if (isUsernameDuplicate(username)) {
+                    cout << "\n[ERROR] Username '" << username << "' is already taken. Please choose another." << endl;
+                }
+                else {
+                    break;
+                }
+
                 pressEnterToContinue();
                 redraw();
             }
 
-            // Password
+            // Password (Case Sensitive & Complexity Check)
             while (true) {
                 cout << "Create Password: ";
                 password1 = getMaskedInput();
@@ -361,7 +451,7 @@ void Registration::registerNurse() {
             string query = "INSERT INTO nurse (formatted_id, full_name, gender, contact_number, ic_number, status, role) VALUES (NULL, '" + fullName + "', '" + gender + "', '" + contactNumber + "', '" + icNumber + "', 'Active', 'Nurse')";
 
             if (db->executeUpdate(query)) {
-                string getIdQuery = "SELECT formatted_id FROM nurse WHERE ic_number = '" + icNumber + "' ORDER BY formatted_id DESC LIMIT 1";
+                string getIdQuery = "SELECT formatted_id FROM nurse WHERE ic_number = '" + icNumber + "'";
                 sql::ResultSet* idRes = db->executeSelect(getIdQuery);
                 string nurseId = "";
                 if (idRes && idRes->next()) nurseId = idRes->getString("formatted_id");
@@ -411,55 +501,78 @@ void Registration::registerAdmin() {
                 cout << "\n⚠️  Note: Enter '0' at any time to cancel registration\n" << endl;
             }
 
-            // Email (Unique to Admin)
+            // Email
             while (true) {
                 cout << "Enter Email: ";
                 getline(cin, email);
                 if (email == "0") return;
-                if (!email.empty()) break; // Basic check
 
-                cout << "\n[ERROR] Email cannot be empty." << endl;
+                if (validateEmail(email)) break;
+
+                cout << "\n[ERROR] Invalid email format. Must include '@' and '.' characters." << endl;
                 pressEnterToContinue();
                 printContext("ADMIN REGISTRATION", fullName);
             }
 
-            // IC Number
+            // --- IC Number Check ---
             while (true) {
                 cout << "Enter IC Number (12 digits): ";
                 getline(cin, icNumber);
                 if (icNumber == "0") return;
-                if (validateICNumber(icNumber)) break;
 
-                cout << "\n[ERROR] Invalid IC Number. Must be exactly 12 numeric digits." << endl;
+                if (!validateICNumber(icNumber)) {
+                    cout << "\n[ERROR] Invalid IC Number. Must be exactly 12 numeric digits." << endl;
+                }
+                else if (isIcDuplicate(icNumber)) {
+                    cout << "\n[ERROR] This IC Number is already registered in the system." << endl;
+                }
+                else {
+                    break;
+                }
                 pressEnterToContinue();
                 printContext("ADMIN REGISTRATION", fullName, "", "", "", "Enter Email", email);
             }
 
-            // Contact
+            // --- Contact Check ---
             while (true) {
                 cout << "Enter Contact Number: ";
                 getline(cin, contactNumber);
                 if (contactNumber == "0") return;
-                if (validateContactNumber(contactNumber)) break;
 
-                cout << "\n[ERROR] Invalid contact number. Must be 10-11 digits." << endl;
+                if (!validateContactNumber(contactNumber)) {
+                    cout << "\n[ERROR] Invalid contact number. Must be 10-11 digits." << endl;
+                }
+                else if (isContactDuplicate(contactNumber)) {
+                    cout << "\n[ERROR] This Contact Number is already registered in the system." << endl;
+                }
+                else {
+                    break;
+                }
                 pressEnterToContinue();
                 printContext("ADMIN REGISTRATION", fullName, "", icNumber, "", "Enter Email", email);
             }
 
-            // Username
+            // Username (Case Sensitive Input)
             while (true) {
                 cout << "Create Username: ";
                 getline(cin, username);
                 if (username == "0") return;
-                if (!username.empty()) break;
 
-                cout << "\n[ERROR] Username cannot be empty." << endl;
+                if (username.empty()) {
+                    cout << "\n[ERROR] Username cannot be empty." << endl;
+                }
+                else if (isUsernameDuplicate(username)) {
+                    cout << "\n[ERROR] Username '" << username << "' is already taken. Please choose another." << endl;
+                }
+                else {
+                    break;
+                }
+
                 pressEnterToContinue();
                 redraw();
             }
 
-            // Password
+            // Password (Case Sensitive & Complexity Check)
             while (true) {
                 cout << "Create Password: ";
                 password1 = getMaskedInput();
@@ -488,7 +601,7 @@ void Registration::registerAdmin() {
             string query = "INSERT INTO admin (formatted_id, full_name, email, contact_number, ic_number, status, role) VALUES (NULL, '" + fullName + "', '" + email + "', '" + contactNumber + "', '" + icNumber + "', 'Active', 'Admin')";
 
             if (db->executeUpdate(query)) {
-                string getIdQuery = "SELECT formatted_id FROM admin WHERE ic_number = '" + icNumber + "' ORDER BY formatted_id DESC LIMIT 1";
+                string getIdQuery = "SELECT formatted_id FROM admin WHERE ic_number = '" + icNumber + "'";
                 sql::ResultSet* idRes = db->executeSelect(getIdQuery);
                 string adminId = "";
                 if (idRes && idRes->next()) adminId = idRes->getString("formatted_id");
@@ -511,6 +624,7 @@ void Registration::registerAdmin() {
 }
 
 bool Registration::validatePassword(const string& password1, const string& password2) {
+    // Basic string comparison is CASE SENSITIVE by default in C++
     return password1 == password2;
 }
 
@@ -520,6 +634,16 @@ bool Registration::validateContactNumber(const string& contactNumber) {
         if (!isdigit(c)) return false;
     }
     return (contactNumber.length() == 10 || contactNumber.length() == 11);
+}
+
+// EMAIL VALIDATOR
+bool Registration::validateEmail(const string& email) {
+    if (email.empty()) return false;
+
+    size_t atPos = email.find('@');
+    size_t dotPos = email.find('.');
+
+    return (atPos != string::npos && dotPos != string::npos);
 }
 
 bool Registration::validateFullName(const string& fullName) {
