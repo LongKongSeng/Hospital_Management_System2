@@ -5,6 +5,9 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+#include <vector>
+
+using namespace std;
 
 // Helper: Validate YYYY-MM-DD
 static bool isValidDate(const string& date) {
@@ -55,6 +58,8 @@ void NurseModule::showMenu() {
         vector<string> menuOptions = {
             "View Patient Record",
             "Generate Next Appointment",
+            "Update Patient Status",
+            "Update Appointment Status",
             "Exit"
         };
 
@@ -67,7 +72,9 @@ void NurseModule::showMenu() {
         switch (choice) {
         case 0: viewPatientRecord(); break;
         case 1: generateNextAppointment(); break;
-        case 2: return;
+        case 2: updatePatientStatus(); break;
+        case 3: updateAppointmentStatus(); break;
+        case 4: return;
         default:
             ColorUtils::setColor(LIGHT_CYAN);
             cout << "\n[ERROR] Invalid choice! Please try again." << endl;
@@ -78,7 +85,7 @@ void NurseModule::showMenu() {
 }
 
 // ---------------------------------------------------------
-// SEARCH HELPERS (Fixed Alignment: Dashes = setw + 2)
+// SEARCH HELPERS 
 // ---------------------------------------------------------
 string NurseModule::searchPatientId() {
     string input = getStringInput("Enter Patient Name, IC Number, or ID: ");
@@ -108,8 +115,6 @@ string NurseModule::searchPatientId() {
         struct PatientOpt { string id; string name; string ic; };
         vector<PatientOpt> options;
 
-        // FIXED: Dashes match (setw + 2)
-        // No(4)->6, ID(10)->12, Name(26)->28, IC(15)->17
         ColorUtils::setColor(LIGHT_CYAN);
         cout << "+------+------------+----------------------------+-----------------+" << endl;
         cout << "| No.  | ID         | Name                       | IC Number       |" << endl;
@@ -176,8 +181,6 @@ string NurseModule::searchDoctorId() {
         struct DocOpt { string id; string name; string spec; };
         vector<DocOpt> options;
 
-        // FIXED: Dashes match (setw + 2)
-        // No(4)->6, ID(10)->12, Name(26)->28, Spec(21)->23
         ColorUtils::setColor(LIGHT_CYAN);
         cout << "+------+------------+----------------------------+-----------------------+" << endl;
         cout << "| No.  | ID         | Name                       | Specialization        |" << endl;
@@ -217,7 +220,185 @@ string NurseModule::searchDoctorId() {
 }
 
 // ---------------------------------------------------------
-// VIEW PATIENT RECORD
+// UPDATE PATIENT STATUS (FIXED ALIGNMENT)
+// ---------------------------------------------------------
+void NurseModule::updatePatientStatus() {
+    system("cls");
+    displayTableHeader("UPDATE PATIENT STATUS");
+
+    string patientId = searchPatientId();
+    if (patientId.empty()) {
+        pressEnterToContinue();
+        return;
+    }
+
+    string query = "SELECT full_name, ic_number, gender, date_of_birth, status FROM patient WHERE formatted_id = '" + patientId + "'";
+    sql::ResultSet* res = db->executeSelect(query);
+
+    if (!res || !res->next()) {
+        cout << "\n[ERROR] Could not retrieve patient data." << endl;
+        if (res) delete res;
+        pressEnterToContinue();
+        return;
+    }
+
+    string name = res->getString("full_name");
+    string ic = res->getString("ic_number");
+    string gender = res->getString("gender");
+    string dob = res->getString("date_of_birth");
+    string currentStatus = res->getString("status");
+    delete res;
+
+    // --- DISPLAY PATIENT DETAILS (With Exact 65 Width) ---
+    displayBoxHeader("CONFIRM PATIENT IDENTITY", 65);
+    cout << "| Patient ID      : " << left << setw(43) << patientId << " |" << endl;
+    cout << "| Full Name       : " << left << setw(43) << name << " |" << endl;
+    cout << "| IC Number       : " << left << setw(43) << ic << " |" << endl;
+    cout << "| Gender          : " << left << setw(43) << gender << " |" << endl;
+    cout << "| Date of Birth   : " << left << setw(43) << dob << " |" << endl;
+    cout << "| Current Status  : " << left << setw(43) << currentStatus << " |" << endl;
+
+    // FIX: Using string(63, '=') ensures exactly 63 equals + 2 pluses = 65 width
+    ColorUtils::setColor(LIGHT_CYAN);
+    cout << "+" << string(63, '=') << "+" << endl;
+    ColorUtils::resetColor();
+    cout << endl;
+
+    cout << "SELECT NEW STATUS:" << endl;
+    cout << "1. Active" << endl;
+    cout << "2. Inactive" << endl;
+    cout << "3. Cancel" << endl;
+
+    int choice = getIntInput("\nEnter Choice (1-3): ");
+
+    if (choice == 3 || choice < 1 || choice > 3) {
+        if (choice != 3) cout << "\n[INFO] Invalid choice or Cancelled." << endl;
+        pressEnterToContinue();
+        return;
+    }
+
+    string newStatus = (choice == 1) ? "Active" : "Inactive";
+
+    if (newStatus == currentStatus) {
+        cout << "\n[INFO] Status is already " << newStatus << "." << endl;
+    }
+    else {
+        string updateQuery = "UPDATE patient SET status = '" + newStatus + "' WHERE formatted_id = '" + patientId + "'";
+        if (db->executeUpdate(updateQuery)) {
+            cout << "\n✅ Patient status updated to: " << newStatus << endl;
+        }
+        else {
+            cout << "\n[ERROR] Failed to update status." << endl;
+        }
+    }
+    pressEnterToContinue();
+}
+
+// ---------------------------------------------------------
+// UPDATE APPOINTMENT STATUS
+// ---------------------------------------------------------
+void NurseModule::updateAppointmentStatus() {
+    system("cls");
+    displayTableHeader("UPDATE APPOINTMENT STATUS");
+
+    string patientId = searchPatientId();
+    if (patientId.empty()) {
+        pressEnterToContinue();
+        return;
+    }
+
+    if (!db->isPatientActive(patientId)) return;
+
+    string query = "SELECT a.formatted_id, a.appointment_date, a.appointment_time, a.status, d.full_name as doctor_name "
+        "FROM appointment a "
+        "JOIN doctor d ON a.doctor_id = d.formatted_id "
+        "WHERE a.patient_id = '" + patientId + "' "
+        "ORDER BY a.appointment_date DESC, a.appointment_time DESC";
+
+    sql::ResultSet* res = db->executeSelect(query);
+
+    if (!res || res->rowsCount() == 0) {
+        cout << "\n[INFO] No appointments found for this patient." << endl;
+        if (res) delete res;
+        pressEnterToContinue();
+        return;
+    }
+
+    struct ApptOpt { string id; string date; string time; string status; string doctor; };
+    vector<ApptOpt> appointments;
+
+    ColorUtils::setColor(LIGHT_CYAN);
+    cout << "\n+------+------------+-------------+-------+-------------+--------------------+" << endl;
+    cout << "| No.  | Appt ID    | Date        | Time  | Status      | Doctor             |" << endl;
+    cout << "+------+------------+-------------+-------+-------------+--------------------+" << endl;
+    ColorUtils::resetColor();
+
+    int idx = 1;
+    while (res->next()) {
+        string aId = res->getString("formatted_id");
+        string date = res->isNull("appointment_date") ? "N/A" : res->getString("appointment_date");
+        string time = res->isNull("appointment_time") ? "N/A" : res->getString("appointment_time");
+        string status = res->getString("status");
+        string doc = res->getString("doctor_name");
+
+        appointments.push_back({ aId, date, time, status, doc });
+
+        if (time.length() > 5) time = time.substr(0, 5);
+        if (doc.length() > 18) doc = doc.substr(0, 15) + "...";
+
+        cout << "| " << left << setw(4) << idx
+            << " | " << left << setw(10) << aId
+            << " | " << left << setw(11) << date
+            << " | " << left << setw(5) << time
+            << " | " << left << setw(11) << status
+            << " | " << left << setw(18) << doc << " |" << endl;
+        idx++;
+    }
+    ColorUtils::setColor(LIGHT_CYAN);
+    cout << "+------+------------+-------------+-------+-------------+--------------------+" << endl;
+    ColorUtils::resetColor();
+    delete res;
+
+    int selection = getIntInput("\nSelect Appointment Number to Edit (0 to cancel): ");
+
+    if (selection <= 0 || selection > (int)appointments.size()) {
+        if (selection != 0) cout << "\n[ERROR] Invalid selection." << endl;
+        return;
+    }
+
+    ApptOpt selectedAppt = appointments[selection - 1];
+    cout << "\nSelected Appointment: " << selectedAppt.id << " (" << selectedAppt.status << ")" << endl;
+
+    vector<string> statusOptions = {
+        "Scheduled",
+        "Completed",
+        "Cancelled",
+        "Back"
+    };
+
+    int statusChoice = MenuNavigator::showMenu(statusOptions, "SET NEW STATUS", true);
+
+    if (statusChoice == -1 || statusChoice == 3) return;
+
+    string newStatus = statusOptions[statusChoice];
+
+    if (newStatus == selectedAppt.status) {
+        cout << "\n[INFO] Status is already " << newStatus << "." << endl;
+    }
+    else {
+        string updateQuery = "UPDATE appointment SET status = '" + newStatus + "' WHERE formatted_id = '" + selectedAppt.id + "'";
+        if (db->executeUpdate(updateQuery)) {
+            cout << "\n✅ Appointment marked as: " << newStatus << endl;
+        }
+        else {
+            cout << "\n[ERROR] Failed to update appointment status." << endl;
+        }
+    }
+    pressEnterToContinue();
+}
+
+// ---------------------------------------------------------
+// VIEW PATIENT RECORD (FIXED ALIGNMENT)
 // ---------------------------------------------------------
 void NurseModule::viewPatientRecord() {
     system("cls");
@@ -242,7 +423,6 @@ void NurseModule::viewPatientRecord() {
             return;
         }
 
-        // --- PATIENT INFO BOX ---
         string pId = string(patientRes->getString("formatted_id"));
         string pName = patientRes->getString("full_name");
         string pGender = patientRes->getString("gender");
@@ -253,7 +433,6 @@ void NurseModule::viewPatientRecord() {
         string pStatus = patientRes->getString("status");
         delete patientRes;
 
-        // FIXED: Box Width = 65 chars
         displayBoxHeader("PATIENT INFORMATION", 65);
 
         cout << "| Patient ID      : " << left << setw(43) << pId << " |" << endl;
@@ -266,7 +445,7 @@ void NurseModule::viewPatientRecord() {
         cout << "| Status          : " << left << setw(43) << pStatus << " |" << endl;
 
         ColorUtils::setColor(LIGHT_CYAN);
-        cout << "+=================================================================+" << endl;
+        cout << "+" << string(63, '=') << "+" << endl; // FIX: Exact 65 width
         ColorUtils::resetColor();
 
 
@@ -280,15 +459,11 @@ void NurseModule::viewPatientRecord() {
         sql::ResultSet* recordRes = db->executeSelect(recordQuery);
 
         if (recordRes && recordRes->rowsCount() > 0) {
-            // FIXED: Box Width = 132 chars (Matches table width)
-            // Table Width: 1+13+1+15+1+22+1+22+1+15+1+15+1+22+1 = 132
             displayBoxHeader("MEDICAL RECORDS", 132);
 
-            // Widths: ID(11), Date(13), Disease(20), Disorder(20), Duration(13), Severity(13), Doctor(20)
             const string SEP = "+-------------+---------------+----------------------+----------------------+---------------+---------------+----------------------+";
 
             ColorUtils::setColor(LIGHT_CYAN);
-            // No leading endl, flush with box
             cout << SEP << endl;
             cout << "| " << left << setw(11) << "Record ID"
                 << " | " << left << setw(13) << "Date"
@@ -341,12 +516,7 @@ void NurseModule::viewPatientRecord() {
         sql::ResultSet* appointmentRes = db->executeSelect(appointmentQuery);
 
         if (appointmentRes && appointmentRes->rowsCount() > 0) {
-            // FIXED: Box Width = 87 chars (Matches table width)
-            // Table Width: 1+17+1+22+1+14+1+14+1+14+1 = 86? Let's check.
-            // ID(15)+2=17. Name(20)+2=22. Date(12)+2=14. Time(12)+2=14. Status(12)+2=14.
-            // 17+22+14+14+14 = 81. + 6 pipes = 87 chars.
-            displayBoxHeader("APPOINTMENTS", 87);
-
+            displayBoxHeader("APPOINTMENTS", 132);
             displayAppointmentTable(appointmentRes);
         }
         else {
@@ -361,19 +531,19 @@ void NurseModule::viewPatientRecord() {
 }
 
 // ---------------------------------------------------------
-// GENERATE APPOINTMENT
+// GENERATE APPOINTMENT (FIXED ALIGNMENT)
 // ---------------------------------------------------------
 void NurseModule::generateNextAppointment() {
     system("cls");
     displayTableHeader("GENERATE NEXT APPOINTMENT");
 
-    // 1. Search Patient
     string patientId = searchPatientId();
-
     if (patientId.empty()) {
         pressEnterToContinue();
         return;
     }
+
+    if (!db->isPatientActive(patientId)) return;
 
     string checkQuery = "SELECT full_name, status FROM patient WHERE formatted_id = '" + patientId + "'";
     sql::ResultSet* checkRes = db->executeSelect(checkQuery);
@@ -395,7 +565,7 @@ void NurseModule::generateNextAppointment() {
         displayBoxHeader("PATIENT INFORMATION", 65);
         cout << "| Patient Name : " << left << setw(46) << patientName << " |" << endl;
         ColorUtils::setColor(LIGHT_CYAN);
-        cout << "+=================================================================+" << endl;
+        cout << "+" << string(63, '=') << "+" << endl; // FIX: Exact 65 width
         ColorUtils::resetColor();
 
         if (!selectedDoctorId.empty()) {
@@ -405,7 +575,6 @@ void NurseModule::generateNextAppointment() {
 
     redrawContext("");
 
-    // 2. Search Doctor
     cout << "\n[SELECT DOCTOR]" << endl;
     string doctorId = searchDoctorId();
 
@@ -416,7 +585,6 @@ void NurseModule::generateNextAppointment() {
 
     redrawContext(doctorId);
 
-    // 3. Enter Date
     string appointmentDate;
     while (true) {
         appointmentDate = getStringInput("Enter Appointment Date (YYYY-MM-DD): ");
@@ -435,9 +603,7 @@ void NurseModule::generateNextAppointment() {
         }
     }
 
-    // 4. Enter Time (Loop until valid & no clash)
     string appointmentTime;
-
     try {
         while (true) {
             appointmentTime = getStringInput("Enter Appointment Time (HH:MM): ");
@@ -447,14 +613,13 @@ void NurseModule::generateNextAppointment() {
             }
 
             if (!isValidTime(appointmentTime)) {
-                cout << "\n[ERROR] Invalid format! Please use HH:MM (e.g., 14:30)." << endl;
+                cout << "\n[ERROR] Invalid format! Please use the 24 hour format." << endl;
                 pressEnterToContinue();
                 redrawContext(doctorId);
                 cout << "Enter Appointment Date (YYYY-MM-DD): " << appointmentDate << endl;
                 continue;
             }
 
-            // Clash Check
             string clashQuery = "SELECT appointment_time FROM appointment "
                 "WHERE doctor_id = '" + doctorId + "' "
                 "AND appointment_date = '" + appointmentDate + "' "
@@ -478,7 +643,6 @@ void NurseModule::generateNextAppointment() {
             break;
         }
 
-        // 5. Insert Appointment
         string query = "INSERT INTO appointment (formatted_id, patient_id, nurse_id, doctor_id, appointment_date, appointment_time, status) "
             "VALUES (NULL, '" + patientId + "', '" + currentNurseId + "', '" + doctorId + "', '" + appointmentDate + "', '" + appointmentTime + "', 'Scheduled')";
 
@@ -513,7 +677,7 @@ void NurseModule::generateNextAppointment() {
             cout << "| Total Visits    : " << left << setw(44) << visitCount << " |" << endl;
 
             ColorUtils::setColor(LIGHT_CYAN);
-            cout << "+=================================================================+" << endl;
+            cout << "+" << string(63, '=') << "+" << endl; // FIX: Exact 65 width
             ColorUtils::resetColor();
         }
         else {
@@ -532,18 +696,17 @@ void NurseModule::displayPatientRecordTable(sql::ResultSet* res) {
 }
 
 void NurseModule::displayAppointmentTable(sql::ResultSet* res) {
-    // Widths: ID(15), Name(20), Date(12), Time(12), Status(12)
-    // Dashes: 17, 22, 14, 14, 14
-    const string SEP = "+-----------------+----------------------+--------------+--------------+--------------+";
+    // UPDATED: Extended widths to match 132 chars total
+    // ID(20), Name(40), Date(18), Time(18), Status(20)
+    const string SEP = "+----------------------+------------------------------------------+--------------------+--------------------+----------------------+";
 
     ColorUtils::setColor(LIGHT_CYAN);
-    // No top newline, flush with box
     cout << SEP << endl;
-    cout << "| " << left << setw(15) << "Appointment ID"
-        << " | " << left << setw(20) << "Patient Name"
-        << " | " << left << setw(12) << "Date"
-        << " | " << left << setw(12) << "Time"
-        << " | " << left << setw(12) << "Status" << " |" << endl;
+    cout << "| " << left << setw(20) << "Appointment ID"
+        << " | " << left << setw(40) << "Patient Name"
+        << " | " << left << setw(18) << "Date"
+        << " | " << left << setw(18) << "Time"
+        << " | " << left << setw(20) << "Status" << " |" << endl;
     cout << SEP << endl;
     ColorUtils::resetColor();
 
@@ -554,14 +717,14 @@ void NurseModule::displayAppointmentTable(sql::ResultSet* res) {
         string time = res->isNull("appointment_time") ? "N/A" : string(res->getString("appointment_time"));
         string status = string(res->getString("status"));
 
-        if (patientName.length() > 20) patientName = patientName.substr(0, 17) + "...";
+        if (patientName.length() > 40) patientName = patientName.substr(0, 37) + "...";
         if (time.length() > 5) time = time.substr(0, 5);
 
-        cout << "| " << left << setw(15) << appointmentId
-            << " | " << left << setw(20) << patientName
-            << " | " << left << setw(12) << date
-            << " | " << left << setw(12) << time
-            << " | " << left << setw(12) << status << " |" << endl;
+        cout << "| " << left << setw(20) << appointmentId
+            << " | " << left << setw(40) << patientName
+            << " | " << left << setw(18) << date
+            << " | " << left << setw(18) << time
+            << " | " << left << setw(20) << status << " |" << endl;
     }
 
     ColorUtils::setColor(LIGHT_CYAN);
