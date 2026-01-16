@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS // prevents errors with time functions in Visual Studio
+#define _CRT_SECURE_NO_WARNINGS 
 #include "DoctorModule.h"
 #include "ColorUtils.h"
 #include "MenuNavigator.h"
@@ -7,10 +7,12 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <ctime> // Required for date generation
-#include <limits> // Required for numeric input validation
+#include <ctime> 
+#include <limits> 
 
-// Helper function for strict date validation (YYYY-MM-DD)
+using namespace std;
+
+// Helper: Validate YYYY-MM-DD
 static bool isValidDate(const string& date) {
     if (date.length() != 10) return false;
     if (date[4] != '-' || date[7] != '-') return false;
@@ -23,7 +25,6 @@ static bool isValidDate(const string& date) {
     return (m >= 1 && m <= 12 && d >= 1 && d <= 31);
 }
 
-// Helper function to get today's date as a string (YYYY-MM-DD)
 static string getSystemDate() {
     time_t t = time(0);
     struct tm* now = localtime(&t);
@@ -32,29 +33,25 @@ static string getSystemDate() {
     return string(buffer);
 }
 
-// --- NEW HELPER: Force Numeric Input for Fees ---
 static double getValidDouble(const string& prompt) {
     double value;
     while (true) {
         cout << prompt;
         if (cin >> value) {
-            // Check if the next char is a newline (meaning the whole input was a number)
             if (cin.peek() == '\n') {
-                cin.ignore((numeric_limits<streamsize>::max)(), '\n'); // Clear buffer
+                cin.ignore((numeric_limits<streamsize>::max)(), '\n');
                 return value;
             }
             else {
-                // Input started with a number but had garbage after (e.g., "12abc")
                 cout << "\n[ERROR] Invalid input! Please enter a valid number (e.g. 50.00)." << endl;
                 cin.clear();
                 cin.ignore((numeric_limits<streamsize>::max)(), '\n');
             }
         }
         else {
-            // Input wasn't a number at all (e.g., "asda")
             cout << "\n[ERROR] Invalid input! Please enter a valid number (e.g. 50.00)." << endl;
-            cin.clear(); // Clear error flag
-            cin.ignore((numeric_limits<streamsize>::max)(), '\n'); // Discard bad input
+            cin.clear();
+            cin.ignore((numeric_limits<streamsize>::max)(), '\n');
         }
     }
 }
@@ -94,7 +91,7 @@ void DoctorModule::showMenu() {
 }
 
 // ---------------------------------------------------------
-// SEARCH HELPER (Fixed Alignment)
+// SEARCH HELPER (FIXED: SAFE WIDTH < 80 CHARS)
 // ---------------------------------------------------------
 string DoctorModule::searchPatientId() {
     string input = getStringInput("Enter Patient Name, IC Number, or ID: ");
@@ -124,10 +121,16 @@ string DoctorModule::searchPatientId() {
         struct PatientOpt { string id; string name; string ic; };
         vector<PatientOpt> options;
 
+        // --- FIXED TABLE WIDTH (Total ~70 chars to prevent wrapping) ---
+        const string SEP = "+-----+------------+--------------------------------+----------------+";
+
         ColorUtils::setColor(LIGHT_CYAN);
-        cout << "+-----+-------------+-----------------------------+------------------+" << endl;
-        cout << "| No. | ID          | Name                        | IC Number        |" << endl;
-        cout << "+-----+-------------+-----------------------------+------------------+" << endl;
+        cout << SEP << endl;
+        cout << "| " << left << setw(3) << "No."
+            << " | " << left << setw(10) << "ID"
+            << " | " << left << setw(30) << "Name"
+            << " | " << left << setw(14) << "IC Number" << " |" << endl;
+        cout << SEP << endl;
         ColorUtils::resetColor();
 
         int index = 1;
@@ -137,17 +140,18 @@ string DoctorModule::searchPatientId() {
             string pIc = res->getString("ic_number");
             options.push_back({ pId, pName, pIc });
 
-            // Strict Truncation: 27 chars max for name
-            if (pName.length() > 27) pName = pName.substr(0, 24) + "...";
+            // Truncate name to 27 chars + "..." if it exceeds 30 chars
+            if (pName.length() > 30) pName = pName.substr(0, 27) + "...";
 
-            cout << "| " << left << setw(4) << index
-                << "| " << left << setw(12) << pId
-                << "| " << left << setw(28) << pName
-                << "| " << left << setw(17) << pIc << "|" << endl;
+            cout << "| " << left << setw(3) << index
+                << " | " << left << setw(10) << pId
+                << " | " << left << setw(30) << pName
+                << " | " << left << setw(14) << pIc << " |" << endl;
             index++;
         }
+
         ColorUtils::setColor(LIGHT_CYAN);
-        cout << "+-----+-------------+-----------------------------+------------------+" << endl;
+        cout << SEP << endl;
         ColorUtils::resetColor();
 
         int selection = getIntInput("\nEnter selection number: ");
@@ -163,7 +167,7 @@ string DoctorModule::searchPatientId() {
 }
 
 // ---------------------------------------------------------
-// VIEW PATIENT RECORD (Aligned Box & Tables)
+// VIEW PATIENT RECORD
 // ---------------------------------------------------------
 void DoctorModule::viewPatientRecord() {
     system("cls");
@@ -187,7 +191,6 @@ void DoctorModule::viewPatientRecord() {
             return;
         }
 
-        // --- PATIENT INFO BOX ---
         string pId = patientRes->getString("formatted_id");
         string pName = patientRes->getString("full_name");
         string pGender = patientRes->getString("gender");
@@ -197,14 +200,12 @@ void DoctorModule::viewPatientRecord() {
         string pStatus = patientRes->getString("status");
         delete patientRes;
 
-        // Box Width: 65 chars
         ColorUtils::setColor(LIGHT_CYAN);
         cout << "\n+=================================================================+" << endl;
-        cout << "|                       PATIENT INFORMATION                       |" << endl;
+        cout << "|                         PATIENT INFORMATION                     |" << endl;
         cout << "+=================================================================+" << endl;
         ColorUtils::resetColor();
 
-        // Label width: 17, Value width: 46
         cout << "| Patient ID      : " << left << setw(46) << pId << "|" << endl;
         cout << "| Full Name       : " << left << setw(46) << pName << "|" << endl;
         cout << "| Gender          : " << left << setw(46) << pGender << "|" << endl;
@@ -217,7 +218,6 @@ void DoctorModule::viewPatientRecord() {
         cout << "+=================================================================+" << endl;
         ColorUtils::resetColor();
 
-
         string recordQuery = "SELECT mr.formatted_id AS record_formatted_id, mr.date_of_record, d.disease, d.disorder, d.duration_of_pain, d.severity, mr.notes "
             "FROM medical_record mr "
             "LEFT JOIN diagnosis d ON mr.diagnosis_id = d.formatted_id "
@@ -229,7 +229,7 @@ void DoctorModule::viewPatientRecord() {
         if (recordRes && recordRes->rowsCount() > 0) {
             ColorUtils::setColor(LIGHT_CYAN);
             cout << "\n+=================================================================+" << endl;
-            cout << "|                         MEDICAL RECORDS                         |" << endl;
+            cout << "|                          MEDICAL RECORDS                        |" << endl;
             cout << "+=================================================================+" << endl;
             ColorUtils::resetColor();
             displayMedicalRecordTable(recordRes);
@@ -246,6 +246,9 @@ void DoctorModule::viewPatientRecord() {
     pressEnterToContinue();
 }
 
+// ---------------------------------------------------------
+// VIEW APPOINTMENTS
+// ---------------------------------------------------------
 void DoctorModule::viewAppointments() {
     system("cls");
     displayTableHeader("VIEW APPOINTMENTS");
@@ -262,8 +265,6 @@ void DoctorModule::viewAppointments() {
         sql::ResultSet* appointmentRes = db->executeSelect(appointmentQuery);
 
         if (appointmentRes && appointmentRes->rowsCount() > 0) {
-            // Widths: ID(12), PatID(10), Name(20), Nurse(20), Date(12), Time(8), Status(11)
-            // Separators: 12 | 10 | 20 | 20 | 12 | 8 | 11
             const string SEP = "+------------+----------+--------------------+--------------------+------------+--------+-----------+";
 
             ColorUtils::setColor(LIGHT_CYAN);
@@ -287,10 +288,9 @@ void DoctorModule::viewAppointments() {
                 string appointmentTime = appointmentRes->isNull("appointment_time") ? "N/A" : string(appointmentRes->getString("appointment_time"));
                 string status = string(appointmentRes->getString("status"));
 
-                // Strict Truncation
                 if (patientName.length() > 19) patientName = patientName.substr(0, 16) + "...";
                 if (nurseName.length() > 19) nurseName = nurseName.substr(0, 16) + "...";
-                if (appointmentTime.length() > 5) appointmentTime = appointmentTime.substr(0, 5); // HH:MM
+                if (appointmentTime.length() > 5) appointmentTime = appointmentTime.substr(0, 5);
 
                 cout << "| " << left << setw(11) << appointmentId
                     << "| " << left << setw(9) << patientId
@@ -313,11 +313,10 @@ void DoctorModule::viewAppointments() {
             if (countRes && countRes->next()) {
                 ColorUtils::setColor(LIGHT_CYAN);
                 cout << "\n+=================================================================+" << endl;
-                cout << "|                       APPOINTMENT SUMMARY                       |" << endl;
+                cout << "|                        APPOINTMENT SUMMARY                      |" << endl;
                 cout << "+=================================================================+" << endl;
                 ColorUtils::resetColor();
 
-                // Box Width 65. Label ~20, Value ~43
                 cout << "| Total Appointments : " << left << setw(43) << countRes->getInt("total_count") << "|" << endl;
                 cout << "| Scheduled          : " << left << setw(43) << countRes->getInt("scheduled_count") << "|" << endl;
                 cout << "| Completed          : " << left << setw(43) << countRes->getInt("completed_count") << "|" << endl;
@@ -340,7 +339,7 @@ void DoctorModule::viewAppointments() {
 }
 
 // ---------------------------------------------------------
-// MAKE DIAGNOSIS (With Medication Search Loop & VALIDATION)
+// MAKE DIAGNOSIS (FIXED: Multiple Meds & Active Check)
 // ---------------------------------------------------------
 void DoctorModule::makeDiagnosis() {
     system("cls");
@@ -351,6 +350,10 @@ void DoctorModule::makeDiagnosis() {
         pressEnterToContinue();
         return;
     }
+
+    // --- CHECK: IS PATIENT ACTIVE? ---
+    if (!db->isPatientActive(patientId)) return;
+    // ---------------------------------
 
     string checkQuery = "SELECT full_name FROM patient WHERE formatted_id = '" + patientId + "'";
     sql::ResultSet* checkRes = db->executeSelect(checkQuery);
@@ -365,7 +368,7 @@ void DoctorModule::makeDiagnosis() {
         displayTableHeader("MAKE DIAGNOSIS");
         ColorUtils::setColor(LIGHT_CYAN);
         cout << "\n+=================================================================+" << endl;
-        cout << "|                       PATIENT INFORMATION                       |" << endl;
+        cout << "|                        PATIENT INFORMATION                      |" << endl;
         cout << "+=================================================================+" << endl;
         ColorUtils::resetColor();
         cout << "| Patient Name : " << left << setw(48) << patientName << "|" << endl;
@@ -403,7 +406,7 @@ void DoctorModule::makeDiagnosis() {
         }
     }
 
-    // --- NEW: MEDICATION SEARCH LOOP ---
+    // --- MEDICATION SEARCH LOOP ---
     struct PrescribedItem {
         string pharmacyId;
         string medName;
@@ -421,7 +424,7 @@ void DoctorModule::makeDiagnosis() {
             "Enter Next Medication Name (or Press Enter to finish): ";
 
         string searchName = getStringInput(prompt);
-
+      
         if (searchName.empty()) break;
 
         string pharmacyQuery = "SELECT formatted_id, medicine_name, unit_price FROM pharmacy WHERE medicine_name LIKE '%" + searchName + "%' ORDER BY medicine_name";
@@ -481,20 +484,19 @@ void DoctorModule::makeDiagnosis() {
         }
         delete pharmRes;
 
-        string dosage = getStringInput("   Enter Dosage (e.g. 2 tabs): ");
-        string duration = getStringInput("   Enter Duration (e.g. 5 days): ");
+        string dosage = getStringInput("   Enter Dosage: ");
+        string duration = getStringInput("   Enter Duration: ");
         string instr = getStringInput("   Enter Instructions: ");
 
         prescriptionList.push_back({ selectedPharmId, selectedMedName, dosage, duration, instr });
         cout << "✅ Added to list.\n" << endl;
     }
 
-    // --- TREATMENT & FINANCIAL SECTION (FIXED) ---
+    // --- TREATMENT & BILLING ---
     cout << "\n--- TREATMENT & BILLING ---" << endl;
     string dressing = getStringInput("Treatment/Procedure Description: ");
     if (dressing.empty()) dressing = "Standard Consultation";
 
-    // Replaced getStringInput with getValidDouble to prevent text entry crash
     double consultFee = getValidDouble("Consultation Fee (RM): ");
     double treatFee = getValidDouble("Treatment Fee (RM): ");
 
@@ -503,32 +505,15 @@ void DoctorModule::makeDiagnosis() {
     bool treatmentInserted = db->executeUpdate(treatmentQuery);
 
     try {
-        string firstPrescriptionId = "NULL";
-        string allMedsSummary = "";
-
-        for (const auto& item : prescriptionList) {
-            string presQuery = "INSERT INTO prescription (formatted_id, pharmacy_id, dosage, duration_of_meds, instructions, date) "
-                "VALUES (NULL, '" + item.pharmacyId + "', '" + item.dosage + "', '" + item.duration + "', '" + item.instructions + "', '" + date + "')";
-
-            if (db->executeUpdate(presQuery)) {
-                string getIdQuery = "SELECT formatted_id FROM prescription WHERE pharmacy_id = '" + item.pharmacyId + "' ORDER BY formatted_id DESC LIMIT 1";
-                sql::ResultSet* idRes = db->executeSelect(getIdQuery);
-                if (idRes && idRes->next()) {
-                    string newId = idRes->getString("formatted_id");
-                    if (firstPrescriptionId == "NULL") firstPrescriptionId = "'" + newId + "'";
-                }
-                if (idRes) delete idRes;
-
-                if (!allMedsSummary.empty()) allMedsSummary += ", ";
-                allMedsSummary += item.medName + "(" + item.dosage + ")";
-            }
-        }
-
-        string diagQuery = "INSERT INTO diagnosis (formatted_id, disease, disorder, duration_of_pain, severity, prescription_id, date) "
-            "VALUES (NULL, '" + disease + "', '" + disorder + "', '" + durationOfPain + "', '" + severity + "', " + firstPrescriptionId + ", '" + date + "')";
+        // --- STEP 1: CREATE DIAGNOSIS FIRST ---
+        // (Removed prescription_id since the prescription table now points to diagnosis)
+        string diagQuery = "INSERT INTO diagnosis (formatted_id, disease, disorder, duration_of_pain, severity, date) "
+            "VALUES (NULL, '" + disease + "', '" + disorder + "', '" + durationOfPain + "', '" + severity + "', '" + date + "')";
 
         if (db->executeUpdate(diagQuery)) {
-            string getDiagIdQuery = "SELECT formatted_id FROM diagnosis WHERE disease = '" + disease + "' ORDER BY formatted_id DESC LIMIT 1";
+
+            // --- STEP 2: GET THE NEW DIAGNOSIS ID ---
+            string getDiagIdQuery = "SELECT formatted_id FROM diagnosis WHERE disease = '" + disease + "' AND date = '" + date + "' ORDER BY created_at DESC LIMIT 1";
             sql::ResultSet* diagRes = db->executeSelect(getDiagIdQuery);
             string diagnosisId = "";
             if (diagRes && diagRes->next()) {
@@ -537,6 +522,20 @@ void DoctorModule::makeDiagnosis() {
             if (diagRes) delete diagRes;
 
             if (!diagnosisId.empty()) {
+
+                // --- STEP 3: INSERT PRESCRIPTIONS (LINKED TO DIAGNOSIS) ---
+                string allMedsSummary = "";
+                for (const auto& item : prescriptionList) {
+                    string presQuery = "INSERT INTO prescription (formatted_id, patient_id, pharmacy_id, diagnosis_id, dosage, duration_of_meds, instructions, date) "
+                        "VALUES (NULL, '" + patientId + "', '" + item.pharmacyId + "', '" + diagnosisId + "', '" + item.dosage + "', '" + item.duration + "', '" + item.instructions + "', '" + date + "')";
+
+                    db->executeUpdate(presQuery); // Assuming success
+
+                    if (!allMedsSummary.empty()) allMedsSummary += ", ";
+                    allMedsSummary += item.medName + "(" + item.dosage + ")";
+                }
+
+                // --- STEP 4: CREATE MEDICAL RECORD ---
                 string finalNotes = "Diagnosis made by doctor.";
                 if (!allMedsSummary.empty()) {
                     finalNotes += " Prescribed: " + allMedsSummary;
@@ -552,7 +551,7 @@ void DoctorModule::makeDiagnosis() {
 
                     ColorUtils::setColor(LIGHT_CYAN);
                     cout << "\n+=================================================================+" << endl;
-                    cout << "|                        DIAGNOSIS DETAILS                        |" << endl;
+                    cout << "|                          DIAGNOSIS DETAILS                      |" << endl;
                     cout << "+=================================================================+" << endl;
                     ColorUtils::resetColor();
 
@@ -583,7 +582,7 @@ void DoctorModule::makeDiagnosis() {
 }
 
 // ---------------------------------------------------------
-// EDIT RECORD
+// EDIT RECORD (FIXED: Updates both Diagnosis AND Medical Record dates)
 // ---------------------------------------------------------
 void DoctorModule::editPatientMedicalRecord() {
     system("cls");
@@ -594,6 +593,10 @@ void DoctorModule::editPatientMedicalRecord() {
         pressEnterToContinue();
         return;
     }
+
+    // --- CHECK: IS PATIENT ACTIVE? ---
+    if (!db->isPatientActive(patientId)) return;
+    // ---------------------------------
 
     try {
         string checkPatientQuery = "SELECT full_name FROM patient WHERE formatted_id = '" + patientId + "'";
@@ -627,7 +630,7 @@ void DoctorModule::editPatientMedicalRecord() {
 
         ColorUtils::setColor(LIGHT_CYAN);
         cout << "\n+=================================================================+" << endl;
-        cout << "|                       PATIENT INFORMATION                       |" << endl;
+        cout << "|                        PATIENT INFORMATION                      |" << endl;
         cout << "+=================================================================+" << endl;
         ColorUtils::resetColor();
         cout << "| Patient Name : " << left << setw(48) << patientName << "|" << endl;
@@ -639,7 +642,7 @@ void DoctorModule::editPatientMedicalRecord() {
         displayMedicalRecordTable(recordRes);
         delete recordRes;
 
-        string recordId = getStringInput("\nEnter Record ID to edit (e.g., MR001) or press Enter to cancel: ");
+        string recordId = getStringInput("\nEnter Record ID to edit or press Enter to cancel: ");
         if (recordId.empty()) {
             cout << "\n[ERROR] Operation cancelled!" << endl;
             pressEnterToContinue();
@@ -673,7 +676,7 @@ void DoctorModule::editPatientMedicalRecord() {
             displayTableHeader("EDIT PATIENT MEDICAL RECORD");
             ColorUtils::setColor(LIGHT_CYAN);
             cout << "\n+=================================================================+" << endl;
-            cout << "|                    CURRENT DIAGNOSIS DETAILS                    |" << endl;
+            cout << "|                      CURRENT DIAGNOSIS DETAILS                  |" << endl;
             cout << "+=================================================================+" << endl;
             ColorUtils::resetColor();
             cout << "| Disease         : " << left << setw(46) << (currentDisease.empty() ? "N/A" : currentDisease) << "|" << endl;
@@ -726,11 +729,19 @@ void DoctorModule::editPatientMedicalRecord() {
             updateQuery += " WHERE formatted_id = '" + diagnosisId + "'";
 
             if (db->executeUpdate(updateQuery)) {
+
+                // --- CRITICAL FIX: Sync the date change to medical_record table ---
+                if (!date.empty()) {
+                    string syncDateQuery = "UPDATE medical_record SET date_of_record = '" + date + "' WHERE formatted_id = '" + recordId + "'";
+                    db->executeUpdate(syncDateQuery);
+                }
+                // ------------------------------------------------------------------
+
                 cout << "\n✅ Medical record updated successfully!" << endl;
 
                 ColorUtils::setColor(LIGHT_CYAN);
                 cout << "\n+=================================================================+" << endl;
-                cout << "|                     UPDATED MEDICAL RECORD                      |" << endl;
+                cout << "|                        UPDATED MEDICAL RECORD                   |" << endl;
                 cout << "+=================================================================+" << endl;
                 ColorUtils::resetColor();
 
@@ -766,8 +777,6 @@ void DoctorModule::displayPatientRecordTable(sql::ResultSet* res) {
 }
 
 void DoctorModule::displayMedicalRecordTable(sql::ResultSet* res) {
-    // Widths: ID(11), Date(12), Disease(21), Disorder(21), Duration(15), Severity(15)
-    // Separators: 11 | 12 | 21 | 21 | 15 | 15
     const string SEP = "+-----------+------------+---------------------+---------------------+---------------+---------------+";
 
     ColorUtils::setColor(LIGHT_CYAN);
@@ -789,7 +798,6 @@ void DoctorModule::displayMedicalRecordTable(sql::ResultSet* res) {
         string duration = res->isNull("duration_of_pain") ? "N/A" : string(res->getString("duration_of_pain"));
         string severity = res->isNull("severity") ? "N/A" : string(res->getString("severity"));
 
-        // Strict Truncation Logic to keep table aligned
         if (disease.length() > 20) disease = disease.substr(0, 17) + "...";
         if (disorder.length() > 20) disorder = disorder.substr(0, 17) + "...";
         if (duration.length() > 14) duration = duration.substr(0, 11) + "..";
